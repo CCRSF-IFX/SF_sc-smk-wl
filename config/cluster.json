@@ -1,0 +1,543 @@
+{
+    "__default__" :
+    {
+        "partition": "norm",
+        "mem" : "64g",
+        "time" : "96:00:00",
+        "threads": "4"
+    },
+    "cutadapt":
+    {
+        "partition": "norm",
+        "mem": "128g",
+        "time" : "48:00:00",
+        "threads": "6"
+    },
+    "trimGalore":
+    {
+        "partition": "norm",
+        "mem": "128g",
+        "time" : "48:00:00",
+        "threads": "6"
+    },
+    "trimmo":
+    {
+        "partition": "norm",
+        "mem": "64g",
+        "time" : "48:00:00",
+        "threads": "8"
+    },
+    "star":
+    {
+        "partition": "norm",
+        "mem": "128g",
+        "time" : "72:00:00",
+        "threads": "8"
+    },
+    "star2p":
+    {
+        "partition": "norm",
+        "mem": "128g",
+        "time" : "72:00:00",
+        "threads": "8"
+    },
+    "bowtie2":
+    {
+        "partition": "norm",
+        "mem": "128g",
+        "time" : "48:00:00",
+        "threads": "8"
+    },
+    "mapper":
+    {
+        "partition": "norm",
+        "mem": "64g",
+        "time" : "48:00:00",
+        "threads": "8"
+    },
+    "bwamem":
+    {
+        "partition": "norm",
+        "mem": "128g",
+        "time" : "48:00:00",
+        "threads": "8"
+    },
+    "addrg":
+    {
+        "partition": "norm",
+        "mem": "64g",
+        "time" : "48:00:00",
+        "threads": "4"
+    },
+    "sort":
+    {
+        "partition": "norm",
+        "mem": "64g",
+        "time" : "48:00:00",
+        "threads": "4"
+    },
+    "index":
+    {
+        "partition": "norm",
+        "mem": "64g",
+        "time" : "04:00:00",
+        "threads": "4"
+    },
+    "markdup":
+    {
+        "partition": "norm",
+        "mem": "128g",
+        "time" : "48:00:00",
+        "threads": "4"
+    },
+    "bamstats":
+    {
+        "partition": "norm",
+        "mem": "64g",
+        "time" : "48:00:00",
+        "threads": "4"
+    },
+    "rnametrics":
+    {
+        "partition": "norm",
+        "mem": "64g",
+        "time" : "48:00:00",
+        "threads": "4"
+    },
+    "rsem":
+    {
+        "partition": "norm",
+        "mem": "64g",
+        "time" : "48:00:00",
+        "threads": "4"
+    },
+    "rsemcount":
+    {
+        "partition": "norm",
+        "mem": "64g",
+        "time" : "24:00:00",
+        "threads": "4"
+    },
+    "innerdistance":
+    {
+        "partition": "norm",
+        "mem": "64g",
+        "time" : "48:00:00",
+        "threads": "4"
+    },
+    "inferexperiment":
+    {
+        "partition": "norm",
+        "mem": "64g",
+        "time" : "48:00:00",
+        "threads": "4"
+    },
+    "readgc":
+    {
+        "partition": "norm",
+        "mem": "64g",
+        "time" : "48:00:00",
+        "threads": "4"
+    },
+    "readdistribution":
+    {
+        "partition": "norm",
+        "mem": "64g",
+        "time" : "48:00:00",
+        "threads": "4"
+    },
+    "junctionsaturation":
+    {
+        "partition": "norm",
+        "mem": "64g",
+        "time" : "48:00:00",
+        "threads": "4"
+    },
+    "ngsqc":
+    {
+        "partition": "norm",
+        "mem": "64g",
+        "time" : "04:00:00",
+        "threads": "4"
+    },
+    "dragen_somatic":
+    {
+        "job-name": "dragen_somatic",
+        "partition": "dragen",
+        "time": "5-0:00:00",
+        "threads": "1"
+    },
+    "dragen_tumor_only":
+    {
+        "job-name": "dragen_tumor_only",
+        "partition": "dragen",
+        "time": "5-0:00:00",
+        "threads": "1"
+    },
+    "dragen_germ":
+    {
+        "job-name": "dragen_germ",
+        "partition": "dragen",
+        "time": "5-0:00:00",
+        "threads": "1"
+    },
+    "dragen_sv":
+    {
+        "job-name": "dragen_sv",
+        "partition": "dragen",
+        "time": "5-0:00:00",
+        "threads": "1"
+    },
+    "dragen_sv_tumor_only":
+    {
+        "job-name": "dragen_sv_tumor_only",
+        "partition": "dragen",
+        "time": "5-0:00:00",
+        "threads": "1"
+    },
+    "dragen_sv_germ":
+    {
+        "job-name": "dragen_sv_germ",
+        "partition": "dragen",
+        "time": "5-0:00:00",
+        "threads": "1"
+    },
+    "dragen_pair_germ":
+    {
+        "job-name": "dragen_pair_germ",
+        "partition": "dragen",
+        "time": "5-0:00:00",
+        "threads": "1"
+    },
+    "dragen_joint":
+    {
+        "job-name": "dragen_joint",
+        "partition": "dragen",
+        "time": "5-0:00:00",
+        "threads": "1"
+    },
+    "dragen_methylation":
+    {
+        "job-name": "dragen_methylation",
+        "partition": "dragen",
+        "time": "5-0:00:00",
+        "threads": "1"
+    },
+    "dragen_map":
+    {
+        "job-name": "dragen_map",
+        "partition": "dragen",
+        "time": "5-0:00:00",
+        "threads": "1"
+    },
+    "chgnm":
+    {
+        "partition": "short",
+        "mem": "4g",
+        "time" : "00:30:00",
+        "threads": "2"
+    },
+    "bbtools":
+    {
+        "partition": "norm",
+        "mem" : "64g",
+        "time" : "48:00:00",
+        "threads": "4"
+    },  
+    "vep":
+    {
+        "partition": "norm",
+        "mem": "32g",
+        "time" : "48:00:00",
+        "threads": "4"
+    },
+    "cravat":
+    {
+        "partition": "norm",
+        "mem": "128g",
+        "time" : "48:00:00",
+        "threads": "13"
+    },
+    "hmftools_amber":
+    {
+        "partition": "norm",
+        "mem": "128g",
+        "time" : "48:00:00",
+        "threads": "24"
+    },
+    "hmftools_cobalt":
+    {
+        "partition": "norm",
+        "mem": "128g",
+        "time" : "48:00:00",
+        "threads": "24"
+    },
+    "hmftools_purple":
+    {
+        "partition": "norm",
+        "mem": "64g",
+        "time" : "48:00:00",
+        "threads": "8"
+    },
+    "sequenza_cnv":
+    {
+        "partition": "norm",
+        "mem": "128g",
+        "time" : "48:00:00",
+        "threads": "16"
+    },
+    "split_reads":
+    {
+        "partition": "norm",
+        "mem": "64g",
+        "time" : "48:00:00",
+        "threads": "4"
+    },
+   "damage_estimator":
+    {
+        "partition": "norm",
+        "mem": "64g",
+        "time" : "48:00:00",
+        "threads": "4"
+    },
+   "damage_plot":
+    {
+        "partition": "norm",
+        "mem": "64g",
+        "time" : "48:00:00",
+        "threads": "4"
+    },
+   "fastqc":
+    {
+        "partition": "norm",
+        "mem": "64g",
+        "time" : "48:00:00",
+        "threads": "4"
+    },
+    "fastqc1":
+    {
+        "partition": "norm",
+        "mem": "64g",
+        "time" : "48:00:00",
+        "threads": "4"
+    },
+   "fastqscreen":
+    {
+        "partition": "norm",
+        "mem": "64g",
+        "time" : "48:00:00",
+        "threads": "4"
+    },
+    "seqtk":
+    {
+        "partition": "norm",
+        "mem": "32g",
+        "time" : "04:00:00",
+        "threads": "4"
+    },
+    "kraken":
+    {
+        "partition": "norm",
+        "mem": "64g",
+        "time" : "04:00:00",
+        "threads": "4"
+    },
+    "krona":
+    {
+        "partition": "norm",
+        "mem" : "64g",
+        "time" : "04:00:00",
+        "threads": "4"
+    },
+    "ancestry":
+    {
+        "partition": "norm",
+        "mem" : "64g",
+        "time" : "48:00:00",
+        "threads": "4"
+    },
+    "combine_ancestry":
+    {
+        "partition": "short",
+        "mem" : "8g",
+        "time" : "00:30:00",
+        "threads": "4"
+    },
+    "anceplot":
+    {
+        "partition": "norm",
+        "mem" : "64g",
+        "time" : "24:00:00",
+        "threads": "4"
+    },
+    "indexcov":
+    {
+        "partition": "norm",
+        "mem" : "64g",
+        "time" : "48:00:00",
+        "threads": "4"
+    },
+    "ontarget":
+    {
+        "partition": "norm",
+        "mem": "64g",
+        "time" : "48:00:00",
+        "threads": "4"
+    },
+    "qualimap":
+    {
+        "partition": "norm",
+        "mem": "136g",
+        "time" : "48:00:00",
+        "threads": "4"
+    },
+    "superfreq":
+    {
+        "partition": "norm",
+        "mem": "256g",
+        "time" : "72:00:00",
+        "threads": "16"
+    },
+    "multiqc":
+    {
+        "partition": "norm",
+        "mem" : "32g",
+        "time" : "24:00:00",
+        "threads": "4"
+    },  
+    "report":
+    {
+        "partition": "short",
+        "mem" : "4g",
+        "time" : "00:30:00",
+        "threads": "2"
+    },  
+    "wreport":
+    {
+        "partition": "short",
+        "mem": "4g",
+        "time" : "00:30:00",
+        "threads": "2"
+    },
+    "dragen_report":
+    {
+        "partition": "short",
+        "mem" : "4g",
+        "time" : "00:30:00",
+        "threads": "2"
+    },
+    "deliverbam":
+    {
+        "partition": "norm",
+        "mem": "8g",
+        "time" : "24:00:00",
+        "threads": "2"
+    },
+    "deliverfastq":
+    {
+        "partition": "norm",
+        "mem": "8g",
+        "time" : "24:00:00",
+        "threads": "2"
+    },
+    "meta2json":
+    {
+        "partition": "norm",
+        "mem" : "36g",
+        "time" : "48:00:00",
+        "threads": "4"
+    },
+    "metaagin":
+    {
+        "partition": "norm",
+        "mem" : "4g",
+        "time" : "48:00:00",
+        "threads": "4"
+    },
+    "scpbiowulf":
+    {
+        "partition": "norm",
+        "mem" : "4g",
+        "time" : "48:00:00",
+        "threads": "2"
+    },
+    "pcgr_py":
+    {
+        "partition": "norm",
+        "mem" : "64g",
+        "time" : "12:00:00",
+        "threads": "4"
+    },
+    "pcgr":
+    {
+        "partition": "norm",
+        "mem" : "64g",
+        "time" : "12:00:00",
+        "threads": "4"
+    },
+    "summaryFiles":
+    {
+	"partition": "norm",
+        "threads": "1",
+        "time" : "4:00:00"
+    },
+    "nozzleReport":
+    {
+	"partition": "norm",
+        "threads": "1",
+        "time" : "4:00:00"
+    },
+    "nozzleReportEdit":
+    {
+	"partition": "norm",
+        "threads": "1",
+        "time" : "4:00:00"
+    },
+    "deliverCount":
+    {
+        "threads": "4",
+        "mem": "8g"
+    },
+    "aggregateCSV":
+    {
+	"partition": "norm",
+        "threads": "1",
+	"mem": "256",
+        "time" : "4:00:00"
+    },
+    "count":
+    {
+        "threads": "8",
+        "mem": "128g"
+    },
+    "aggregate":
+    {
+        "threads": "8",
+        "mem": "128g"
+    },
+    "atac_count":
+    {
+        "threads": "16",
+        "mem": "128g"
+    },
+    "atac_aggregate":
+    {
+        "threads": "16",
+        "mem": "128g"
+    },
+    "infercnvSample":
+    {
+        "threads": "16",
+        "mem": "128g"
+    },
+    "arc_count":
+    {
+        "threads": "16",
+        "mem": "128g"
+    },
+    "arc_aggregate":
+    {
+        "threads": "16",
+        "mem": "128g"
+    }
+}

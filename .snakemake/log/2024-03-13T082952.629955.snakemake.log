@@ -1,4 +1,0 @@
-FileNotFoundError in line 28 of /mnt/ccrsf-ifx/Software/github/SF_scMaestro/workflow/rules/singlecell_import.smk:
-[Errno 2] No such file or directory: '/mnt/ccrsf-static/singlecell_projects/ShyamSharan_CS035963_2scGEX_020924/Analysis/workflow/config/cluster.json'
-  File "/mnt/ccrsf-ifx/Software/github/SF_scMaestro/workflow/Snakefile_rna", line 12, in <module>
-  File "/mnt/ccrsf-ifx/Software/github/SF_scMaestro/workflow/rules/singlecell_import.smk", line 28, in <module>

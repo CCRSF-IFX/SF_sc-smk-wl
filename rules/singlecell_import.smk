@@ -1,6 +1,7 @@
 #!/bin/usr/env python3
 
 from xml.dom import minidom
+import json 
 
 csas = re.search("CS[0-9]{6}", config["analysis"]).group(0) if re.search("CS[0-9]{6}", config["analysis"]) else os.path.basename(config["analysis"].strip('/'))
 unaligned = config["unaligned"][0]
@@ -28,7 +29,7 @@ one_up = '/'.join(config["analysis"].rstrip('/').split('/')[:-1])
 with open(os.path.join(config["analysis"], 'workflow/config/cluster.json')) as file:
     clusterConfig = json.load(file)
 
-forcecells = getattr(config, "forcecells", False)
+forcecells = config.get("forcecells", False)
 
 #Get project name
 if "projectname" in config:
@@ -43,8 +44,8 @@ else:
     sample = list(set([os.path.basename(file).split('.')[0] for file in list(itertools.chain.from_iterable([glob.glob(i + '/*') for i in fastqpath]))]))
     samps = []
     for item in sample:
-        if len(re.findall("(\S*)_S\d+_L0\d{2}_[RI]", item)) > 0:
-          samps.append(re.findall("(\S*)_S\d+_L0\d{2}_[RI]", item)[0])
+        if len(re.findall(r"(\S*)_S\d+_L0\d{2}_[RI]", item)) > 0:
+          samps.append(re.findall(r"(\S*)_S\d+_L0\d{2}_[RI]", item)[0])
         else:
           samps.append(item)
     ## Add if else in the list comprehension for the sample name with 'Sample_' in the middle.
@@ -144,13 +145,13 @@ flowcell = run_names[-1][-9:]
 #    flowcell = flowcellRunParameters if flowcell in flowcellRunParameters else flowcell
 
 #Create file names
-cfile = one_up + "/" + project_name+"_"+'_'.join(flowcells)+".count.tar"
+#cfile = one_up + "/" + project_name+"_"+'_'.join(flowcells)+".count.tar"
 report_result = one_up + "/" + project_name + "_" + flowcell + "_Metadata.txt"
 wreport_result = one_up + "/" + project_name + "_" + flowcell + ".docx"
 xreport_result = one_up + "/" + project_name + "_" + flowcell + ".xlsx"
 copy_result = one_up + "/" + project_name + "_" + flowcell + "_copy.txt"
 
 rule_all_append = []
-if len(config["archive"] > 0):
-    archive = True
+archive = config.get("archive", False)
+if archive is True:
     rule_all_append += ["archive_setup.complete"]

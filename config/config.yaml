@@ -1,9 +1,17 @@
-unaligned:
-  - "/scratch/ccrsf_scratch/scratch/Illumina_Demultiplex/NovaSeq/240221_A00430_0880_AHYL2JDRX3/HYL2JDRX3/outs/fastq_path/HYL2JDRX3"
-analysis: "/mnt/ccrsf-static/singlecell_projects/ShyamSharan_CS035963_2scGEX_020924/Analysis"
-ref: "mm10"
-projectname: "ShyamSharan_CS035963_2scGEX_020924"
-yields: "72444.0"
-archive: true
-runs: "240221_A00430_0880_AHYL2JDRX3"
-pipeline: "rna"
+config: 
+  unaligned:
+    - "/mnt/ccrsf-ifx/Software/github/SF_scMaestro/workflow/test_data/gex_2samples"
+  analysis: "/mnt/ccrsf-ifx/Software/github/SF_scMaestro/"
+  ref: "mm10"
+  projectname: "ShyamSharan_CS035963_2scGEX_020924"
+  yields: "72444.0"
+  archive: true
+  runs: "240221_A00430_0880_AHYL2JDRX3"
+  pipeline: "rna"
+  test_email: "xies4@nih.gov"
+
+program: 
+  cellranger: "cumulusprod/cellranger:7.2.0"
+reference: 
+  
+   

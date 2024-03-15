@@ -50,8 +50,8 @@ fastqpath = config.unaligned
 analysis = config.analysis
 one_up = '/'.join(config.analysis.rstrip('/').split('/')[:-1])
 
-with open(config.analysis + '/cluster.json') as file:
-    clusterConfig = json.load(file)
+#with open(config.analysis + '/cluster.json') as file:
+#    clusterConfig = json.load(file)
 
 forcecells = getattr(config, "forcecells", False)
 

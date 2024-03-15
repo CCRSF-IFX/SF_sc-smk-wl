@@ -1,12 +1,12 @@
 shell.executable("/bin/bash")
 shell.prefix("source /etc/profile.d/modules.sh; ")
 
-
 from snakemake.utils import R
 import glob
 import os.path
 import os
 import itertools
+import sys
 
 ## aggregate is set to "True" in the step below
 include: "rules/singlecell_import.smk"

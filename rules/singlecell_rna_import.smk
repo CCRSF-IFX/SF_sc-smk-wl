@@ -31,26 +31,26 @@ def count_expect_force():
 params_cell_number = count_expect_force()
 print(params_cell_number)
 
-current_cellranger = program.cellranger
+current_cellranger = config.tool4mtx
 
 rule count:
     output: "{sample}/outs/web_summary.html"
     log: err = "run_{sample}_10x_cellranger_count.err", log ="run_{sample}_10x_cellranger_count.log"
     params: batch = "-l nodes=1:ppn=16,mem=96gb", prefix = "{sample}", prefix2 = filterFastq, cells_flag=lambda wildcards: params_cell_number[wildcards.sample], include_introns = str(include_introns).lower()
-    shell: "rm -r {params.prefix}; module load bcl2fastq2; {program.cellranger} count --include-introns {params.include_introns} --id={params.prefix} --sample={params.prefix} --fastqs={params.prefix2} {params.cells_flag} --transcriptome={reference.transcriptome} 2>{log.err} 1>{log.log}"
+    shell: "rm -r {params.prefix}; module load bcl2fastq2; cellranger count --include-introns {params.include_introns} --id={params.prefix} --sample={params.prefix} --fastqs={params.prefix2} {params.cells_flag} --transcriptome={reference.transcriptome} 2>{log.err} 1>{log.log}"
 
 rule aggregateCSV:
     input: expand("{sample}/outs/web_summary.html", sample=samples)
     output: "AggregatedDatasets.csv"
     params: batch = "-l nodes=1:ppn=1"
-    shell: "{program.python2_7} {program.pythonscripts}/generateAggregateCSV.py {analysis}"
+    shell: "python generateAggregateCSV.py {analysis}"
 
 rule aggregate:
     input: csv="AggregatedDatasets.csv"
     output: touch("aggregate.complete")
     log: err="run_10x_aggregate.err", log="run_10x_aggregate.log"
     params: batch = "-l nodes=1:ppn=16,mem=96gb"
-    shell: "{program.cellranger} aggr --id=AggregatedDatasets --csv={input.csv} --normalize=mapped 2>{log.err} 1>{log.log}"
+    shell: "cellranger aggr --id=AggregatedDatasets --csv={input.csv} --normalize=mapped 2>{log.err} 1>{log.log}"
 
 rule prep_fastq:
     input: unpack(getFirstFastqFile)
@@ -62,6 +62,7 @@ rule fastqscreen:
     output: two = "QC/Sample_{sample}/{sample}_R2_screen.png", two_txt = "QC/Sample_{sample}/{sample}_R2_screen.txt", two_tagged = "QC/Sample_{sample}/{sample}_R2.tagged.fastq.gz", two_tagged_filtered = "QC/Sample_{sample}/{sample}_R2.tagged_filter.fastq.gz", two_html = "QC/Sample_{sample}/{sample}_R2_screen.html"
     log: logname = "QC/Sample_{sample}/{sample}_fastq_screen.err"
     params: prefix = "QC/Sample_{sample}/"
+    conda: "../envs/fastqscreen.yaml" 
     shell: "{program.fastq_screen} --outdir {params.prefix} --threads {clusterConfig[fastqscreen][threads]} --subset 5000000 --nohits --conf {program.conf} --aligner bowtie2 {input.R2} 2>{log.logname}"
 
 rule kraken:

@@ -62,16 +62,16 @@ else:
 #    log: "archive.log"
 #    shell: "cd {one_up}; python {program.active_scripts}/meta2json_single_cell_v0.1.py -m {input.metadata} -r {params.runs} -f {params.fastqs} -c {config.analysis} > {log}"
 
-rule deliverFastq:
-  	output: one_up + "/" + project_name+"_{flowcell}.fastq.tar"
-  	params: batch = "-l nodes=1:ppn=4,mem=24g", prefix = flowcellPath
-  	shell: "tar -cvf {output} -C {params.prefix} . 1>{output}.log; md5sum {output} > {output}.md5"
+#rule deliverFastq:
+#  	output: one_up + "/" + project_name+"_{flowcell}.fastq.tar"
+#  	params: batch = "-l nodes=1:ppn=4,mem=24g", prefix = flowcellPath
+#  	shell: "tar -cvf {output} -C {params.prefix} . 1>{output}.log; md5sum {output} > {output}.md5"
 
-rule deliverCount:
-  	input: expand("{sample}/outs/web_summary.html", sample=samples)
-  	output: cfile
-  	params: batch = "-l nodes=1:ppn=4,mem=24g", files = expand("{sample}/outs/", sample=samples)
-  	shell: "tar -cvf {output} {params.files} 1>{output}.log; md5sum {output} > {output}.md5"
+#rule deliverCount:
+#  	input: expand("{sample}/outs/web_summary.html", sample=samples)
+#  	output: cfile
+#  	params: batch = "-l nodes=1:ppn=4,mem=24g", files = expand("{sample}/outs/", sample=samples)
+#  	shell: "tar -cvf {output} {params.files} 1>{output}.log; md5sum {output} > {output}.md5"
 
 rule report:
   	output: report_result

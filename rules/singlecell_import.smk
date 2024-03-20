@@ -1,21 +1,9 @@
 from xml.dom import minidom
-# importing module
-import logging
-# Creating an object
-logger = logging.getLogger()
-# Setting the threshold of logger to DEBUG
-logger.setLevel(logging.DEBUG)
- 
-# Create and configure logger
-logging.basicConfig(filename="newfile.log",
-                    format='%(asctime)s %(message)s',
-                    filemode='w')
 
 # by default, config is an empty dictionary.
 # if --configfile is provided, meaning that external users
 # are using the workflow
 if isinstance(config, dict) and not config:
-    logger.info("--configfile is not used") 
     import shutil
     from pathlib import Path
     ## Path().absolute() return PosixPath object.
@@ -24,8 +12,9 @@ if isinstance(config, dict) and not config:
     sys.path.insert(0, str(Path().absolute())) 
     import config
     import reference
+    import program
 else:
-    logger.debug("--configfile is used")
+    pass #logger.debug("--configfile is used")
 
 csas = re.search("CS[0-9]{6}", config.analysis).group(0) if re.search("CS[0-9]{6}", config.analysis) else os.path.basename(config.analysis.strip('/'))
 unaligned = config.unaligned[0]
@@ -50,8 +39,8 @@ fastqpath = config.unaligned
 analysis = config.analysis
 one_up = '/'.join(config.analysis.rstrip('/').split('/')[:-1])
 
-#with open(config.analysis + '/cluster.json') as file:
-#    clusterConfig = json.load(file)
+with open(config.analysis + '/cluster.json') as file:
+    clusterConfig = json.load(file)
 
 forcecells = getattr(config, "forcecells", False)
 
@@ -148,30 +137,30 @@ def filterFastq4nopipe(wildcards):
 #Setting aggregate flag, this gets turned off for certain pipelines
 aggregate = True
 
-include: program.runParametersImport
+#include: program.runParametersImport
 flowcell = run_names[-1][-9:]
 flowcells = dict()
-for run_name in run_names:
-    try:
-        (RTAVersion, flowcellRunParameters, workFlowType, flowcellMode, chemistry, chemistryVersion, xmlRunParametersPath, xmlRunInfoPath) = runParametersXmlPath(run_name)
-    except IOError as error:
-        xmlRunParametersPath = "Unknown"
-        xmlRunInfoPath = "Unknown"
-        sys.stdout.write("\n\n\nExecution failed: " + str(error) +"\n")
-        sys.stdout.write("No RunParameters.xml and RunInfo.xml will be archied and flowcell ID is geneated from the analysis folder\n\n\n")
-    except:
-        sys.stdout.write("Unexpected error:" + str(sys.exc_info()[0]) +"\n")
-    if flowcellRunParameters == "Unknown":
-        flowcellRunParameters = run_name[-9:]
-    for path in fastqpath:
-        if flowcellRunParameters in path:
-            flowcells[flowcellRunParameters] = path
-    flowcell = flowcellRunParameters if flowcell in flowcellRunParameters else flowcell
+#for run_name in run_names:
+#    try:
+#        (RTAVersion, flowcellRunParameters, workFlowType, flowcellMode, chemistry, chemistryVersion, xmlRunParametersPath, xmlRunInfoPath) = runParametersXmlPath(run_name)
+#    except IOError as error:
+#        xmlRunParametersPath = "Unknown"
+#        xmlRunInfoPath = "Unknown"
+#        sys.stdout.write("\n\n\nExecution failed: " + str(error) +"\n")
+#        sys.stdout.write("No RunParameters.xml and RunInfo.xml will be archied and flowcell ID is geneated from the analysis folder\n\n\n")
+#    except:
+#        sys.stdout.write("Unexpected error:" + str(sys.exc_info()[0]) +"\n")
+#    if flowcellRunParameters == "Unknown":
+#        flowcellRunParameters = run_name[-9:]
+#    for path in fastqpath:
+#        if flowcellRunParameters in path:
+#            flowcells[flowcellRunParameters] = path
+#    flowcell = flowcellRunParameters if flowcell in flowcellRunParameters else flowcell
 
 #Create file names
 #flowcell = os.path.basename(config.unaligned[0].strip('/'))
 #flowcells = {os.path.basename(i.strip('/')): i for i in config.unaligned}
-cfile = one_up + "/" + project_name+"_"+'_'.join(flowcells)+".count.tar"
+#cfile = one_up + "/" + project_name+"_"+'_'.join(flowcells)+".count.tar"
 report_result = one_up + "/" + project_name + "_" + flowcell + "_Metadata.txt"
 wreport_result = one_up + "/" + project_name + "_" + flowcell + ".docx"
 xreport_result = one_up + "/" + project_name + "_" + flowcell + ".xlsx"
@@ -182,7 +171,7 @@ if hasattr(config, 'archive'):
     if config.archive:
         archive = True
         rule_all_append += ["archive_setup.complete"]
-if hasattr(config, 'tar'):
-    if config.tar:
-        rule_all_append += expand(one_up + "/" + project_name+"_{flowcell}.fastq.tar", flowcell=flowcells.keys())
-        rule_all_append += [cfile]
+#if hasattr(config, 'tar'):
+#    if config.tar:
+#        rule_all_append += expand(one_up + "/" + project_name+"_{flowcell}.fastq.tar", flowcell=flowcells.keys())
+#        rule_all_append += [cfile]

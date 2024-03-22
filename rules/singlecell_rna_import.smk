@@ -1,13 +1,6 @@
 
 numcell = getattr(config, "numcells", False)
-#premrna = getattr(config, "premrna", False)
 include_introns = getattr(config, "include_introns", True)
-
-#def count_premrna(wildcards):
-#    if premrna:
-#        return('--include-introns')
-#    else:
-#        return('')
 
 def count_expect_force():
     params_cell_number = dict()
@@ -15,7 +8,6 @@ def count_expect_force():
     if forcecells:
         cells_flag = '--force-cells'
     else:
-        ## forcecells == False & numcell has values, meaning 
         ## that --expect is used
         if numcell:
             cells_flag = '--expect-cells'
@@ -29,15 +21,15 @@ def count_expect_force():
 
 
 params_cell_number = count_expect_force()
-print(params_cell_number)
+sflog.info(params_cell_number)
 
-current_cellranger = config.tool4mtx
-
+current_cellranger = program.cellranger
+ 
 rule count:
     output: "{sample}/outs/web_summary.html"
     log: err = "run_{sample}_10x_cellranger_count.err", log ="run_{sample}_10x_cellranger_count.log"
     params: batch = "-l nodes=1:ppn=16,mem=96gb", prefix = "{sample}", prefix2 = filterFastq, cells_flag=lambda wildcards: params_cell_number[wildcards.sample], include_introns = str(include_introns).lower()
-    shell: "rm -r {params.prefix}; module load bcl2fastq2; cellranger count --include-introns {params.include_introns} --id={params.prefix} --sample={params.prefix} --fastqs={params.prefix2} {params.cells_flag} --transcriptome={reference.transcriptome} 2>{log.err} 1>{log.log}"
+    shell: "rm -r {params.prefix}; module load bcl2fastq2; {cmd_cellranger} count --include-introns {params.include_introns} --id={params.prefix} --sample={params.prefix} --fastqs={params.prefix2} {params.cells_flag} --transcriptome={reference.transcriptome} 2>{log.err} 1>{log.log}"
 
 rule aggregateCSV:
     input: expand("{sample}/outs/web_summary.html", sample=samples)

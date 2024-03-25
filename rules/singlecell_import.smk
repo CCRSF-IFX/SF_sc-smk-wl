@@ -1,8 +1,16 @@
 from xml.dom import minidom
+if 'sflog' not in globals():
+    import logging as sflog
+    sflog.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=sflog.DEBUG)
+else:
+    pass
+    sflog.debug("sflog has been imported")
 
 # by default, config is an empty dictionary.
 # if --configfile is provided, meaning that external users
 # are using the workflow
+sflog.debug("Is config a dictionary: " + str(isinstance(config, dict)))
+sflog.debug("Is config empty: " + str(not config))
 if isinstance(config, dict) and not config:
     import shutil
     from pathlib import Path
@@ -10,11 +18,16 @@ if isinstance(config, dict) and not config:
     ## PosixPath object cause import issue. So str()
     ## is used here to convert PosixPath to regular path
     sys.path.insert(0, str(Path().absolute())) 
+    sflog.debug(str(Path().absolute()))
     import config
     import reference
     import program
 else:
-    pass #logger.debug("--configfile is used")
+    sflog.debug("--configfile is used")
+    external = True
+    pass
+
+cmd_cellranger = program.cellranger if external == True else "cellranger"
 
 csas = re.search("CS[0-9]{6}", config.analysis).group(0) if re.search("CS[0-9]{6}", config.analysis) else os.path.basename(config.analysis.strip('/'))
 unaligned = config.unaligned[0]
@@ -65,7 +78,7 @@ else:
     ## For example, Tube_1___Sample_3__GEX_library in CS033737 
     samples = list(set(s.replace('Sample_', '') if s.startswith('Sample_') else s for s in set(samps)))
     samples = sorted(samples)
-    print(samples)
+    sflog.info("Samples to be analyzed: " + " ".join(samples))
 
 # Move fastq files to subfolders with the names of the sample.
 from subprocess import Popen, PIPE
@@ -171,7 +184,3 @@ if hasattr(config, 'archive'):
     if config.archive:
         archive = True
         rule_all_append += ["archive_setup.complete"]
-#if hasattr(config, 'tar'):
-#    if config.tar:
-#        rule_all_append += expand(one_up + "/" + project_name+"_{flowcell}.fastq.tar", flowcell=flowcells.keys())
-#        rule_all_append += [cfile]

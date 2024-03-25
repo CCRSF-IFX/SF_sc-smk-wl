@@ -13,8 +13,6 @@ include: "rules/singlecell_import.smk"
 include: "rules/singlecell_rules_common.smk"
 
 ## if there is only one sample, there is no need to run cellrange aggr 
-
-## if there is only one sample, there is no need to run cellrange aggr 
 aggregate = getattr(config, "aggregate", True)
 aggr_output4ruleall = ["aggregate.complete"] if aggregate else []
 

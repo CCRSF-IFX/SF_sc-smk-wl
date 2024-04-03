@@ -40,7 +40,7 @@ if config.pipeline == "pipseq" or config.pipeline == "nopipe":
     aggregate = False
 
 if aggregate:
-  print(aggregate)
+  sflog.info(aggregate)
   rule archive:
       input: metadata = report_result, aggr_log = "run_10x_aggregate.log"
       output: touch('archive_setup.complete')

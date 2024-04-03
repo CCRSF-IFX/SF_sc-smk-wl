@@ -1,3 +1,4 @@
+import json
 from xml.dom import minidom
 if 'sflog' not in globals():
     import logging as sflog
@@ -22,6 +23,7 @@ if isinstance(config, dict) and not config:
     import config
     import reference
     import program
+    external = False
 else:
     sflog.debug("--configfile is used")
     external = True
@@ -70,8 +72,8 @@ else:
     sample = list(set([os.path.basename(file).split('.')[0] for file in list(itertools.chain.from_iterable([glob.glob(i + '/*') for i in fastqpath]))]))
     samps = []
     for item in sample:
-        if len(re.findall("(\S*)_S\d+_L0\d{2}_[RI]", item)) > 0:
-          samps.append(re.findall("(\S*)_S\d+_L0\d{2}_[RI]", item)[0])
+        if len(re.findall(r"(\S*)_S\d+_L0\d{2}_[RI]", item)) > 0:
+          samps.append(re.findall(r"(\S*)_S\d+_L0\d{2}_[RI]", item)[0])
         else:
           samps.append(item)
     ## Add if else in the list comprehension for the sample name with 'Sample_' in the middle.

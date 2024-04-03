@@ -2,10 +2,6 @@
 #shell.executable("/bin/bash")
 #shell.prefix("source /etc/profile.d/modules.sh; ")
 
-import reference
-import program
-
-import config
 from snakemake.utils import R
 import glob
 import os.path

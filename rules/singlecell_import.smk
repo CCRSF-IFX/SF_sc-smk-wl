@@ -29,7 +29,7 @@ else:
     external = True
     pass
 
-cmd_cellranger = program.cellranger if external == True else "cellranger"
+cmd_cellranger = program.cellranger if external == False else "cellranger"
 
 csas = re.search("CS[0-9]{6}", config.analysis).group(0) if re.search("CS[0-9]{6}", config.analysis) else os.path.basename(config.analysis.strip('/'))
 unaligned = config.unaligned[0]

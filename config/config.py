@@ -1,0 +1,11 @@
+unaligned=["/scratch/ccrsf_scratch/scratch/Illumina_Demultiplex/NovaSeq/240221_A00430_0880_AHYL2JDRX3/HYL2JDRX3/outs/fastq_path/HYL2JDRX3"]
+analysis="/mnt/ccrsf-ifx/Software/github/SF_scMaestro" 
+ref="mm10"
+projectname="ShyamSharan_CS035963_2scGEX_020924"
+yields="72444.0"
+archive=True
+runs="240221_A00430_0880_AHYL2JDRX3"
+pipeline="rna"
+tool4mtx="docker://ccrsfifx/cellranger:8.0.0"
+fastq_screen=""
+#aggregate=False # Recommended value to set as 'False' when 1) three are too many samples (>10); 2) no donor and origin information provided for VDJ libraries;

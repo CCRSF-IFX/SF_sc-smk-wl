@@ -1,5 +1,6 @@
 import json
 from xml.dom import minidom
+include: "runParametersImport" 
 if 'sflog' not in globals():
     import logging as sflog
     sflog.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=sflog.INFO)
@@ -155,22 +156,22 @@ aggregate = True
 #include: program.runParametersImport
 flowcell = run_names[-1][-9:]
 flowcells = dict()
-#for run_name in run_names:
-#    try:
-#        (RTAVersion, flowcellRunParameters, workFlowType, flowcellMode, chemistry, chemistryVersion, xmlRunParametersPath, xmlRunInfoPath) = runParametersXmlPath(run_name)
-#    except IOError as error:
-#        xmlRunParametersPath = "Unknown"
-#        xmlRunInfoPath = "Unknown"
-#        sys.stdout.write("\n\n\nExecution failed: " + str(error) +"\n")
-#        sys.stdout.write("No RunParameters.xml and RunInfo.xml will be archied and flowcell ID is geneated from the analysis folder\n\n\n")
-#    except:
-#        sys.stdout.write("Unexpected error:" + str(sys.exc_info()[0]) +"\n")
-#    if flowcellRunParameters == "Unknown":
-#        flowcellRunParameters = run_name[-9:]
-#    for path in fastqpath:
-#        if flowcellRunParameters in path:
-#            flowcells[flowcellRunParameters] = path
-#    flowcell = flowcellRunParameters if flowcell in flowcellRunParameters else flowcell
+for run_name in run_names:
+    try:
+        (RTAVersion, flowcellRunParameters, workFlowType, flowcellMode, chemistry, chemistryVersion, xmlRunParametersPath, xmlRunInfoPath) = runParametersXmlPath(run_name)
+    except IOError as error:
+        xmlRunParametersPath = "Unknown"
+        xmlRunInfoPath = "Unknown"
+        sys.stdout.write("\n\n\nExecution failed: " + str(error) +"\n")
+        sys.stdout.write("No RunParameters.xml and RunInfo.xml will be archied and flowcell ID is geneated from the analysis folder\n\n\n")
+    except:
+        sys.stdout.write("Unexpected error:" + str(sys.exc_info()[0]) +"\n")
+    if flowcellRunParameters == "Unknown":
+        flowcellRunParameters = run_name[-9:]
+    for path in fastqpath:
+        if flowcellRunParameters in path:
+            flowcells[flowcellRunParameters] = path
+    flowcell = flowcellRunParameters if flowcell in flowcellRunParameters else flowcell
 
 #Create file names
 #flowcell = os.path.basename(config.unaligned[0].strip('/'))

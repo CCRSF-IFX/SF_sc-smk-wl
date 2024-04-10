@@ -111,7 +111,7 @@ rule all:
 rule librariesCSV:
     output: expand("{sample}_libraries.csv", sample=samples)
     params: fastq = ",".join(config.unaligned)
-    shell: "python {program.fb_pythonscripts}/create_library_files.py {config.libraries} {params.fastq}"
+    shell: "python workflow/scripts/fb/create_library_files.py {config.libraries} {params.fastq}"
 
 def count_expect_force(wildcards):
     if forcecells:
@@ -176,7 +176,7 @@ if count == False:
         input: "{sample}_libraries.csv"
         output: "{sample}.csv"
         params: numcells = lambda wildcards:dict2[wildcards.sample], flags = conditional_flags
-        shell: "python {program.multi_pythonscripts}/write_multiconfig.py -o {output} --ref {reference.transcriptome} -l {input} --cell {params.numcells} {params.flags}"
+        shell: "python workflow/scripts/multi/write_multiconfig.py -o {output} --ref {reference.transcriptome} -l {input} --cell {params.numcells} {params.flags}"
 
     rule count:
         input: rules.multiConfig.output

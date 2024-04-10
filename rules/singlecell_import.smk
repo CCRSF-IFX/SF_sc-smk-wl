@@ -2,7 +2,7 @@ import json
 from xml.dom import minidom
 if 'sflog' not in globals():
     import logging as sflog
-    sflog.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=sflog.DEBUG)
+    sflog.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=sflog.INFO)
 else:
     pass
     sflog.debug("sflog has been imported")

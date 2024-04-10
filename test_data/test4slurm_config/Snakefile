@@ -1,3 +1,4 @@
+# https://www.embl.org/groups/bioinformatics-rome/blog/2022/03/snakemake-profile-2-reducing-command-line-options-with-profile/
 onstart:
     print("##### Creating profile pipeline #####\n") 
     print("\t Creating jobs output subfolders...\n")

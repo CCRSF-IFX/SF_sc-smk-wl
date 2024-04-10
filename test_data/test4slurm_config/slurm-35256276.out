@@ -1,0 +1,24 @@
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 1 (use --cores to define parallelism)
+Rules claiming more threads will be scaled down.
+Provided resources: mem_mb=70000, mem_mib=66758, disk_mb=1000000, disk_mib=953675
+Select jobs to execute...
+Execute 1 jobs...
+
+[Wed Apr 10 10:28:48 2024]
+localrule printContent:
+    input: inputs/hello.txt
+    output: results/hello.txt
+    jobid: 0
+    reason: Forced execution
+    wildcards: sampleName=hello
+    resources: mem_mb=70000, mem_mib=66758, disk_mb=1000000, disk_mib=953675, tmpdir=/tmp/ccrsfifx, runtime=7200, slurm_partition=norm
+
+
+    cat inputs/hello.txt > results/hello.txt
+    
+[Wed Apr 10 10:28:48 2024]
+Finished job 0.
+1 of 1 steps (100%) done
+Storing output in storage.

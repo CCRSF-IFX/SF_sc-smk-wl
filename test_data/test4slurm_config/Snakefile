@@ -1,0 +1,18 @@
+onstart:
+    print("##### Creating profile pipeline #####\n") 
+    print("\t Creating jobs output subfolders...\n")
+    shell("mkdir -p jobs/printContent")
+
+rule all:
+  input:
+    expand("results/{sampleName}.txt", sampleName=["hello", "helloBis"])
+
+rule printContent:
+  input:
+    "inputs/{sampleName}.txt"
+  output:
+    "results/{sampleName}.txt"
+  shell:
+    """
+    cat {input} > {output}
+    """

@@ -1,0 +1,66 @@
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided remote nodes: 100
+Job stats:
+job             count
+------------  -------
+all                 1
+printContent        2
+total               3
+
+Select jobs to execute...
+Execute 2 jobs...
+
+[Wed Apr 10 10:28:41 2024]
+rule printContent:
+    input: inputs/helloBis.txt
+    output: results/helloBis.txt
+    jobid: 2
+    reason: Missing output files: results/helloBis.txt
+    wildcards: sampleName=helloBis
+    resources: mem_mb=70000, mem_mib=66758, disk_mb=1000000, disk_mib=953675, tmpdir=<TBD>, runtime=7200, slurm_partition=norm
+
+
+    cat inputs/helloBis.txt > results/helloBis.txt
+    
+XX ['Submitted batch job 35256275', '']
+Submitted job 2 with external jobid 'Submitted batch job 35256275'.
+
+[Wed Apr 10 10:28:41 2024]
+rule printContent:
+    input: inputs/hello.txt
+    output: results/hello.txt
+    jobid: 1
+    reason: Missing output files: results/hello.txt
+    wildcards: sampleName=hello
+    resources: mem_mb=70000, mem_mib=66758, disk_mb=1000000, disk_mib=953675, tmpdir=<TBD>, runtime=7200, slurm_partition=norm
+
+
+    cat inputs/hello.txt > results/hello.txt
+    
+XX ['Submitted batch job 35256276', '']
+Submitted job 1 with external jobid 'Submitted batch job 35256276'.
+[Wed Apr 10 10:28:51 2024]
+Finished job 2.
+1 of 3 steps (33%) done
+[Wed Apr 10 10:28:51 2024]
+Finished job 1.
+2 of 3 steps (67%) done
+Select jobs to execute...
+Execute 1 jobs...
+
+[Wed Apr 10 10:28:51 2024]
+localrule all:
+    input: results/hello.txt, results/helloBis.txt
+    jobid: 0
+    reason: Input files updated by another job: results/hello.txt, results/helloBis.txt
+    resources: mem_mb=70000, mem_mib=66758, disk_mb=1000000, disk_mib=953675, tmpdir=/tmp/ccrsfifx, runtime=7200, slurm_partition=norm
+
+[Wed Apr 10 10:28:51 2024]
+Finished job 0.
+3 of 3 steps (100%) done
+Terminating processes on user request, this might take some time.
+No --cluster-cancel given. Will exit after finishing currently running jobs.
+Complete log: .snakemake/log/2024-04-10T102841.669801.snakemake.log
+WorkflowError:
+At least one job did not complete successfully.

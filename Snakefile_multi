@@ -196,7 +196,7 @@ rule copyScripts:
     params: batch = "-l nodes=1:ppn=1"
     shell: "mkdir scripts; cp -r {program.fb_pythonscripts} scripts"
 
-pythonpath = program.multi_pythonscripts if not count else program.pythonscripts
+pythonpath = "workflow/scripts/multi/" if not count else "workflow/scripts/rna/python_scripts/"
 
 rule summaryFiles:
     input: expand(rules.count.output, sample=samples)

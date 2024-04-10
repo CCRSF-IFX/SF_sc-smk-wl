@@ -1,27 +1,26 @@
-cluster-sidecar: "slurm-sidecar.py"
-cluster-cancel: "scancel"
-restart-times: "0"
-jobscript: "slurm-jobscript.sh"
-cluster: "slurm-submit.py"
-cluster-status: "slurm-status.py"
-max-jobs-per-second: "10"
-max-status-checks-per-second: "10"
-local-cores: 1
-latency-wait: "5"
-use-conda: "False"
-use-singularity: "False"
-jobs: "100"
-printshellcmds: "True"
-
-executor: cluster-generic
+#executor: slurm
 jobs: 100
-restart-times: 4
-jobname: "{rulename}.{jobid}"
-cluster-generic-submit-cmd: "sbatch --nodes=1 --ntasks={threads} --mem={resources.mem_mb} --time={resources.time} --partition={resources.partition}"
+restart-times: 0
+cluster-generic-submit-cmd: "sbatch --nodes=1 --ntasks={threads} --mem={resources.mem_mb} --time={resources.runtime} --partition={resources.slurm_partition}"
 max-jobs-per-second: 1
 max-status-checks-per-second: 10
 local-cores: 1
-latency-wait: 300
+latency-wait: 30
 show-failed-logs: True
 keep-going: True
 printshellcmds: True
+
+default-resources:
+  runtime: 7200
+  mem_mb: 70000
+  disk_mb: 1000000
+  slurm_partition: "norm"
+  #slurm_account: "ccrsfifx"
+# set-threads: map rule names to threads
+set-threads:
+  count: 8
+# set-resources: map rule names to resources in general
+set-resources:
+  count:
+    mem_mb: 
+      300000

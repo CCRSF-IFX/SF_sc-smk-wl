@@ -38,7 +38,9 @@ def output_list_web_summary(wildcards):
 
 if config.pipeline == "pipseq" or config.pipeline == "nopipe":
     aggregate = False
-
+print("flowcells")
+print(flowcells)
+print(run_names)
 if aggregate:
   sflog.info(aggregate)
   rule archive:
@@ -46,32 +48,14 @@ if aggregate:
       output: touch('archive_setup.complete')
       params: fastqs = ",".join([os.path.dirname(name.rstrip('/')) for name in flowcells.values()]), runs = ','.join([j for i in flowcells for j in run_names if i in j])
       log: "archive.log"
-      shell: "cd {one_up}; python {program.active_scripts}/meta2json_single_cell_v0.1.py -m {input.metadata} -r {params.runs} -f {params.fastqs} -c {config.analysis} -a {config.analysis}/AggregatedDatasets > {log}"
+      shell: "cd {one_up}; python {analysis}/workflow/scripts/meta2json_single_cell_v0.1.py -m {input.metadata} -r {params.runs} -f {params.fastqs} -c {config.analysis} -a {config.analysis}/AggregatedDatasets > {log}"
 else:
   rule archive:
       input:  metadata = report_result, summaryFiles = "finalreport/metric_summary.xlsx"
       output: touch('archive_setup.complete')
       params: fastqs = ",".join([os.path.dirname(name.rstrip('/')) for name in flowcells.values()]), runs = ','.join([j for i in flowcells for j in run_names if i in j])
       log: "archive.log"
-      shell: "cd {one_up}; python {program.active_scripts}/meta2json_single_cell_v0.1.py -m {input.metadata} -r {params.runs} -f {params.fastqs} -c {config.analysis} > {log}"
-
-#rule archive:
-#    input:  metadata = report_result
-#    output: touch('archive_setup.complete')
-#    params: fastqs = ",".join([os.path.dirname(name.rstrip('/')) for name in flowcells.values()]), runs = ','.join([j for i in flowcells for j in run_names if i in j])
-#    log: "archive.log"
-#    shell: "cd {one_up}; python {program.active_scripts}/meta2json_single_cell_v0.1.py -m {input.metadata} -r {params.runs} -f {params.fastqs} -c {config.analysis} > {log}"
-
-#rule deliverFastq:
-#  	output: one_up + "/" + project_name+"_{flowcell}.fastq.tar"
-#  	params: batch = "-l nodes=1:ppn=4,mem=24g", prefix = flowcellPath
-#  	shell: "tar -cvf {output} -C {params.prefix} . 1>{output}.log; md5sum {output} > {output}.md5"
-
-#rule deliverCount:
-#  	input: expand("{sample}/outs/web_summary.html", sample=samples)
-#  	output: cfile
-#  	params: batch = "-l nodes=1:ppn=4,mem=24g", files = expand("{sample}/outs/", sample=samples)
-#  	shell: "tar -cvf {output} {params.files} 1>{output}.log; md5sum {output} > {output}.md5"
+      shell: "cd {one_up}; python {analysis}/workflow/scripts/meta2json_single_cell_v0.1.py -m {input.metadata} -r {params.runs} -f {params.fastqs} -c {config.analysis} > {log}"
 
 rule report:
   	output: report_result
@@ -87,26 +71,26 @@ rule wreport:
   	input: metadata = report_result, excel = "finalreport/metric_summary.xlsx"
   	output: wreport_result
   	params: runs = ','.join(run_names), pipeline = config.pipeline, workflow_img = get_workflow_img
-  	shell: "cd {one_up}; python {program.general_pythonscripts}/run_wordreport_sc.py -e {analysis}/{input.excel} -m {input.metadata} -c {current_cellranger} -p {params.pipeline} -r {params.runs} {params.workflow_img} {args4wreport_test} {args4wreport_yields}"
+  	shell: "cd {one_up}; python {analysis}/workflow/scripts/SF_scWordReport/run_wordreport_sc.py -e {analysis}/{input.excel} -m {input.metadata} -c {current_cellranger} -p {params.pipeline} -r {params.runs} {params.workflow_img} {args4wreport_test} {args4wreport_yields}"
 
-
-if testing: 
-    onsuccess:
-       success = "Yes"
-       al = analysis
-       shell(r'''python {program.active_scripts}/sendmail4test.py {success} {al} {testing}''')
-
-    onerror:
-        success = "No"
-        al = analysis
-        shell(r'''python {program.active_scripts}/sendmail4test.py {success} {al} {testing}''')
-else:
-    onsuccess:
-       success = "Yes"
-       al = analysis
-       shell(r'''python {program.active_scripts}/sendmail.py {success} {al}''')
-
-    onerror:
-        success = "No"
-        al = analysis
-        shell(r'''python {program.active_scripts}/sendmail.py {success} {al}''') 
+if external == False: 
+    if testing: 
+        onsuccess:
+           success = "Yes"
+           al = analysis
+           shell(r'''python {analysis}/workflow/scripts/sendmail4test.py {success} {al} {testing}''')
+    
+        onerror:
+            success = "No"
+            al = analysis
+            shell(r'''python {analysis}/workflow/scripts/sendmail4test.py {success} {al} {testing}''')
+    else:
+        onsuccess:
+           success = "Yes"
+           al = analysis
+           shell(r'''python {analysis}/workflow/scripts/sendmail.py {success} {al}''')
+    
+        onerror:
+            success = "No"
+            al = analysis
+            shell(r'''python {analysis}/workflow/scripts/sendmail.py {success} {al}''') 

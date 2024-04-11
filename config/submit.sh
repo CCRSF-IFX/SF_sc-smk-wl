@@ -9,4 +9,7 @@
 #SBATCH --no-requeue
 #SBATCH --job-name=submit.sh
 
-snakemake --jobname 's.{jobid}.{rulename}' --latency-wait 600 -j 100 --rerun-incomplete --restart-times 0 --keep-going --stats snakemake.stats --printshellcmds --cluster-config cluster.json --cluster "sbatch --partition={cluster.partition} --nodes=1 --ntasks={cluster.threads} --mem={cluster.mem}  --time={cluster.time} --no-requeue"  --cluster-status /mnt/ccrsf-ifx/Software/scripts/bin/currentsnake/cluster_status.py >& snakemake.log
+module load miniconda
+conda activate /mnt/ccrsf-static/Analysis/xies4/condaenv4plsc
+module load singularity 
+snakemake --jobname 's.{jobid}.{rulename}' --profile workflow/profile/slurm/  -e cluster-generic >& snakemake.log

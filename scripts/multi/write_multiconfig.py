@@ -40,7 +40,8 @@ def main(raw_args=None):
     ## Since cellranger v7.0.0+, include-introns is true by default
     parser.add_argument("-i", "--exclude_introns", action="store_true",
         help="Use include-introns,false option")
-
+    parser.add_argument("--create_bam", action="store_true",
+        help="Use include-introns,false option")
     args = parser.parse_args(raw_args)
     print(args)
 
@@ -54,6 +55,8 @@ def main(raw_args=None):
             spamwriter.writerow(['expect-cells', args.cell])
         else:  
             pass
+        if args.create_bam:
+            spamwriter.writerow(['create-bam', "true"])
         if args.cmo != None:
             spamwriter.writerow(['cmo-set', args.cmo])
         if args.exclude_introns:

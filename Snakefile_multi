@@ -104,6 +104,9 @@ def prepare_csv4aggr(aggr_csv):
         logging.err("No sample_out detected. Please check! ")
         sys.exit()
 
+create_bam = ""
+if is_version_greater_than(config.tool_10x, "8.0.0"):
+    create_bam = " --create-bam=true "
 
 rule all:
     input: "finalreport/metric_summary.xlsx", wreport_result, xreport_result, 'copy.complete', rule_all_append, aggr_output4ruleall
@@ -168,7 +171,10 @@ def conditional_flags(wildcards):
             flags.append(f'--vdjref {reference.vdj_reference}')
             break
 
+    if create_bam != "":
+        flags.append(f"--create_bam")
     return(' '.join(flags))
+
 
 count = getattr(config, "count", False) 
 if count == False: 
@@ -183,14 +189,16 @@ if count == False:
         output: "{sample}/outs/config.csv", "{sample}/outs/per_sample_outs/{sample}/web_summary.html" 
         log: err = "run_{sample}_10x_cellranger_count.err", log ="run_{sample}_10x_cellranger_count.log"
         params: batch = "-l nodes=1:ppn=16,mem=96gb", prefix = "{sample}" 
-        shell: "rm -r {params.prefix}; {program.cellranger} multi --id={params.prefix} --csv={input} 2>{log.err} 1>{log.log}"
+        container: config.tool_10x
+        shell: "rm -r {params.prefix}; cellranger multi --id={params.prefix} --csv={input} 2>{log.err} 1>{log.log}"
 else:
     rule count:
         input: csv= "{sample}_libraries.csv",
         output: "{sample}/outs/metrics_summary.csv", 
         log: err = "run_{sample}_10x_cellranger_count.err", log ="run_{sample}_10x_cellranger_count.log"
         params: batch = "-l nodes=1:ppn=16,mem=96gb", prefix = "{sample}", 
-        shell: "rm -r {params.prefix}; {program.cellranger} count --id={params.prefix} --libraries={input.csv} --transcriptome={reference.transcriptome}  --feature-ref={config.features} 2>{log.err} 1>{log.log}"
+        container: config.tool_10x
+        shell: "rm -r {params.prefix}; cellranger count {create_bam} --id={params.prefix} --libraries={input.csv} --transcriptome={reference.transcriptome}  --feature-ref={config.features} 2>{log.err} 1>{log.log}"
 rule copyScripts:
     output: directory("scripts")
     params: batch = "-l nodes=1:ppn=1"

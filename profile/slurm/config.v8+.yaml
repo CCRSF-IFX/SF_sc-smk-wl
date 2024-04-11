@@ -8,6 +8,9 @@ latency-wait: 60
 show-failed-logs: True
 keep-going: True
 printshellcmds: True
+use-singularity: True
+singularity-args: ' "--cleanenv --no-home -B /scratch/ccrsf_scratch -B /mnt " ' 
+rerun-trigger: mtime # the traditional way of just considering file modification dates
 
 default-resources:
   runtime: 7200

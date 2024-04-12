@@ -206,5 +206,5 @@ def is_version_greater_than(version_string, target_version):
         return False  # Handle cases where the version string is invalid
 
 flag_create_bam = ""
-if is_version_greater_than(config.tool_10x["cellranger"], "8.0.0"):
+if is_version_greater_than(program.cellranger, "8.0.0"):
     flag_create_bam = " --create-bam=true "

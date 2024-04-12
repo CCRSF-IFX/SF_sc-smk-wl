@@ -1,0 +1,220 @@
+
+#shell.executable("/bin/bash")
+#shell.prefix("source /etc/profile.d/modules.sh; ")
+
+from snakemake.utils import R
+import glob
+import os.path
+import os
+import itertools
+import pandas as pd
+
+## aggregate is set to "True" in the step below
+include: "rules/singlecell_import.smk"
+include: "rules/singlecell_featurebarcode_import.smk"
+
+## if there is only one sample, there is no need to run cellrange aggr 
+aggregate = getattr(config, "aggregate", True)
+aggr_output4ruleall = ["aggregate.complete"] if aggregate else []
+
+if len(samples) == 1 or hasattr(config, "cmo"):  ## only one sample or Multiplexing Capture 
+    aggregate = False
+    aggr_output4ruleall = []
+#rule_all_append defined in Snakefile_singlecell_import
+
+include: "rules/singlecell_rules_common.smk"
+#include: program.Snakefile_singlecell_rules
+
+localrules: librariesCSV, multiConfig, aggregateCSV
+
+def check_columns(df, columns):
+    """
+    Check whehter columns are in df (case-insensitive)
+    """
+    df_columns = [col.lower() for col in df.columns]
+    columns = [col.lower() for col in columns]
+    if all(col in df_columns for col in columns):
+        return True
+    else:
+        return False
+
+df = pd.read_csv(config.libraries)
+def get_lib_type():
+    if df.iloc[:, 3].str.contains("VDJ").any():
+        return "VDJ"
+    elif df.iloc[:, 3].str.contains("CRISPR Guide Capture", regex=True).any():
+        return "CRISPR"
+    elif df.iloc[:, 3].str.contains("Multiplexing Capture").any():
+        return "Multiplexing"
+    else:
+        return "Unknown"
+
+if aggregate: 
+    lib_type = get_lib_type() 
+    if lib_type == "VDJ":
+        df = pd.read_csv(config.libraries)
+        if not check_columns(df, ["Donor", "Origin"]):
+           sys.exit("Donor and Origin information are required for VDJ libraries for aggregation. ") 
+    if lib_type == "CRISPR": 
+        if len(df.columns) != 5:
+           sys.exit("CRISPR Guide Capture libraries detected. Please include the feature reference file in the fourth column. Please see the handbook for details. ")
+        
+def get_sample_name(s):
+    start_index = s.find("per_sample_outs/") + len("per_sample_outs/")
+    end_index = s.find("/count")
+    if start_index >= 0 and end_index >= 0:
+        return s[start_index:end_index]
+    else:
+        return None
+
+def prepare_csv4aggr(aggr_csv):
+    """
+    Prepare CSV file for cellranger aggr
+    :param aggr_csv: CSV file for cellranger aggr
+    :return: None
+    """
+    record_sample_outs = {}
+    cnt_sample_outs = 0
+    if get_lib_type() == "VDJ":
+        with open(config.libraries) as flib, open(aggr_csv, 'w') as faggr_csv:
+            ## skip header: Name,Flowcell,Sample,Type,Dornor,Origin 
+            header = flib.readline()
+            faggr_csv.write("sample_id,sample_outs,donor,origin\n")
+            for line in flib:
+                ele = line.rstrip().split(',')
+                sample_outs = "{sample_name}/outs/per_sample_outs/{sample_name}/".format(sample_name = ele[0])
+                if not os.path.isdir(sample_outs) or sample_outs in record_sample_outs:
+                    continue
+                cnt_sample_outs = cnt_sample_outs + 1
+                faggr_csv.write("{sample_name},{outs},{donor},{origin}\n".format(sample_name = ele[0],
+                                                                 outs = sample_outs, donor = ele[4], origin = ele[5]))
+                record_sample_outs[sample_outs] = 1
+    else: 
+        with open(config.libraries) as flib, open(aggr_csv, 'w') as faggr_csv:
+            ## skip header: Name,Flowcell,Sample,Type,Dornor,Origin 
+            header = flib.readline()
+            faggr_csv.write("sample_id,molecule_h5\n")
+            files = glob.glob('*/outs/per_sample_outs/*/count/sample_molecule_info.h5')
+            for fi in files:
+                sample_name = get_sample_name(fi)
+                faggr_csv.write(f"{sample_name},{fi}\n")
+                cnt_sample_outs += 1
+            
+    if cnt_sample_outs == 0:
+        logging.err("No sample_out detected. Please check! ")
+        sys.exit()
+
+
+rule all:
+    input: "finalreport/metric_summary.xlsx", wreport_result, xreport_result, 'copy.complete', rule_all_append, aggr_output4ruleall
+
+rule librariesCSV:
+    output: expand("{sample}_libraries.csv", sample=samples)
+    params: fastq = ",".join(config.unaligned)
+    shell: "python workflow/scripts/fb/create_library_files.py {config.libraries} {params.fastq}"
+
+def count_expect_force(wildcards):
+    if forcecells:
+        return('--force')
+    else:
+        return('')
+
+def config_features(wildcards):
+    if hasattr(config, "features"):
+        return(f"--feature {os.path.abspath(config.features)}")
+    else:
+        return('')
+
+def config_vdj(wildcards):
+    f = open(config.libraries, 'r')
+    for line in f:
+        if all([i in line for i in [wildcards.sample, 'Antibody Capture']]):
+            return(f'--vdjref {reference.vdj_reference}')
+    return('')
+
+def config_cmo(wildcards):
+    if hasattr(config, "cmo"):
+        return (f"--cmo {os.path.abspath(config.cmo)}")
+    else:
+        return('')
+
+def conditional_flags(wildcards):
+    flags = []
+    if include_introns is not True:
+        flags.append('--exclude_introns')
+
+    # defined in bin/currentsnake/single_cell/Snakefile_singlecell_import
+    if forcecells:
+        flags.append('--force')
+    else:
+        ## numcell has numbers but --force is not provided means --expect is selected. 
+        if numcell:
+            flags.append('--expect')
+
+    if hasattr(config, "features"):
+        flags.append(f"--feature {os.path.abspath(config.features)}")
+
+    if hasattr(config, "cmo"):
+        flags.append(f"--cmo {os.path.abspath(config.cmo)}")
+
+    # For Gamma and Delta TCR and non-human and non-mouse species, 
+    # "inner-enrichment-primers" is required to provided
+    if hasattr(config, "inner_enrichment_primers"):
+        flags.append(f"--innerprimer {os.path.abspath(config.inner_enrichment_primers)}")
+
+    f = open(config.libraries, 'r')
+    for line in f:
+        if all([i in line for i in [wildcards.sample, 'VDJ']]):
+            flags.append(f'--vdjref {reference.vdj_reference}')
+            break
+
+    return(' '.join(flags))
+
+count = getattr(config, "count", False) 
+if count == False: 
+    rule multiConfig:
+        input: "{sample}_libraries.csv"
+        output: "{sample}.csv"
+        params: numcells = lambda wildcards:dict2[wildcards.sample], flags = conditional_flags
+        shell: "python workflow/scripts/multi/write_multiconfig.py -o {output} --ref {reference.transcriptome} -l {input} --cell {params.numcells} {params.flags}"
+
+    rule count:
+        input: rules.multiConfig.output
+        output: "{sample}/outs/config.csv", "{sample}/outs/per_sample_outs/{sample}/web_summary.html" 
+        log: err = "run_{sample}_10x_cellranger_count.err", log ="run_{sample}_10x_cellranger_count.log"
+        params: batch = "-l nodes=1:ppn=16,mem=96gb", prefix = "{sample}" 
+        shell: "rm -r {params.prefix}; {program.cellranger} multi --id={params.prefix} --csv={input} 2>{log.err} 1>{log.log}"
+else:
+    rule count:
+        input: csv= "{sample}_libraries.csv",
+        output: "{sample}/outs/metrics_summary.csv", 
+        log: err = "run_{sample}_10x_cellranger_count.err", log ="run_{sample}_10x_cellranger_count.log"
+        params: batch = "-l nodes=1:ppn=16,mem=96gb", prefix = "{sample}", 
+        shell: "rm -r {params.prefix}; {program.cellranger} count --id={params.prefix} --libraries={input.csv} --transcriptome={reference.transcriptome}  --feature-ref={config.features} 2>{log.err} 1>{log.log}"
+rule copyScripts:
+    output: directory("scripts")
+    params: batch = "-l nodes=1:ppn=1"
+    shell: "mkdir scripts; cp -r {program.fb_pythonscripts} scripts"
+
+pythonpath = "workflow/scripts/multi/" if not count else "workflow/scripts/rna/python_scripts/"
+
+rule summaryFiles:
+    input: expand(rules.count.output, sample=samples)
+    output: "finalreport/metric_summary.xlsx"
+    params: batch = "-l nodes=1:ppn=1"
+    shell: "{program.python2_7} {pythonpath}/generateSummaryFiles.py"
+
+rule aggregateCSV:
+    input: expand("{sample}/outs/config.csv", sample=samples)
+    output: csv = "AggregatedDatasets.csv"
+    params: batch = "-l nodes=1:ppn=1", config_file = os.path.join(analysis, "config.py") 
+    run:
+        prepare_csv4aggr(output.csv)
+
+if aggregate == True:
+    rule aggregate:
+        input: csv=rules.aggregateCSV.output.csv
+        output: 'aggregate.complete'
+        log: err="run_10x_aggregate.err", log="run_10x_aggregate.log"
+        params: batch = "-l nodes=1:ppn=16,mem=96gb"
+        shell: "{program.cellranger} aggr --id=AggregatedDatasets --csv={input.csv} --normalize=mapped 2>{log.err} 1>{log.log} && touch {output}" 

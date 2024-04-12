@@ -185,7 +185,7 @@ if count == False:
         output: "{sample}/outs/config.csv", "{sample}/outs/per_sample_outs/{sample}/web_summary.html" 
         log: err = "run_{sample}_10x_cellranger_count.err", log ="run_{sample}_10x_cellranger_count.log"
         params: batch = "-l nodes=1:ppn=16,mem=96gb", prefix = "{sample}" 
-        container: config.tool_10x
+        container: program.cellranger
         shell: "rm -r {params.prefix}; cellranger multi --id={params.prefix} --csv={input} 2>{log.err} 1>{log.log}"
 else:
     rule count:
@@ -193,7 +193,7 @@ else:
         output: "{sample}/outs/metrics_summary.csv", 
         log: err = "run_{sample}_10x_cellranger_count.err", log ="run_{sample}_10x_cellranger_count.log"
         params: batch = "-l nodes=1:ppn=16,mem=96gb", prefix = "{sample}", 
-        container: config.tool_10x
+        container: program.cellranger
         shell: "rm -r {params.prefix}; cellranger count {flag_create_bam} --id={params.prefix} --libraries={input.csv} --transcriptome={reference.transcriptome}  --feature-ref={config.features} 2>{log.err} 1>{log.log}"
 rule copyScripts:
     output: directory("scripts")
@@ -220,5 +220,6 @@ if aggregate == True:
         input: csv=rules.aggregateCSV.output.csv
         output: 'aggregate.complete'
         log: err="run_10x_aggregate.err", log="run_10x_aggregate.log"
+        container: program.cellranger
         params: batch = "-l nodes=1:ppn=16,mem=96gb"
-        shell: "{program.cellranger} aggr --id=AggregatedDatasets --csv={input.csv} --normalize=mapped 2>{log.err} 1>{log.log} && touch {output}" 
+        shell: "cellranger aggr --id=AggregatedDatasets --csv={input.csv} --normalize=mapped 2>{log.err} 1>{log.log} && touch {output}" 

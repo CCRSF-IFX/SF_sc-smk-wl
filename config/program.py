@@ -1,26 +1,13 @@
 copydir = "/mnt/ccrsf-ifx/Report_archive/report_archive_singlecell/"
 active_scripts = "/mnt/ccrsf-ifx/Software/scripts/bin/"
 
-##Snakefile locations
-#Snakefile_singlecell_import = "/mnt/ccrsf-ifx/Software/scripts/bin/currentsnake/single_cell/Snakefile_singlecell_import"
-#Snakefile_singlecell_rules = "/mnt/ccrsf-ifx/Software/scripts/bin/currentsnake/single_cell/Snakefile_singlecell_rules"
-#Snakefile_singlecell_rna_import = "/mnt/ccrsf-ifx/Software/scripts/bin/currentsnake/single_cell/rna/Snakefile_singlecell_rna_import"
-#Snakefile_singlecell_atac_import = "/mnt/ccrsf-ifx/Software/scripts/bin/currentsnake/single_cell/atac/Snakefile_singlecell_atac_import"
-##Snakefile_singlecell_atac_import_old = "/mnt/ccrsf-ifx/Software/scripts/bin/currentsnake/single_cell/atac_1.2.0/Snakefile_singlecell_atac_import"
-#Snakefile_singlecell_featurebarcode_import = "/mnt/ccrsf-ifx/Software/scripts/bin/currentsnake/single_cell/featurebarcode/Snakefile_singlecell_featurebarcode_import"
-#Snakefile_singlecell_vdj_import = "/mnt/ccrsf-ifx/Software/scripts/bin/currentsnake/single_cell/vdj/Snakefile_singlecell_vdj_import"
-#Snakefile_singlecell_multirna_import = "/mnt/ccrsf-ifx/Software/scripts/bin/currentsnake/single_cell/multi_rna/Snakefile_singlecell_multirna_import"
-#Snakefile_singlecell_multiome_import = "/mnt/ccrsf-ifx/Software/scripts/bin/currentsnake/single_cell/multiome/Snakefile_singlecell_multiome_import"
-#runParametersImport = "/mnt/ccrsf-ifx/Software/scripts/bin/currentsnake/runParametersImport"
-#Snakefile_singlecell_pipseq_import =  "/mnt/ccrsf-ifx/Software/scripts/bin/currentsnake/single_cell/pipseq/Snakefile_singlecell_pipseq_import"
-#Snakefile_singlecell_nopipe_import =  "/mnt/ccrsf-ifx/Software/scripts/bin/currentsnake/single_cell/nopipe/Snakefile_singlecell_nopipe_import"
+cellranger     = "docker://ccrsfifx/cellranger:8.0.0"
+cellranger_arc = "docker://ccrsfifx/cellranger-arc2.0.2"
+spaceranger    = "docker://ccrsfifx/spaceranger:3.0.0"
 
-
-##10x CellRanger
-cellranger = "/mnt/ccrsf-ifx/Software/tools/GemCode/cellranger-7.1.0/cellranger"
-atac_cellranger = "/mnt/ccrsf-ifx/Software/tools/GemCode/cellranger-atac-2.1.0/cellranger-atac"
-atac_cellranger_old = "/mnt/ccrsf-ifx/Software/tools/GemCode/cellranger-atac-1.2.0/cellranger-atac"
-arc_cellranger = "/mnt/ccrsf-ifx/Software/tools/GemCode/cellranger-arc-2.0.0/cellranger-arc"
+#atac_cellranger = "/mnt/ccrsf-ifx/Software/tools/GemCode/cellranger-atac-2.1.0/cellranger-atac"
+#atac_cellranger_old = "/mnt/ccrsf-ifx/Software/tools/GemCode/cellranger-atac-1.2.0/cellranger-atac"
+#arc_cellranger = "/mnt/ccrsf-ifx/Software/tools/GemCode/cellranger-arc-2.0.0/cellranger-arc"
 
 general_pythonscripts = "/mnt/ccrsf-ifx/Software/scripts/bin/currentsnake/single_cell/scripts"
 ##10x RNA specific

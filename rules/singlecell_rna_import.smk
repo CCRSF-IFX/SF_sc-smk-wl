@@ -28,6 +28,7 @@ rule count:
     output: "{sample}/outs/web_summary.html"
     log: err = "run_{sample}_10x_cellranger_count.err", log ="run_{sample}_10x_cellranger_count.log"
     params: batch = "-l nodes=1:ppn=16,mem=96gb", prefix = "{sample}", prefix2 = filterFastq, cells_flag=lambda wildcards: params_cell_number[wildcards.sample], include_introns = str(include_introns).lower()
+    container: program.cellranger
     shell: "rm -r {params.prefix}; module load bcl2fastq2; {cmd_cellranger} count {create_bam} --include-introns {params.include_introns} --id={params.prefix} --sample={params.prefix} --fastqs={params.prefix2} {params.cells_flag} --transcriptome={reference.transcriptome} 2>{log.err} 1>{log.log}"
 
 rule aggregateCSV:
@@ -41,6 +42,7 @@ rule aggregate:
     output: touch("aggregate.complete")
     log: err="run_10x_aggregate.err", log="run_10x_aggregate.log"
     params: batch = "-l nodes=1:ppn=16,mem=96gb"
+    container: program.cellranger 
     shell: "cellranger aggr --id=AggregatedDatasets --csv={input.csv} --normalize=mapped 2>{log.err} 1>{log.log}"
 
 rule prep_fastq:

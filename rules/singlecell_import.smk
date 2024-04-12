@@ -1,4 +1,5 @@
 import json
+import packaging.version
 from xml.dom import minidom
 include: "runParametersImport" 
 if 'sflog' not in globals():
@@ -187,3 +188,20 @@ if hasattr(config, 'archive'):
     if config.archive:
         archive = True
         rule_all_append += ["archive_setup.complete"]
+
+def is_version_greater_than(version_string, target_version):
+    """Checks if a version string is greater than a specific version.
+
+    Args:
+        version_string: The version string to check.
+        target_version: The version to compare
+
+    Returns:
+        True if the version is greater than 8.0.0, False otherwise.
+    """
+    try:
+        version = packaging.version.parse(version_string.split(":")[-1])
+        return version >= packaging.version.parse(target_version)
+    except packaging.version.InvalidVersion:
+        return False  # Handle cases where the version string is invalid
+

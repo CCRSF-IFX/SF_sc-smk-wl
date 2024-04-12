@@ -104,10 +104,6 @@ def prepare_csv4aggr(aggr_csv):
         logging.err("No sample_out detected. Please check! ")
         sys.exit()
 
-create_bam = ""
-if is_version_greater_than(config.tool_10x, "8.0.0"):
-    create_bam = " --create-bam=true "
-
 rule all:
     input: "finalreport/metric_summary.xlsx", wreport_result, xreport_result, 'copy.complete', rule_all_append, aggr_output4ruleall
 
@@ -170,8 +166,8 @@ def conditional_flags(wildcards):
         if all([i in line for i in [wildcards.sample, 'VDJ']]):
             flags.append(f'--vdjref {reference.vdj_reference}')
             break
-
-    if create_bam != "":
+    # for cellranger >=8.0.0
+    if flag_create_bam != "":
         flags.append(f"--create_bam")
     return(' '.join(flags))
 
@@ -198,7 +194,7 @@ else:
         log: err = "run_{sample}_10x_cellranger_count.err", log ="run_{sample}_10x_cellranger_count.log"
         params: batch = "-l nodes=1:ppn=16,mem=96gb", prefix = "{sample}", 
         container: config.tool_10x
-        shell: "rm -r {params.prefix}; cellranger count {create_bam} --id={params.prefix} --libraries={input.csv} --transcriptome={reference.transcriptome}  --feature-ref={config.features} 2>{log.err} 1>{log.log}"
+        shell: "rm -r {params.prefix}; cellranger count {flag_create_bam} --id={params.prefix} --libraries={input.csv} --transcriptome={reference.transcriptome}  --feature-ref={config.features} 2>{log.err} 1>{log.log}"
 rule copyScripts:
     output: directory("scripts")
     params: batch = "-l nodes=1:ppn=1"

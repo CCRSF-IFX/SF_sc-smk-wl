@@ -10,6 +10,7 @@
 #SBATCH --job-name=submit.sh
 
 module load miniconda
+eval "$(conda shell.bash activate)"
 conda activate /mnt/ccrsf-static/Analysis/xies4/condaenv4plsc
 module load singularity 
 snakemake --jobname 's.{jobid}.{rulename}' --profile workflow/profile/slurm/  -e cluster-generic >& snakemake.log

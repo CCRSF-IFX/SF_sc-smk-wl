@@ -19,7 +19,6 @@ def count_expect_force():
         params_cell_num = dict(zip(samples, [ f"{cells_flag}={num}" for num in numcells ]))
     return params_cell_num
 
-
 params_cell_number = count_expect_force()
 sflog.info(params_cell_number)
 
@@ -29,7 +28,7 @@ rule count:
     output: "{sample}/outs/web_summary.html"
     log: err = "run_{sample}_10x_cellranger_count.err", log ="run_{sample}_10x_cellranger_count.log"
     params: batch = "-l nodes=1:ppn=16,mem=96gb", prefix = "{sample}", prefix2 = filterFastq, cells_flag=lambda wildcards: params_cell_number[wildcards.sample], include_introns = str(include_introns).lower()
-    shell: "rm -r {params.prefix}; module load bcl2fastq2; {cmd_cellranger} count --include-introns {params.include_introns} --id={params.prefix} --sample={params.prefix} --fastqs={params.prefix2} {params.cells_flag} --transcriptome={reference.transcriptome} 2>{log.err} 1>{log.log}"
+    shell: "rm -r {params.prefix}; module load bcl2fastq2; {cmd_cellranger} count {create_bam} --include-introns {params.include_introns} --id={params.prefix} --sample={params.prefix} --fastqs={params.prefix2} {params.cells_flag} --transcriptome={reference.transcriptome} 2>{log.err} 1>{log.log}"
 
 rule aggregateCSV:
     input: expand("{sample}/outs/web_summary.html", sample=samples)

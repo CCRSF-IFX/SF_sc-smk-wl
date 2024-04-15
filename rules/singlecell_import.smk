@@ -208,3 +208,8 @@ def is_version_greater_than(version_string, target_version):
 flag_create_bam = ""
 if is_version_greater_than(program.cellranger, "8.0.0"):
     flag_create_bam = " --create-bam=true "
+
+flag4spaceranger_create_bam = ""
+if is_version_greater_than(program.spaceranger, "3.0.0"):
+    flag4spaceranger_create_bam = " --create-bam=true "
+

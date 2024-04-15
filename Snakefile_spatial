@@ -21,12 +21,12 @@ if len(samples) == 1:  ## only one sample
     aggregate = False
     aggr_output4ruleall = []
 
-include: "rules/singlecell_rna_import.smk"
+include: "rules/singlecell_spatial_import.smk"
 
 #rule_all_append defined in Snakefile_singlecell_import
 
 sflog.info("rule all: " + " ".join(samples))
 #sflog.info("rule all: " + wildcards)
-sflog.info("rule all: " + " ".join(expand("run_{sample}_10x_cellranger_count.err", sample=samples)))
+sflog.info("rule all: " + " ".join(expand("run_{sample}_10x_spaceranger_count.err", sample=samples)))
 rule all:
-    input: expand("run_{sample}_10x_cellranger_count.err", sample=samples), "finalreport/metric_summary.xlsx", expand("finalreport/summaries/{sample}_web_summary.html", sample=samples), aggr_output4ruleall, wreport_result, xreport_result, "QC/" + project_name + "_multiqc.html", 'copy.complete', rule_all_append
+    input: expand("run_{sample}_10x_spaceranger_count.err", sample=samples), "finalreport/metric_summary.xlsx", expand("finalreport/summaries/{sample}_web_summary.html", sample=samples), aggr_output4ruleall, wreport_result, xreport_result, "QC/" + project_name + "_multiqc.html", 'copy.complete', rule_all_append

@@ -38,6 +38,7 @@ def createMetricsSummary(arg1):
 
     formatNum = workbook.add_format({'num_format': '#,###'})
     formatPer = workbook.add_format({'num_format': '0.00%'})
+    formatFloat = workbook.add_format({'num_format': '0.00'})
     formatHead = workbook.add_format({'bold': True, 'italic': True, 'text_wrap': True, 'align': 'center'})
 
     row = 1
@@ -49,25 +50,25 @@ def createMetricsSummary(arg1):
             line = next(f)
             worksheet.write(row, 0, filename.split('/')[1])
             samples.append(filename.split('/')[1])
-            col = 1
+            col = 0
             for i in line:
                 i = i.strip('"')
-                if '%' in i:
-                    worksheet.write(row, col, float(i.strip('%'))/100, formatPer)
+                if '.' in i:
+                    worksheet.write(row, col, float(i), formatFloat)
+                elif i.isdigit():
+                    #worksheet.write(row, col, int(i.replace(',','')), formatNum)
+                    worksheet.write(row, col, int(i), formatNum)
                 else:
-                    worksheet.write(row, col, int(i.replace(',','')), formatNum)
+                    worksheet.write(row, col, i)
                 col += 1
             row += 1
 
-    col = 1
+    col = 0
     row = 0
-    worksheet.write(0, 0, "Sample", formatHead)
+    #worksheet.write(0, 0, "Sample", formatHead)
     for i in header:
         worksheet.write(row, col, i, formatHead)
         col += 1
-
-    #for i in samples:
-    #    worksheet = workbook.add_worksheet(i)
 
     workbook.close()
 

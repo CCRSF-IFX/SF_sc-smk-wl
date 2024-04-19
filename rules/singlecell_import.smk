@@ -31,6 +31,7 @@ else:
     external = True
     pass
 
+container: program.global_container
 cmd_cellranger = program.cellranger if external == False else "cellranger"
 
 csas = re.search("CS[0-9]{6}", config.analysis).group(0) if re.search("CS[0-9]{6}", config.analysis) else os.path.basename(config.analysis.strip('/'))

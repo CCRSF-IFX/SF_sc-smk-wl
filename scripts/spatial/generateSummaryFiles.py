@@ -65,11 +65,10 @@ def createMetricsSummary(arg1):
 
     col = 0
     row = 0
-    #worksheet.write(0, 0, "Sample", formatHead)
     for i in header:
         worksheet.write(row, col, i, formatHead)
         col += 1
-
+    worksheet.write(0, 0, "Sample", formatHead)
     workbook.close()
 
 def copyWebSummary():

@@ -63,13 +63,17 @@ spaceranger    = "docker://ccrsfifx/spaceranger:3.0.0"
 #paga = "export PATH=/opt/nasapps/development/R/3.5.0/bin:/opt/nasapps/development/perl/5.22.1/bin:/mnt/nasapps/development/python/3.7.1/bin:/mnt/nasapps/modules/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/opt/puppetlabs/bin:/mnt/nasapps/production/perl/lib/perl5; export R_LIBS=/mnt/nasapps/development/R/r_libs/3.6.0; export LD_LIBRARY_PATH=/mnt/nasapps/development/hdf5/1.10.5/lib; export PATH=/mnt/nasapps/development/python/miniconda3/4.5.12/bin:$PATH; export LD_LIBRARY_PATH=/mnt/nasapps/development/jags/4.3.0/lib:$LD_LIBRARY_PATH; export PATH=/mnt/nasapps/development/python/3.6.5/bin:$PATH; unset DISPLAY; /mnt/nasapps/development/python/3.6.5/bin/python"
 #genrich = "/mnt/ccrsf-ifx/Software/tools/genrich/Genrich-0.6/Genrich"
 #multiqc = "/mnt/ccrsf-ifx/Software/tools/Anaconda/3.7/bin/multiqc"
-#multiqc_conf = "/mnt/ccrsf-ifx/Software/tools/MultiQC/config_multiQC.yaml"
+multiqc = "docker://multiqc/multiqc:v1.12"
+multiqc_conf = "/mnt/ccrsf-ifx/Software/tools/MultiQC/config_multiQC.yaml"
 #fastq_screen = "/mnt/ccrsf-ifx/Software/tools/fastq_screen/0.11.4/bin/fastq_screen"
-#conf = "/mnt/ccrsf-ifx/RefGenomes/univec/fastq_screen_slurm.conf"
+fastq_screen = "docker://quay.io/biocontainers/fastq-screen:0.15.2--pl5321hdfd78af_0"
+conf = "workflow/config/fastq_screen_slurm.conf"
 #kraken2 = "/mnt/ccrsf-ifx/Software/tools/kraken2/2.0.7/bin/kraken2"
-#kraken2db = "/mnt/ccrsf-ifx/RefGenomes/Kraken2/Kraken2_Complete_0820"
-#fastqc = "/mnt/ccrsf-ifx/Software/tools/fastqc/0.11.8/bin/fastqc"
-#
-#
+kraken2 = "docker://staphb/kraken2:2.1.3"
+kraken2db = "/mnt/ccrsf-ifx/RefGenomes/Kraken2/Kraken2_Complete_0820"
+global_container = "docker://ccrsfifx/sc-smk-wl:py1.0.0"
+fastqc = "docker://quay.io/biocontainers/fastqc:0.11.8--2"
+
+
 ###############################################################
-#workflow_img4pipseq = "/mnt/ccrsf-ifx/Software/scripts/bin/currentsnake/single_cell/pipseq/img/SingleCell_RNA_PIPseq.png"
+#x  workflow_img4pipseq = "/mnt/ccrsf-ifx/Software/scripts/bin/currentsnake/single_cell/pipseq/img/SingleCell_RNA_PIPseq.png"

@@ -49,7 +49,7 @@ rule aggregateCSV:
     input: expand("{sample}/outs/web_summary.html", sample=samples)
     output: "AggregatedDatasets.csv"
     params: batch = "-l nodes=1:ppn=1"
-    shell: "python workflow/scripts/spatial/generateSummaryFiles_spatial.py {analysis}"
+    shell: "python workflow/scripts/spatial/generateAggregateCSV.py {analysis}"
 
 rule aggregate:
     input: csv="AggregatedDatasets.csv"

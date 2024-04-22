@@ -176,8 +176,8 @@ for run_name in run_names:
     flowcell = flowcellRunParameters if flowcell in flowcellRunParameters else flowcell
 
 #Create file names
-#flowcell = os.path.basename(config.unaligned[0].strip('/'))
-#flowcells = {os.path.basename(i.strip('/')): i for i in config.unaligned}
+flowcell = os.path.basename(config.unaligned[0].strip('/'))
+flowcells = {os.path.basename(i.strip('/')): i for i in config.unaligned}
 #cfile = one_up + "/" + project_name+"_"+'_'.join(flowcells)+".count.tar"
 report_result = one_up + "/" + project_name + "_" + flowcell + "_Metadata.txt"
 wreport_result = one_up + "/" + project_name + "_" + flowcell + ".docx"

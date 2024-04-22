@@ -167,7 +167,7 @@ def conditional_flags(wildcards):
             flags.append(f'--vdjref {reference.vdj_reference}')
             break
     # for cellranger >=8.0.0
-    if flag_create_bam != "":
+    if flag4cellranger_create_bam != "":
         flags.append(f"--create_bam")
     return(' '.join(flags))
 
@@ -194,7 +194,7 @@ else:
         log: err = "run_{sample}_10x_cellranger_count.err", log ="run_{sample}_10x_cellranger_count.log"
         params: batch = "-l nodes=1:ppn=16,mem=96gb", prefix = "{sample}", 
         container: program.cellranger
-        shell: "rm -r {params.prefix}; cellranger count {flag_create_bam} --id={params.prefix} --libraries={input.csv} --transcriptome={reference.transcriptome}  --feature-ref={config.features} 2>{log.err} 1>{log.log}"
+        shell: "rm -r {params.prefix}; cellranger count {flag4cellranger_create_bam} --id={params.prefix} --libraries={input.csv} --transcriptome={reference.transcriptome}  --feature-ref={config.features} 2>{log.err} 1>{log.log}"
 rule copyScripts:
     output: directory("scripts")
     params: batch = "-l nodes=1:ppn=1"

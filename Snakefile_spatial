@@ -8,6 +8,7 @@ import os
 import itertools
 import sys
 
+
 ## aggregate is set to "True" in the step below
 include: "rules/singlecell_import.smk"
 include: "rules/singlecell_rules_common.smk"

@@ -206,9 +206,9 @@ def is_version_greater_than(version_string, target_version):
     except packaging.version.InvalidVersion:
         return False  # Handle cases where the version string is invalid
 
-flag_create_bam = ""
+flag4cellranger_create_bam = ""
 if is_version_greater_than(program.cellranger, "8.0.0"):
-    flag_create_bam = " --create-bam=true "
+    flag4cellranger_create_bam = " --create-bam=true "
 
 flag4spaceranger_create_bam = ""
 if is_version_greater_than(program.spaceranger, "3.0.0"):

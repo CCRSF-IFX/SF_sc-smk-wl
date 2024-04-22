@@ -42,6 +42,7 @@ def createMetricsSummary(arg1):
 
     row = 1
     samples = list()
+    header = ""
     for filename in files:
         with open(filename, 'r') as csvfile:
             f = csv.reader(csvfile, delimiter=',', quotechar='"')

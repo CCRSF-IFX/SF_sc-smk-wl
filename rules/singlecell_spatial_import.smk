@@ -49,7 +49,7 @@ rule aggregateCSV:
     input: expand("{sample}/outs/web_summary.html", sample=samples)
     output: "AggregatedDatasets.csv"
     params: batch = "-l nodes=1:ppn=1"
-    shell: "python generateAggregateCSV.py {analysis}"
+    shell: "python workflow/scripts/spatial/generateAggregateCSV.py {analysis}"
 
 rule aggregate:
     input: csv="AggregatedDatasets.csv"
@@ -69,29 +69,31 @@ rule fastqscreen:
     output: two = "QC/Sample_{sample}/{sample}_R2_screen.png", two_txt = "QC/Sample_{sample}/{sample}_R2_screen.txt", two_tagged = "QC/Sample_{sample}/{sample}_R2.tagged.fastq.gz", two_tagged_filtered = "QC/Sample_{sample}/{sample}_R2.tagged_filter.fastq.gz", two_html = "QC/Sample_{sample}/{sample}_R2_screen.html"
     log: logname = "QC/Sample_{sample}/{sample}_fastq_screen.err"
     params: prefix = "QC/Sample_{sample}/"
-    conda: "../envs/fastqscreen.yaml" 
-    shell: "{program.fastq_screen} --outdir {params.prefix} --threads {clusterConfig[fastqscreen][threads]} --subset 5000000 --nohits --conf {program.conf} --aligner bowtie2 {input.R2} 2>{log.logname}"
+    container: program.fastq_screen 
+    shell: "fastq_screen --outdir {params.prefix} --threads 4 --subset 5000000 --nohits --conf {program.conf} --aligner bowtie2 {input.R2} 2>{log.logname}"
 
 rule kraken:
     input: R2 = rules.prep_fastq.output.R2
     output: result = "QC/Sample_{sample}/{sample}.kraken", krona = "QC/Sample_{sample}/{sample}.kraken.krona", report = "QC/Sample_{sample}/{sample}.kraken.report.txt"
     log: err = "QC/Sample_{sample}/kraken.err"
+    container: program.kraken2
     params: prefix = "QC/Sample_{sample}/{sample}.kraken"
-    shell: "{program.kraken2} --gzip-compressed --threads {clusterConfig[kraken][threads]} --db {program.kraken2db} --output {params.prefix} --report {output.report} {input.R2} 2> {log.err} && cut -f2,3 {output.result} > {output.krona}"
+    shell: "kraken2 --gzip-compressed --threads 4 --db {program.kraken2db} --output {params.prefix} --report {output.report} {input.R2} 2> {log.err} && cut -f2,3 {output.result} > {output.krona}"
 
 rule multiqc:
     input: expand("QC/Sample_{sample}/{sample}_R2_screen.png", sample=samples), expand("QC/Sample_{sample}/{sample}.kraken.report.txt", sample=samples)
     output: "QC/" + project_name + "_multiqc.html"
     params: batch = "-l nodes=1:ppn=4,mem=16g"
-    shell: "{program.multiqc} -f -c {program.multiqc_conf} -n {output} ./QC"
+    container: program.multiqc
+    shell: "multiqc -f -c {program.multiqc_conf} -n {output} ./QC"
 
-rule copyScripts:
-    output: directory("scripts")
-    params: batch = "-l nodes=1:ppn=1"
-    shell: "mkdir scripts; cp -r {program.rscripts} scripts; cp -r {program.pythonscripts} scripts"
+#rule copyScripts:
+#    output: directory("scripts")
+#    params: batch = "-l nodes=1:ppn=1"
+#    shell: "mkdir scripts; cp -r {program.rscripts} scripts; cp -r {program.pythonscripts} scripts"
 
 rule summaryFiles:
     input: expand("{sample}/outs/web_summary.html", sample=samples)
     output: "finalreport/metric_summary.xlsx", expand("finalreport/summaries/{sample}_web_summary.html", sample=samples)
     params: batch = "-l nodes=1:ppn=1"
-    shell: "{program.python2_7} {program.pythonscripts}/generateSummaryFiles.py"
+    shell: "python workflow/scripts/spatial/generateSummaryFiles_spatial.py"

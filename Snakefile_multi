@@ -25,7 +25,7 @@ if len(samples) == 1 or hasattr(config, "cmo"):  ## only one sample or Multiplex
 include: "rules/singlecell_rules_common.smk"
 #include: program.Snakefile_singlecell_rules
 
-localrules: librariesCSV, multiConfig, aggregateCSV
+#localrules: librariesCSV, multiConfig, aggregateCSV
 
 def check_columns(df, columns):
     """
@@ -206,7 +206,7 @@ rule summaryFiles:
     input: expand(rules.count.output, sample=samples)
     output: "finalreport/metric_summary.xlsx"
     params: batch = "-l nodes=1:ppn=1"
-    shell: "{program.python2_7} {pythonpath}/generateSummaryFiles.py"
+    shell: "python {pythonpath}/generateSummaryFiles.py"
 
 rule aggregateCSV:
     input: expand("{sample}/outs/config.csv", sample=samples)

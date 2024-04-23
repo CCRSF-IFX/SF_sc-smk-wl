@@ -77,4 +77,4 @@ rule summaryFiles:
     input: expand("{sample}/outs/web_summary.html", sample=samples)
     output: "finalreport/metric_summary.xlsx", expand("finalreport/summaries/{sample}_web_summary.html", sample=samples)
     params: batch = "-l nodes=1:ppn=1"
-    shell: "python workflow/scripts/spatial/generateSummaryFiles_spatial.py"
+    shell: "python workflow/scripts/spatial/generateSummaryFiles.py"

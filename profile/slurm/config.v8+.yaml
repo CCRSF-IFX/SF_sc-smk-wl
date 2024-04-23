@@ -15,7 +15,7 @@ rerun-trigger: mtime # the traditional way of just considering file modification
 # Equavalent of cluster.json in previous version of snakemake
 default-resources:
   runtime: 7200
-  mem_mb: 70000
+  mem_mb: 100000
   disk_mb: 1000000
   slurm_partition: "norm"
 # set-threads: map rule names to threads

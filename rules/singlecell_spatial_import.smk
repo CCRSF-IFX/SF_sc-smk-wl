@@ -34,7 +34,11 @@ def get_image_data(wildcards):
         return [slide_name, slide_file, area, image]
     else:
         sflog.error(f"{wildcards} not complete in {config.images}")
-         
+
+flag_probe_set = ""
+probe_set = getattr(reference, config.spatial_method, "") 
+if probe_set is not "":
+    flag_probe_set = f"--probe-set={probe_set}"
 
 current_cellranger = program.spaceranger
  
@@ -43,7 +47,7 @@ rule count:
     log: err = "run_{sample}_10x_spaceranger_count.err", log ="run_{sample}_10x_spaceranger_count.log"
     params: batch = "-l nodes=1:ppn=16,mem=96gb", prefix = "{sample}", prefix2 = filterFastq, image_info  = get_image_data
     container: program.spaceranger
-    shell: "rm -r {params.prefix}; spaceranger count {flag4spaceranger_create_bam}  --id={params.prefix} --sample={params.prefix} --fastqs={params.prefix2} --image={params.image_info[3]} --slide={params.image_info[0]}  --slidefile={params.image_info[1]} --area={params.image_info[2]}   --transcriptome={reference.transcriptome} 2>{log.err} 1>{log.log}"
+    shell: "rm -r {params.prefix}; spaceranger count {flag4spaceranger_create_bam}  --id={params.prefix} --sample={params.prefix} --fastqs={params.prefix2} --image={params.image_info[3]} --slide={params.image_info[0]}  --slidefile={params.image_info[1]} --area={params.image_info[2]}  {flag_probe_set}  --transcriptome={reference.transcriptome} --reorient-images=true  2>{log.err} 1>{log.log}"
 
 rule aggregateCSV:
     input: expand("{sample}/outs/web_summary.html", sample=samples)

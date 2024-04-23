@@ -16,6 +16,8 @@ if config.ref == "mm10":
     arc_reference ="/mnt/ccrsf-ifx/RefGenomes/10X_REF/refdata-cellranger-arc-mm10-2020-A-2.0.0"
     genomename = "mm10"
     pipseq_reference = "/mnt/ccrsf-ifx/RefGenomes/PIPseq_REF/pipseeker-refdata-gex-mm10-2020-A"
+    cytassist_v1 = "/mnt/ccrsf-ifx/RefGenomes/10X_REF/SpacialTranscriptomic/Visium_Mouse_Transcriptome_Probe_Set_v1.0_mm10-2020-A.csv"
+    cytassist_v2 = "/mnt/ccrsf-ifx/RefGenomes/10X_REF/SpacialTranscriptomic/Visium_Mouse_Transcriptome_Probe_Set_v2.0_mm10-2020-A.csv"
 if config.ref == "hg19":
     transcriptome = "/mnt/ccrsf-ifx/RefGenomes/10X_REF/refdata-cellranger-hg19-3.0.0"
     atac_reference_old = "/mnt/ccrsf-ifx/Software/tools/GemCode/ATAC_Ref/refdata-cellranger-atac-hg19-1.2.0"
@@ -38,6 +40,9 @@ if config.ref == "hg38":
     arc_reference ="/mnt/ccrsf-ifx/RefGenomes/10X_REF/refdata-cellranger-arc-GRCh38-2020-A-2.0.0"
     genomename = "GRCh38"
     pipseq_reference = "/mnt/ccrsf-ifx/RefGenomes/PIPseq_REF/pipseeker-refdata-gex-GRCh38-2020-A/"
+    cytassist_v1 = "/mnt/ccrsf-ifx/RefGenomes/10X_REF/SpacialTranscriptomic/Visium_Human_Transcriptome_Probe_Set_v1.0_GRCh38-2020-A.csv"
+    cytassist_v2 = "/mnt/ccrsf-ifx/RefGenomes/10X_REF/SpacialTranscriptomic/Visium_Human_Transcriptome_Probe_Set_v2.0_GRCh38-2020-A.csv"
+
 if config.ref == "b37":
     atac_reference_old = "/mnt/ccrsf-ifx/Software/tools/GemCode/ATAC_Ref/refdata-cellranger-atac-b37-1.2.0"
     genomename = "b37"

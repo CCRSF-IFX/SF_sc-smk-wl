@@ -38,9 +38,9 @@ def output_list_web_summary(wildcards):
 
 if config.pipeline == "pipseq" or config.pipeline == "nopipe":
     aggregate = False
-print("flowcells")
-print(flowcells)
-print(run_names)
+#print("flowcells")
+#print(flowcells)
+#print(run_names)
 if aggregate:
   sflog.info(aggregate)
   rule archive:

@@ -4,4 +4,4 @@ rule fastqscreen:
     log: logname = "QC/Sample_{sample}/{sample}_fastq_screen.err"
     params: prefix = "QC/Sample_{sample}/"
     container: program.fastq_screen
-    shell: "fastq_screen --outdir {params.prefix} --threads {clusterConfig[fastqscreen][threads]} --subset 5000000 --nohits --conf {program.conf} --aligner bowtie2 {input.R2} 2>{log.logname}"
+    shell: "fastq_screen --outdir {params.prefix} --threads 4 --subset 5000000 --nohits --conf {program.conf} --aligner bowtie2 {input.R2} 2>{log.logname}"

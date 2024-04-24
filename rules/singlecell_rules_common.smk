@@ -78,7 +78,7 @@ if external == False:
         onsuccess:
            success = "Yes"
            al = analysis
-           shell(r'''python {analysis}/workflow/scripts/sendmail4test.py {success} {al} {testing}''')
+           shell(r'''python {analysis}/workflow/scripts/sendmail4test.py {success} {al} {testing} > snakemake.stats''')
     
         onerror:
             success = "No"
@@ -88,7 +88,7 @@ if external == False:
         onsuccess:
            success = "Yes"
            al = analysis
-           shell(r'''python {analysis}/workflow/scripts/sendmail.py {success} {al}''')
+           shell(r'''python {analysis}/workflow/scripts/sendmail.py {success} {al} > snakemake.stats''')
     
         onerror:
             success = "No"

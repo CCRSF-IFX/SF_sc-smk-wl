@@ -37,7 +37,7 @@ def get_image_data(wildcards):
 
 flag_probe_set = ""
 probe_set = getattr(reference, config.spatial_method, "") 
-if probe_set is not "":
+if probe_set != "":
     flag_probe_set = f"--probe-set={probe_set}"
 
 current_cellranger = program.spaceranger

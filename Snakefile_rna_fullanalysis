@@ -1,0 +1,42 @@
+#shell.executable("/bin/bash")
+#shell.prefix("source /etc/profile.d/modules.sh; ")
+
+from snakemake.utils import R
+import glob
+import os.path
+import os
+import itertools
+import sys
+
+## aggregate is set to "True" in the step below
+include: "rules/singlecell_import.smk"
+include: "rules/singlecell_rules_common.smk"
+
+## if there is only one sample, there is no need to run cellrange aggr 
+aggregate = getattr(config, "aggregate", True)
+aggr_output4ruleall = ["aggregate.complete"] if aggregate else []
+
+## variable `samples` is created in Snakefile_singlecell_import
+if len(samples) == 1:  ## only one sample 
+    aggregate = False
+    aggr_output4ruleall = []
+
+include: "rules/singlecell_rna_import.smk"
+include: "rules/singlecell_rna_fullanalysis.smk"
+#rule_all_append defined in Snakefile_singlecell_import
+
+sflog.info("rule all: " + " ".join(samples))
+#sflog.info("rule all: " + wildcards)
+sflog.info("rule all: " + " ".join(expand("run_{sample}_10x_cellranger_count.err", sample=samples)))
+rule all:
+    input:
+        expand(os.path.join(analysis, "{sample}/outs/seurat/seurat.log"), sample=samples), 
+        expand("run_{sample}_10x_cellranger_count.err", sample=samples), 
+        "finalreport/metric_summary.xlsx", 
+        expand("finalreport/summaries/{sample}_web_summary.html", sample=samples), 
+        aggr_output4ruleall, 
+        wreport_result, 
+        xreport_result, 
+        "QC/" + project_name + "_multiqc.html", 
+        'copy.complete', 
+        rule_all_append

@@ -25,4 +25,5 @@ set-threads:
 set-resources:
   count:
     mem_mb: 
-      300000
+      600000
+

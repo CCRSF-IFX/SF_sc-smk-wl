@@ -9,7 +9,7 @@ show-failed-logs: True
 keep-going: True
 printshellcmds: True
 use-singularity: True
-singularity-args: ' "--cleanenv --no-home -B /scratch/ccrsf_scratch -B /mnt " ' 
+singularity-args: ' "--cleanenv --no-home -B /scratch/ccrsf_scratch -B /mnt/ccrsf-static -B /mnt/ccrsf-ifx -B /mnt/ccrsf-raw -B /mnt/ccrsf-active" ' 
 rerun-trigger: mtime # the traditional way of just considering file modification dates
 
 # Equavalent of cluster.json in previous version of snakemake

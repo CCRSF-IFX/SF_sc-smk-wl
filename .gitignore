@@ -1,2 +1,3 @@
 .snakemake/**
-register_user-response* 
+register_user-response*
+.ipynb_checkpoints/**

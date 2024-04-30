@@ -22,7 +22,9 @@ if len(samples) == 1:  ## only one sample
     aggr_output4ruleall = []
 
 include: "rules/singlecell_rna_import.smk"
-include: "rules/singlecell_rna_fullanalysis.smk"
+## Full analysis part
+include: "rules/singlecell_rna_seurat_proc.smk"
+include: "rules/singlecell_rna_singleR.smk"
 #rule_all_append defined in Snakefile_singlecell_import
 
 sflog.info("rule all: " + " ".join(samples))
@@ -30,6 +32,7 @@ sflog.info("rule all: " + " ".join(samples))
 sflog.info("rule all: " + " ".join(expand("run_{sample}_10x_cellranger_count.err", sample=samples)))
 rule all:
     input:
+        expand(os.path.join(analysis, "{sample}/singleR/singleR.log"), sample=samples),
         expand(os.path.join(analysis, "{sample}/seurat/seurat.log"), sample=samples), 
         expand("run_{sample}_10x_cellranger_count.err", sample=samples), 
         "finalreport/metric_summary.xlsx", 

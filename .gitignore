@@ -1,3 +1,4 @@
 .snakemake/**
 register_user-response*
 **/*.ipynb_checkpoints/
+.smbdelete*

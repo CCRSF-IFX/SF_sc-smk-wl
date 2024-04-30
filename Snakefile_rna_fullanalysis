@@ -30,7 +30,7 @@ sflog.info("rule all: " + " ".join(samples))
 sflog.info("rule all: " + " ".join(expand("run_{sample}_10x_cellranger_count.err", sample=samples)))
 rule all:
     input:
-        expand(os.path.join(analysis, "{sample}/outs/seurat/seurat.log"), sample=samples), 
+        expand(os.path.join(analysis, "{sample}/seurat/seurat.log"), sample=samples), 
         expand("run_{sample}_10x_cellranger_count.err", sample=samples), 
         "finalreport/metric_summary.xlsx", 
         expand("finalreport/summaries/{sample}_web_summary.html", sample=samples), 

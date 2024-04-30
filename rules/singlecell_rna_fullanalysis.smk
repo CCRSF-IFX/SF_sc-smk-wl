@@ -6,10 +6,12 @@ rule seurat_proc:
     params:
         fil_mtx = os.path.join(analysis, "{sample}/outs/filtered_feature_bc_matrix/"),
         outdir = os.path.join(analysis, "{sample}/outs/seurat/"),
+    log:
+        os.path.join(analysis, "{sample}/outs/seurat/seurat.log")
     output:
-        log = os.path.join(analysis, "{sample}/outs/seurat/seurat.log")
-    container: program.Rseurat 
+        seur = os.path.join(analysis, "{sample}/outs/seurat/seur_10x_cluster_object.rds")
+    container: program.Rseurat
     shell:
         """
-Rscript {analysis}/scripts/rna/sc_seurat.prod.R --genome={config.ref} --data.dir={params.fil_mtx}  --outdir={params.outdir} > {output.log} 2>&1
+Rscript {analysis}/workflow/scripts/rna/sc_seurat.prod.R --genome={config.ref} --data.dir={params.fil_mtx}  --outdir={params.outdir} > {log} 2>&1
 """

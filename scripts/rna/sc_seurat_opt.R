@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-## Some of the code were borrowed from cellsnake here: https://github.com/sinanugur/scrna-workflow
+# Adapted from cellsnake here: https://github.com/sinanugur/scrna-workflow
 
 option_list <- list(
   optparse::make_option(c("--min.cells"),

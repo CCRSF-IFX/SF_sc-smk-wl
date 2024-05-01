@@ -21,7 +21,8 @@ if len(samples) == 1:  ## only one sample
 
 rule all:
     input: 
-        expand("run_{sample}_10x_cellranger_vdj.err", sample=samples), 
+        expand(rules.count.output, sample=samples),
+        #expand("run_{sample}_10x_cellranger_vdj.err", sample=samples), 
         "finalreport/metric_summary.xlsx", 
         expand("finalreport/summaries/{sample}_web_summary.html", sample=samples), 
         wreport_result, 

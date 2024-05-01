@@ -154,7 +154,7 @@ if (opt$genome == "mm10") {
   write.csv(seur@meta.data[,c('blueprintencode_hpca', 'blueprintencode', 'hpca')], 'annotations_compiled_barcode.csv', quote=FALSE)
 }
 
-generateMarkerPlots(seur, geneList)
+suppressWarnings(generateMarkerPlots(seur, geneList))
 saveRDS(seur, 'seur_10x_cluster_singler.rds')
 
 

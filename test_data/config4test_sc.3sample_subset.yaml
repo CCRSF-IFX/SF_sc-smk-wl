@@ -1,0 +1,51 @@
+path2run_snakemake_sc: /mnt/ccrsf-ifx/Software/github/SF_scMaestro/run_snakemake_sc.py
+outdir: /mnt/ccrsf-static/Analysis/xies4/github_repos/pipeline_dev_test/test4pl_outdir_3sample_subset1/
+test_email: xies4@nih.gov
+## y or n to indicate whether you want to submit the job or not
+submit_job: "y" 
+rna:
+    projectname: NyallLondon_CS032345_16scRNASeqTCRLib_081122
+    ref: hg38
+    fastqpath: ./raw_fastq/multi_3sample_subset/220824_A01806_0074_AHF2GLDMXY/HF2GLDMXY/outs/fastq_path/HF2GLDMXY
+    cell_number: 8000
+    archive_run: 220824_A01806_0074_AHF2GLDMXY
+    metadata: workflow/test_data/NyallLondon_CS032345_16scRNASeqTCRLib_081122/NyallLondon_CS032345_16scRNASeqTCRLib_081122_HF2GLDMXY_Metadata.txt
+
+rna_full:
+    projectname: NyallLondon_CS032345_16scRNASeqTCRLib_081122
+    ref: hg38 
+    fastqpath: /mnt/ccrsf-static/Analysis/xies4/github_repos/SFIFX_notes/trb/2022/pipeline_dev4test/raw_fastq/multi_3sample_subset/220824_A01806_0074_AHF2GLDMXY/HF2GLDMXY/outs/fastq_path/HF2GLDMXY/
+    archive_run: 220824_A01806_0074_AHF2GLDMXY
+    metadata: workflow/test_data/NyallLondon_CS032345_16scRNASeqTCRLib_081122/NyallLondon_CS032345_16scRNASeqTCRLib_081122_HF2GLDMXY_Metadata.txt
+
+multi:
+    projectname: NyallLondon_CS032345_16scRNASeqTCRLib_081122 
+    ref: hg38
+    fastqpath: /mnt/ccrsf-static/Analysis/xies4/github_repos/pipeline_dev_test/raw_fastq/multi_3sample_subset/220824_A01806_0074_AHF2GLDMXY/HF2GLDMXY/outs/fastq_path/HF2GLDMXY,/mnt/ccrsf-static/Analysis/xies4/github_repos/pipeline_dev_test/raw_fastq/multi_3sample_subset/220824_A01806_0075_BHFJVHDRX2/HFJVHDRX2/outs/fastq_path/HFJVHDRX2/ 
+    cell_number: 8000
+    archive_run: 220824_A01806_0074_AHF2GLDMXY,220824_A01806_0075_BHFJVHDRX2
+    lib_csv: workflow/test_data/NyallLondon_CS032345_16scRNASeqTCRLib_081122/libraries4multi3sample_origindonor.csv
+    metadata: workflow/test_data/NyallLondon_CS032345_16scRNASeqTCRLib_081122/NyallLondon_CS032345_16scRNASeqTCRLib_081122_HFJVHDRX2_Metadata.txt
+
+spatial: 
+    projectname: SonjaBest_CS036616_One10XVisiumLibpool_040224 
+    ref: mm10
+    fastqpath: ./raw_fastq/spatial_3sample_subset/20240409_LH00236_0131_A22GNL7LT3/22GNL7LT3/outs/fastq_path/22GNL7LT3/ 
+    archive_run: 20240409_LH00236_0131_A22GNL7LT3 
+    imagemeta: /mnt/ccrsf-static/Analysis/xies4/github_repos/pipeline_dev_test/data/HE_IMAGE/spatial_metadata.csv 
+    spatial_method: cytassist_v1
+    metadata:  ./workflow/test_data/SonjaBest_CS036616_One10XVisiumLibpool_040224/SonjaBest_CS036616_One10XVisiumLibpool_040224_22GNL7LT3_Metadata.txt
+
+vdj:
+    projectname: NyallLondon_CS032345_16scRNASeqTCRLib_081122
+    ref: hg38
+    fastqpath: raw_fastq/multi_3sample_subset/220824_A01806_0075_BHFJVHDRX2/HFJVHDRX2/outs/fastq_path/HFJVHDRX2/
+    archive_run: 220824_A01806_0075_BHFJVHDRX2
+    chain: TR
+
+multiome:
+    projectname: LouisStaudt_CS031886_32scMultiome_051622
+    ref: hg38
+    fastqpath: /mnt/ccrsf-static/Analysis/xies4/github_repos/SFIFX_notes/trb/2022/pipeline_dev4test/raw_fastq/multiome_3samples_subset/220606_A01615_0110_AHCKFGDRX2/HCKFGDRX2/outs/fastq_path/HCKFGDRX2/,/mnt/ccrsf-static/Analysis/xies4/github_repos/SFIFX_notes/trb/2022/pipeline_dev4test/raw_fastq/multiome_3samples_subset/220606_A01615_0111_BHCKFLDRX2/HCKFLDRX2/outs/fastq_path/HCKFLDRX2/,/mnt/ccrsf-static/Analysis/xies4/github_repos/SFIFX_notes/trb/2022/pipeline_dev4test/raw_fastq/multiome_3samples_subset/220629_A01615_0121_BHCL7LDMXY/HCL7LDMXY/outs/fastq_path/HCL7LDMXY/,/mnt/ccrsf-static/Analysis/xies4/github_repos/SFIFX_notes/trb/2022/pipeline_dev4test/raw_fastq/multiome_3samples_subset/220629_A01615_0122_AHCFGJDMXY/HCFGJDMXY/outs/fastq_path/HCFGJDMXY/
+    archive_run: 220606_A01615_0110_AHCKFGDRX2,220606_A01615_0111_BHCKFLDRX2,220629_A01615_0121_BHCL7LDMXY,220629_A01615_0122_AHCFGJDMXY
+    lib_csv: /mnt/ccrsf-static/Analysis/xies4/github_repos/SFIFX_notes/trb/2022/pipeline_dev4test/libraries4multiome3samples.csv

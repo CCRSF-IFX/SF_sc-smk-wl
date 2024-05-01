@@ -25,11 +25,7 @@ option_list <- list(
 
 opt_parser <- optparse::OptionParser(option_list = option_list)
 opt <- optparse::parse_args(opt_parser)
-
 system(paste0("mkdir -p ", opt$outdir))
-
-
-
 
 
 
@@ -46,7 +42,6 @@ library(celldex)
 seur <- readRDS(opt$rds)
 
 sce <- as.SingleCellExperiment(seur)
-
 
 sce <- scater::logNormCounts(sce)
 
@@ -79,7 +74,7 @@ generatePlots <- function(name, pred, seur, markers){
     numGenes <- length(genes.use[genes.use %in% row.names(seur)])
     if (sum(genes.use %in% row.names(seur)) > 1) {
       png(paste0('gene_list_plots/ViolinPlot_', name, '_', row.names(geneList)[i],'.png'), height = 5, width = (length(genes.use[genes.use %in% row.names(seur)])+1)*5, units='in', res=300)
-      print(VlnPlot(seur, genes.use[genes.use %in% row.names(seur)], ncol=numGenes))
+      print(suppressWarnings(VlnPlot(seur, genes.use[genes.use %in% row.names(seur)], ncol=numGenes)))
       dev.off()
     }
   }
@@ -93,7 +88,7 @@ generateMarkerPlots <- function(seur, markers) {
     numGenes <- length(genes.use[genes.use %in% row.names(seur)])
     if (sum(genes.use %in% row.names(seur)) > 1) {
       png(paste0('gene_list_plots/FeaturePlot_', row.names(geneList)[i],'.png'), height = 5, width = (length(genes.use[genes.use %in% row.names(seur)])+1)*5, units='in', res=300)
-      print(FeaturePlot(seur, genes.use[genes.use %in% row.names(seur)], ncol=numGenes))
+      print(suppressWarnings(FeaturePlot(seur, genes.use[genes.use %in% row.names(seur)], ncol=numGenes)))
       dev.off()
     }
   }
@@ -105,8 +100,8 @@ generateMarkerPlots <- function(seur, markers) {
 if (opt$genome == "mm10") {
   #immgen <- ImmGenData()# - mouse
   #mouserna <- MouseRNAseqData()# - mouse
-  immgen <- readRDS("~/ImmGenData.rds")
-  mouserna <- readRDS("~/MouseRNAseqData.rds")
+  immgen <- readRDS("/home/docker/ImmGenData.rds")
+  mouserna <- readRDS("/home/docker/MouseRNAseqData.rds")
   pred.multi <- SingleR(test = sce,
       ref = list(IG=immgen, MRNA=mouserna),
       labels = list(immgen$label.main, mouserna$label.main))
@@ -130,8 +125,8 @@ if (opt$genome == "mm10") {
 } else if (opt$genome == "hg38") {
   #hpca <- HumanPrimaryCellAtlasData()
   #blueprint <- BlueprintEncodeData()
-  hpca <- readRDS("~/HumanPrimaryCellAtlasData.rds")
-  blueprint <- readRDS("~/BlueprintEncodeData.rds")
+  hpca <- readRDS("/home/docker/HumanPrimaryCellAtlasData.rds")
+  blueprint <- readRDS("/home/docker/BlueprintEncodeData.rds")
   pred.multi <- SingleR(test = sce,
       ref = list(BP=blueprint, HPCA=hpca),
       labels = list(blueprint$label.main, hpca$label.main))
@@ -157,9 +152,7 @@ if (opt$genome == "mm10") {
 suppressWarnings(generateMarkerPlots(seur, geneList))
 saveRDS(seur, 'seur_10x_cluster_singler.rds')
 
-
 sessionInfo()
-
 
 
 

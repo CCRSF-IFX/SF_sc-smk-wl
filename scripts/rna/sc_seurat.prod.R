@@ -67,7 +67,6 @@ if (opt$genome == "mm10") {
         seur[["percent.mito"]] <- PercentageFeatureSet(seur, pattern="^MT-")
 }
 
-
 head(seur@meta.data)
 
 png("VlnPlot_PreFilter.png", height=7, width=7, units='in', res=200)
@@ -79,8 +78,6 @@ plot2 <- FeatureScatter(seur, feature1 = "nCount_RNA", feature2 = "nFeature_RNA"
 png("FeatureScatter_PreFilter.png", height=7, width=10, units='in', res=200)
 plot1 | plot2
 dev.off()
-
-
 
 cS <- data.frame(libSize=seur$nCount_RNA, geneDetect=seur$nFeature_RNA)
 p_hi <- 1e-3 #p-value for filtering doublets
@@ -105,7 +102,6 @@ temp_doublets <- (cS$libSize > umi.upper.limit) | (cS$geneDetect > gene.upper.li
 temp_crapLibs <- (cS$libSize < umi.lower.limit) | (cS$geneDetect < gene.lower.limit) #poor libraries IDed based on low library size or genes detected
 
 print(mito.upper.limit)
-
 
 filter_summary <- t(data.frame(c("Doublets"=sum(temp_doublets), "Poor-Quality"=sum(temp_crapLibs), "Mitochondrial"=sum(seur$percent.mito > mito.upper.limit), "Total Filtered"=sum(temp_doublets | temp_crapLibs | seur$percent.mito > mito.upper.limit))))
 
@@ -229,8 +225,6 @@ for (res in resolutions) {
     runRes <- append(runRes, res)})
 }
 
-
-
 #save object
 saveRDS(seur, file = "seur_10x_cluster_object.rds")
 
@@ -269,7 +263,6 @@ for (res in setdiff(resolutions, runRes)){
 write(min(runRes), "minRes.txt")
 
 sessionInfo()
-
 
 
 

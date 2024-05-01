@@ -25,10 +25,6 @@ option_list <- list(
 
 opt_parser <- optparse::OptionParser(option_list = option_list)
 opt <- optparse::parse_args(opt_parser)
-
 system(paste0("mkdir -p ", opt$outdir))
 setwd(opt$outdir)                        # %exclude_jupyterlab% 
 saveRDS(opt, "opt.rds")                  # %exclude_jupyterlab%
-
-
-

@@ -22,7 +22,7 @@ rule singleR_annotation:
         os.path.join(analysis, "{sample}/singleR/singleR.log")
     output:
         seur = os.path.join(analysis, "{sample}/singleR/seur_10x_cluster_singler.rds")
-    container: program.Rseurat
+    container: program.Renv
     shell:
         """
 Rscript {analysis}/workflow/scripts/rna/sc_singleR.prod.R --genome={config.ref} --markerList={gene_list_file} --rds={input.seur} --outdir={params.outdir} > {log} 2>&1

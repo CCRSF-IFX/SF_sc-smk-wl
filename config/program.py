@@ -4,7 +4,7 @@ active_scripts = "/mnt/ccrsf-ifx/Software/scripts/bin/"
 cellranger     = "docker://ccrsfifx/cellranger:8.0.0"
 cellranger_arc = "docker://ccrsfifx/cellranger-arc2.0.2"
 spaceranger    = "docker://ccrsfifx/spaceranger:3.0.0"
-Rseurat        = "docker://ccrsfifx/sc-smk-wl:r1.0.0"
+Renv           = "docker://ccrsfifx/sc-smk-wl:r1.0.0"
 
 multiqc        = "docker://multiqc/multiqc:v1.12"
 multiqc_conf = "/mnt/ccrsf-ifx/Software/tools/MultiQC/config_multiQC.yaml"

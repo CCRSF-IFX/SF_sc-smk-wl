@@ -1,5 +1,7 @@
 #!/usr/bin/env /is2/projects/CCR-SF/active/Software/tools/Anaconda/3.6/install/bin/python
 
+# /mnt/ccrsf-ifx/Software/scripts/bin/currentsnake/single_cell/featurebarcode/scripts/python_scripts/create_library_files.py 
+
 import argparse, sys
 
 class SmartFormatter(argparse.HelpFormatter):

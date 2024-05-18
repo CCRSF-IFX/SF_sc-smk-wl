@@ -35,7 +35,7 @@ rule arc_count:
     output: "{sample}/outs/web_summary.html"
     log: err = "run_{sample}_10x_cellranger_count.err", log ="run_{sample}_10x_cellranger_count.log"
     params: prefix = "{sample}", prefix2 = filterFastq,count_intronic = count_premrna
-    container: "{program.cellranger_arc}"
+    container: program.cellranger_arc
     shell:
         """
 rm -r {params.prefix}; cellranger-arc count {params.count_intronic} --id={params.prefix} --reference={reference.arc_reference} --libraries={input} --localcores={threads} --localmem={resources.mem_gb} 2>{log.err} 1>{log.log}
@@ -55,5 +55,5 @@ rule aggregate:
     input: csv="AggregatedDatasets.csv"
     output: touch('aggregate.complete')
     log: err="run_10x_aggregate.err", log="run_10x_aggregate.log"
-    container: "{program.cellranger_arc}"
+    container: program.cellranger_arc
     shell: "cellranger-arc aggr --id=AggregatedDatasets --csv={input.csv}  --reference={reference.arc_reference} --normalize=depth 2>{log.err} 1>{log.log}"

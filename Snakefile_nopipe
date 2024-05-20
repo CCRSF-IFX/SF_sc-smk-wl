@@ -1,0 +1,18 @@
+from snakemake.utils import R
+import glob
+import os
+import itertools
+
+## aggregate is set to "True" in the step below
+include: "rules/singlecell_import.smk"
+include: "rules/singlecell_nopipe_import.smk"
+include: "rules/singlecell_rules_common.smk"
+
+rule all:
+    input: 
+        expand(rules.fastqc4report.log.err, sample=samples), 
+        "finalreport/metric_summary.xlsx", expand(rules.fastqc4report.output, sample=samples), 
+        wreport_result, 
+        xreport_result, 
+        "QC/" + project_name + "_multiqc.html", 'copy.complete', 
+        rule_all_append

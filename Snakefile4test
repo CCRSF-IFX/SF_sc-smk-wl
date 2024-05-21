@@ -13,6 +13,8 @@ include: "rules/test_spatia.smk"
 include: "rules/test_rna_full.smk"
 include: "rules/test_vdj.smk"
 include: "rules/test_multiome.smk"
+include: "rules/test_atac.smk"
+include: "rules/test_nopipe.smk"
 
 rule all:
     input:
@@ -28,4 +30,6 @@ rule all:
         rules.test_sc_vdj_default.output.log,
         rules.test_sc_vdj_chain.output.log,
         rules.test_sc_multiome_default.output.log,
-        rules.test_sc_multiome_exclude_exons.output.log
+        rules.test_sc_multiome_exclude_exons.output.log,
+        rules.test_sc_atac_default.output.log,
+        rules.test_sc_nopipe_default.output.log,

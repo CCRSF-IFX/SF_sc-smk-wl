@@ -9,7 +9,7 @@ def count_force_numbers(wildcards):
     else:
         return('')
 
-current_cellranger = program.atac_cellranger
+current_cellranger = program.cellranger_atac
 
 rule atac_count:
     output: 
@@ -48,7 +48,7 @@ rule atac_aggregate:
     log: 
         err="run_10x_aggregate.err", 
         log="run_10x_aggregate.log"
-    container: program.atac_cellranger
+    container: program.cellranger_atac
     shell: 
         """
 cellranger-atac aggr --id=AggregatedDatasets --csv={input.csv} --reference={reference.atac_reference} --normalize=depth 2>{log.err} 1>{log.log}

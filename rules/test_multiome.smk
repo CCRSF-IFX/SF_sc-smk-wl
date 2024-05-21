@@ -6,7 +6,7 @@ fastqpath4multiome = os.path.abspath(config["multiome"]["fastqpath"])
 projectname4multiome = config["multiome"]["projectname"]
 ref4multiome = config["multiome"]["ref"]
 lib_csv = os.path.abspath(config["multiome"]["lib_csv"]), 
-metadata = os.path.abspath(config["rna"]["metadata"])
+metadata = os.path.abspath(config["atac"]["metadata"])
 
 rule test_sc_multiome_default:
     input:

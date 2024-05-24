@@ -9,6 +9,12 @@ def count_force_numbers(wildcards):
     else:
         return('')
 
+def get_chemistry_param(wildcards):
+    if hasattr(config, "chemistry"):
+        return('--chemistry=%s' % config.chemistry)
+    else:
+        return('') 
+
 current_cellranger = program.cellranger_atac
 
 rule atac_count:
@@ -22,12 +28,13 @@ rule atac_count:
     params: 
         prefix = "{sample}", 
         prefix2 = filterFastq, 
-        cells_flag = count_force_numbers
+        cells_flag = count_force_numbers,
+        chem = get_chemistry_param
     container: 
         program.cellranger_atac
     shell:
         """
-rm -r {params.prefix}; cellranger-atac count --id={params.prefix} --fastqs={params.prefix2} --reference={reference.atac_reference} {params.cells_flag} 2>{log.err} 1>{log.log}
+rm -r {params.prefix}; cellranger-atac count --id={params.prefix} --fastqs={params.prefix2} --reference={reference.atac_reference} {params.cells_flag} {params.chem} 2>{log.err} 1>{log.log}
 """
 
 rule aggregateCSV:

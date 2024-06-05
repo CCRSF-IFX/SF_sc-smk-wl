@@ -1,0 +1,59 @@
+from snakemake.utils import R
+import glob
+import os
+import itertools
+
+include: "rules/singlecell_import.smk"
+include: "rules/singlecell_multiome_import.smk"
+include: "rules/singlecell_rules_common.smk"
+
+rule all:
+    input: 
+        expand("run_{sample}_10x_cellranger_count.err", sample=samples), 
+        "finalreport/metric_summary.xlsx", 
+        expand("finalreport/summaries/{sample}_web_summary.html", sample=samples), 
+        "aggregate.complete", 
+        xreport_result, 
+        wreport_result, 
+        'copy.complete', 
+        rule_all_append
+
+rule librariesCSV:
+    output: expand("{sample}_libraries.csv", sample=samples)
+    params: fastq = ",".join(config.unaligned)
+    shell: "python {analysis}/workflow/scripts/fb/create_library_files.py {config.libraries} {params.fastq}"
+
+include_introns = getattr(config, "include_introns", True) 
+def count_premrna(wildcards):
+    if include_introns is False:
+        return('--gex-exclude-introns')
+    else:
+        return(' ')
+
+rule arc_count:
+    input: "{sample}_libraries.csv"
+    output: "{sample}/outs/web_summary.html"
+    log: err = "run_{sample}_10x_cellranger_count.err", log ="run_{sample}_10x_cellranger_count.log"
+    params: prefix = "{sample}", prefix2 = filterFastq,count_intronic = count_premrna
+    container: program.cellranger_arc
+    shell:
+        """
+rm -r {params.prefix}; cellranger-arc count {params.count_intronic} --id={params.prefix} --reference={reference.arc_reference} --libraries={input} --localcores={threads} --localmem={resources.mem_gb} 2>{log.err} 1>{log.log}
+"""
+
+rule summaryFiles:
+    input: expand("{sample}/outs/web_summary.html", sample=samples)
+    output: "finalreport/metric_summary.xlsx", expand("finalreport/summaries/{sample}_web_summary.html", sample=samples)
+    shell: "python {analysis}/workflow/scripts/multiome/generateSummaryFiles.py"
+
+rule aggregateCSV:
+    input: expand("{sample}/outs/web_summary.html", sample=samples)
+    output: "AggregatedDatasets.csv"
+    shell: "python {analysis}/workflow/scripts/multiome/generateAggregateCSV.py {analysis}"
+
+rule aggregate:
+    input: csv="AggregatedDatasets.csv"
+    output: touch('aggregate.complete')
+    log: err="run_10x_aggregate.err", log="run_10x_aggregate.log"
+    container: program.cellranger_arc
+    shell: "cellranger-arc aggr --id=AggregatedDatasets --csv={input.csv}  --reference={reference.arc_reference} --normalize=depth 2>{log.err} 1>{log.log}"

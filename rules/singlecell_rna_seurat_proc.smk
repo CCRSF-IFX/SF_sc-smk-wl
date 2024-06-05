@@ -10,7 +10,7 @@ rule seurat_proc:
         os.path.join(analysis, "{sample}/seurat/seurat.log")
     output:
         seur = os.path.join(analysis, "{sample}/seurat/seur_10x_cluster_object.rds")
-    container: program.Rseurat
+    container: program.Renv
     shell:
         """
 Rscript {analysis}/workflow/scripts/rna/sc_seurat.prod.R --genome={config.ref} --data.dir={params.fil_mtx}  --outdir={params.outdir} > {log} 2>&1

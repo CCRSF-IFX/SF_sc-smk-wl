@@ -1,6 +1,9 @@
 import json
 import packaging.version
 from xml.dom import minidom
+import shutil
+from pathlib import Path
+
 include: "runParametersImport" 
 if 'sflog' not in globals():
     import logging as sflog
@@ -14,25 +17,32 @@ else:
 # are using the workflow
 sflog.debug("Is config a dictionary: " + str(isinstance(config, dict)))
 sflog.debug("Is config empty: " + str(not config))
-if isinstance(config, dict) and not config:
-    import shutil
-    from pathlib import Path
-    ## Path().absolute() return PosixPath object.
-    ## PosixPath object cause import issue. So str()
-    ## is used here to convert PosixPath to regular path
-    sys.path.insert(0, str(Path().absolute())) 
-    sflog.debug(str(Path().absolute()))
-    import config
-    import reference
-    import program
-    external = False
-else:
-    sflog.debug("--configfile is used")
-    external = True
-    pass
+
+## Path().absolute() return PosixPath object.
+## PosixPath object cause import issue. So str()
+## is used here to convert PosixPath to regular path
+sys.path.insert(0, str(Path().absolute())) 
+sflog.debug(str(Path().absolute()))
+import config
+import reference
+import program
+
+def get_bool4internal(): 
+    program_filep = os.path.join(config.analysis, "program.py")
+    try:
+        with open(program_filep) as progf:
+            for line in progf:
+                if "copydir = " in line or "active_scripts =" in line:
+                   return False 
+        return True
+    except FileNotFoundError:
+        sflog.info(f"{program_filep} not found")
+        return False
+
+external = get_bool4internal()
+sflog.info(f"Workflow is used by external user: {external}.")
 
 container: program.global_container
-cmd_cellranger = program.cellranger if external == False else "cellranger"
 
 csas = re.search("CS[0-9]{6}", config.analysis).group(0) if re.search("CS[0-9]{6}", config.analysis) else os.path.basename(config.analysis.strip('/'))
 unaligned = config.unaligned[0]

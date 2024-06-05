@@ -113,7 +113,7 @@ def runParametersXmlPath(run_name):
     runPath = ""
     xmlRunParametersPath = "" 
     xmlRunInfoPath = ""
-    oRunName = re.compile("(\d{6,})_([A-Z0-9]+)_(\d+)_([-A-Z0-9]+)")
+    oRunName = re.compile(r"(\d{6,})_([A-Z0-9]+)_(\d+)_([-A-Z0-9]+)")
     sRunName = oRunName.search(run_name)
     #if sRunName and len(glob.glob(os.path.join(rawDataPath, "RawData", run_name, "[rR]unParameters.xml"))) != 0:
     if sRunName:

@@ -1,0 +1,17 @@
+from snakemake.utils import R
+import glob
+import os
+import itertools
+
+include: "rules/singlecell_import.smk"
+include: "rules/singlecell_rules_common.smk"
+include: "rules/singlecell_atac_import.smk"
+
+rule all:
+    input: 
+        expand("run_{sample}_10x_cellranger_atac.err", sample=samples), 
+        "aggregate.complete", 
+        "finalreport/metric_summary.xlsx", 
+        "QC/" + project_name + "_multiqc.html", 
+        'copy.complete', 
+        rule_all_append

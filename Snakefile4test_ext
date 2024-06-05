@@ -1,0 +1,5 @@
+import os
+submit_job = config["submit_job"]
+outdir_abspath = os.path.abspath(config["outdir"])
+
+include: "rules/test_ext_rna.smk"

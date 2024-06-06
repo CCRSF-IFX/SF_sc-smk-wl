@@ -7,7 +7,7 @@
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --time=96:00:00
 #SBATCH --no-requeue
-#SBATCH --job-name=submit.sh
+#SBATCH --job-name=scMastro
 
-module load singularity 
+
 snakemake --jobname 's.{jobid}.{rulename}' --profile workflow/profile/slurm/  -e cluster-generic > snakemake.log 2>&1 

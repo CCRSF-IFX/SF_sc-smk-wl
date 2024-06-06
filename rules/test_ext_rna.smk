@@ -15,6 +15,6 @@ rule test_sc_rna_default:
     shell:
         """
 mkdir -p {params.dir4test}
-cd {params.dir4test} && echo "n" | {input.run_snakemake4sc} -f {fastqpath4rna} -r {ref} -g {genome} > {output.log} 2>&1
+cd {params.dir4test} && echo "n" | python {input.run_snakemake4sc} rna -f {fastqpath4rna} -r {ref} -g {genome} > {output.log} 2>&1
 cd {params.dir4test} && echo "{submit_job}" | {input.run_snakemake4sc} --rerun 
 """

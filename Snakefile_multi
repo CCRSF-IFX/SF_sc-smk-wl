@@ -104,8 +104,21 @@ def prepare_csv4aggr(aggr_csv):
         logging.err("No sample_out detected. Please check! ")
         sys.exit()
 
+copy_complete = 'copy.complete'
+
+if external == True:
+    wreport_result = []
+    xreport_result = []
+    copy_complete = []
+
 rule all:
-    input: "finalreport/metric_summary.xlsx", wreport_result, xreport_result, 'copy.complete', rule_all_append, aggr_output4ruleall
+    input: 
+        "finalreport/metric_summary.xlsx", 
+        wreport_result, 
+        xreport_result, 
+        copy_complete,  
+        rule_all_append, 
+        aggr_output4ruleall
 
 rule librariesCSV:
     output: expand("{sample}_libraries.csv", sample=samples)

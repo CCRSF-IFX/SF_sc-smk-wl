@@ -3,6 +3,7 @@ import os
 fastqpath4vdj= os.path.abspath(config["vdj"]["fastqpath"])
 ref4vdj = config["vdj"]["ref"]
 genome4vdj = config["vdj"]["genome"]
+chain_type = config["vdj"]["chain"]
 
 rule test_sc_vdj_default:
     input:
@@ -14,7 +15,7 @@ rule test_sc_vdj_default:
     shell:
         """
 mkdir -p {params.dir4test}
-cd {params.dir4test} && echo "{submit_job}" | {input.run_snakemake4sc} vdj --fastq {fastqpath4vdj} --reference {ref4vdj} --genome {genome4vdj} > {output.log} 2>&1
+cd {params.dir4test} && echo "{submit_job}" | {input.run_snakemake4sc} vdj --fastq {fastqpath4vdj} --reference {ref4vdj} --genome {genome4vdj} --chain {chain_type} > {output.log} 2>&1
 """
 
 rule test_sc_vdj_chain:

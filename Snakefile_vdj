@@ -19,6 +19,13 @@ if len(samples) == 1:  ## only one sample
     aggregate = False
     aggr_output4ruleall = []
 
+copy_complete = 'copy.complete'
+
+if external == True:
+    wreport_result = []
+    xreport_result = []
+    copy_complete = []
+
 rule all:
     input: 
         expand(rules.count.output, sample=samples),
@@ -27,5 +34,5 @@ rule all:
         expand("finalreport/summaries/{sample}_web_summary.html", sample=samples), 
         wreport_result, 
         xreport_result, 
-        'copy.complete', 
+        copy_complete, 
         rule_all_append

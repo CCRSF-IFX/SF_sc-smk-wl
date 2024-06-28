@@ -10,6 +10,7 @@ if "test_email" in config:
 include: "rules/test_rna.smk"
 include: "rules/test_multi.smk"
 include: "rules/test_spatia.smk"
+include: "rules/test_spatia_polyA.smk"
 include: "rules/test_rna_full.smk"
 include: "rules/test_vdj.smk"
 include: "rules/test_multiome.smk"
@@ -20,6 +21,7 @@ rule all:
     input:
         rules.test_sc_rna_full_default.output.log,
         rules.test_sc_spatial_default.output.log,
+        rules.test_sc_spatial_polyA_default.output.log,
         rules.test_sc_rna_expect_cell.output.log,
         rules.test_sc_rna_force_cell.output.log,
         rules.test_sc_rna_exclude_introns.output.log,

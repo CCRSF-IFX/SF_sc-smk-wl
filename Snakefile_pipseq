@@ -1,0 +1,29 @@
+#Snakefile for single cell pipeline
+#CCR-SF IFX
+#2023/01/30 by xies4: add support for PIPseq data 
+
+from snakemake.utils import R
+import glob
+import os.path
+import os
+import itertools
+import sys
+
+## aggregate is set to "True" in the step below
+include: "rules/singlecell_import.smk"
+if config.pipeline == 'pipseq':
+    aggregate = False
+
+inlcude: "rules/singlecell_pipseq_import.smk"
+include: "rules/singlecell_rules_common.smk"
+
+rule all:
+    input: 
+        #expand("run_{sample}_fluent_pipseq_count.err", sample=samples),
+        expand("{sample}/barcodes/barcode_whitelist.txt", sample = samples),
+        "finalreport/metric_summary.xlsx", 
+        wreport_result, 
+        xreport_result, 
+        #"QC/" + project_name + "_multiqc.html", 
+        'copy.complete', 
+        rule_all_append

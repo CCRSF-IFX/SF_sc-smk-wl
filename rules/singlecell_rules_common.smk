@@ -1,7 +1,9 @@
+import os
 def get_workflow_img(wildcards):
     img_path = ""
     if config.pipeline == "pipseq": 
-        img_path = f" -w {program.workflow_img4pipseq}"
+        img_abs_path = os.path.join(os.getcwd(), "workflow/images/SingleCell_RNA_PIPseq.png")
+        img_path = f" -w {img_abs_path}"
     return img_path
 
 testing = getattr(config, "test_email", False)

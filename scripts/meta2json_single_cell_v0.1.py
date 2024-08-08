@@ -34,6 +34,9 @@ parser.add_argument("-f", "--fastq_path", metavar="fastq_path", dest="fastq_path
 parser.add_argument("-o", "--output", metavar="file_list", dest="foutput",
                     action="store", default="file_list.txt", type=str, 
                     help="file list to archive (default: %(default)s)")
+parser.add_argument("--dme_analysis_path", dest="dme_analysis_path",
+                    action="store", type=str,
+                    help="Analysis path for DME in case a customized path is needed")
 args = parser.parse_args()
 
 class classSample:
@@ -459,6 +462,14 @@ def configWorkingDirectory(flowcellID, sampleName, **samples):
         f'#SBATCH --no-requeue\n'
         f'{tarCmd}\n'
     )
+     
+    analysis_subfolder = f"Analysis_{'_'.join(flowcellIDs)}"
+    if args.dme_analysis_path:
+        analysis_subfolder = args.dme_analysis_path
+    analysis_folder = os.path.join(f"{homePath}/{path}", analysis_subfolder)
+    if not os.path.exists(analysis_folder):
+        os.mkdir(analysis_folder)
+    createFlowcellJson(analysis_folder, '-'.join(flowcellIDs), '-'.join(runNames), sampleName, **samples)
     if args.count_path:
         if os.path.exists(f'{args.count_path}/libraries.csv'):
             libraryName2cmd = dict()
@@ -470,8 +481,8 @@ def configWorkingDirectory(flowcellID, sampleName, **samples):
                     else:
                         columns = line[:-1].split(',')
                         if columns[0] not in libraryName2cmd:
-                            libraryName2cmd[columns[0]] = (f'tar -cvhf {homePath}/{path}/{columns[0]}_count.tar -C {args.count_path} {columns[0]}/outs\n')
-                            with open(path + "/" + columns[0] + "_count.tar.metadata.json", "w") as TARJSON:
+                            libraryName2cmd[columns[0]] = (f'tar -cvhf {analysis_folder}/{columns[0]}_count.tar -C {args.count_path} {columns[0]}/outs\n')
+                            with open(path + f"/{analysis_subfolder}/" + columns[0] + "_count.tar.metadata.json", "w") as TARJSON:
                                 TARJSON.write("{\"metadataEntries\":[\n" +
                                               "    {\"attribute\":\"object_name\",\"value\":\"" + columns[0] + "_count.tar\"},\n" +
                                               "    {\"attribute\":\"file_type\",\"value\":\"TAR\"},\n" +
@@ -480,7 +491,7 @@ def configWorkingDirectory(flowcellID, sampleName, **samples):
                                               "    {\"attribute\":\"software_tool\",\"value\":\"cellranger\"},\n" +
                                               "    {\"attribute\":\"data_compression_status\",\"value\":\"Compressed\"}\n    ]\n}"
                                 )
-                            OUT.write(path + "/" + columns[0] + "_count.tar\n")
+                            OUT.write(path + f"/{analysis_subfolder}/" + columns[0] + "_count.tar\n")
                             SLURMOUT.write(f'{libraryName2cmd[columns[0]]}\n')
                         else:
                             continue
@@ -493,11 +504,11 @@ def configWorkingDirectory(flowcellID, sampleName, **samples):
                 if modifiedEntryName in samples:
                     # 10x data
                     if os.path.exists(f'{args.count_path}/{entryName}/outs') and os.path.isdir(f'{args.count_path}/{entryName}/outs'):
-                        cmd = (f'tar -cvhf {homePath}/{path}/{modifiedEntryName}_count.tar -C {args.count_path} {entryName}/outs')
+                        cmd = (f'tar -cvhf {analysis_folder}/{modifiedEntryName}_count.tar -C {args.count_path} {entryName}/outs')
                         #runCommand(cmd)
                         SLURMOUT.write(f'{cmd}\n')
                         os.chdir(homePath)
-                        TARJSON = open(path + "/" + modifiedEntryName + "_count.tar.metadata.json", "w")
+                        TARJSON = open(path + f"/{analysis_subfolder}/" + modifiedEntryName + "_count.tar.metadata.json", "w")
                         TARJSON.write("{\"metadataEntries\":[\n" +
                                       "    {\"attribute\":\"object_name\",\"value\":\"" + modifiedEntryName + "_count.tar\"},\n" +
                                       "    {\"attribute\":\"file_type\",\"value\":\"TAR\"},\n" +
@@ -507,14 +518,14 @@ def configWorkingDirectory(flowcellID, sampleName, **samples):
                                       "    {\"attribute\":\"data_compression_status\",\"value\":\"Compressed\"}\n    ]\n}"
                         )
                         TARJSON.close()
-                        OUT.write(path + "/" + modifiedEntryName + "_count.tar\n")
+                        OUT.write(path + f"/{analysis_subfolder}/" + modifiedEntryName + "_count.tar\n")
                     # PIPseq data 
                     if os.path.exists(f'{args.count_path}/{entryName}/barcodes') and os.path.isdir(f'{args.count_path}/{entryName}/barcodes'):
-                        cmd = (f'tar -cvhf {homePath}/{path}/{modifiedEntryName}_pipseeker.tar -C {args.count_path} {entryName}/')
+                        cmd = (f'tar -cvhf {analysis_folder}/{modifiedEntryName}_pipseeker.tar -C {args.count_path} {entryName}/')
                         #runCommand(cmd)
                         SLURMOUT.write(f'{cmd}\n')
                         os.chdir(homePath)
-                        TARJSON = open(path + "/" + modifiedEntryName + "_pipseeker.tar.metadata.json", "w")
+                        TARJSON = open(path + f"/{analysis_subfolder}/" + modifiedEntryName + "_pipseeker.tar.metadata.json", "w")
                         TARJSON.write("{\"metadataEntries\":[\n" +
                                       "    {\"attribute\":\"object_name\",\"value\":\"" + modifiedEntryName + "_pipseeker.tar\"},\n" +
                                       "    {\"attribute\":\"file_type\",\"value\":\"TAR\"},\n" +
@@ -524,7 +535,7 @@ def configWorkingDirectory(flowcellID, sampleName, **samples):
                                       "    {\"attribute\":\"data_compression_status\",\"value\":\"Compressed\"}\n    ]\n}"
                         )
                         TARJSON.close()
-                        OUT.write(path + "/" + modifiedEntryName + "_pipseeker.tar\n")
+                        OUT.write(path + f"/{analysis_subfolder}/" + modifiedEntryName + "_pipseeker.tar\n")
             
     if args.aggr_path:
         aggrPaths = args.aggr_path.split(",")
@@ -533,11 +544,11 @@ def configWorkingDirectory(flowcellID, sampleName, **samples):
             elements = aggrPath.split("/")
             #os.chdir(aggrPath + "/..")
             #cmd = (f'tar -cvf {homePath}/{path}/{elements[-1]}.tar {args.aggr_path}/outs')
-            cmd = (f'tar -cvhf {homePath}/{path}/{elements[-1]}.tar -C {"/".join(elements[:-1])} {elements[-1]}/outs')
+            cmd = (f'tar -cvhf {analysis_folder}/{elements[-1]}.tar -C {"/".join(elements[:-1])} {elements[-1]}/outs')
             #runCommand(cmd)
             SLURMOUT.write(f'{cmd}\n')
             #os.chdir(homePath)
-            TARJSON = open(path + "/" + elements[-1] + ".tar.metadata.json", "w")
+            TARJSON = open(path + f"/{analysis_subfolder}/" + elements[-1] + ".tar.metadata.json", "w")
             TARJSON.write("{\"metadataEntries\":[\n" +
                           "    {\"attribute\":\"object_name\",\"value\":\"" + elements[-1] + ".tar\"},\n" +
                           "    {\"attribute\":\"file_type\",\"value\":\"TAR\"},\n" +
@@ -547,7 +558,7 @@ def configWorkingDirectory(flowcellID, sampleName, **samples):
                           "    {\"attribute\":\"data_compression_status\",\"value\":\"Compressed\"}\n    ]\n}"
             )
             TARJSON.close()
-            OUT.write(path + "/" + elements[-1] + ".tar\n")
+            OUT.write(path + f"/{analysis_subfolder}/" + elements[-1] + ".tar\n")
     OUT.close()
 
     SLURMOUT.write(f'module load java/11\n'
@@ -558,7 +569,7 @@ def configWorkingDirectory(flowcellID, sampleName, **samples):
 
     for flowcellID in flowcellIDs:
         SLURMOUT.write(f'dm_register_collection PI_Lab_{PINamePath}/Project_{samples[sampleName].attribute2value["ProjectName"]}/Flowcell_{flowcellID}.metadata.json /FNL_SF_Archive/PI_Lab_{PINamePath}/Project_{samples[sampleName].attribute2value["ProjectName"]}/Flowcell_{flowcellID}\n')
-
+    SLURMOUT.write(f'dm_register_collection {path}/{analysis_subfolder}.metadata.json /FNL_SF_Archive/PI_Lab_{PINamePath}/Project_{samples[sampleName].attribute2value["ProjectName"]}/{analysis_subfolder}\n')
     SLURMOUT.write(f'python {pathPythonScripts}/meta2json_md5.py -p 4 -l {args.foutput} --rewrite\n')
     SLURMOUT.write(f'dm_register_directory -s -l {args.foutput} . /FNL_SF_Archive 1> dm_register_directory.log 2> dm_register_directory.err\n')
     fout_dme_chk = re.sub(".txt", "_dme_check.txt", args.foutput)
@@ -595,8 +606,10 @@ def checkMetadata(flowcellID, runName, readLengths, instrument, fastqPath):
                 with open(f'{args.count_path}/config.py', 'r') as CONFIG:
                     line = CONFIG.readline()
                     for line in CONFIG:
-                        columns = line[0:-1].split("=")
-                        configAttr2Value[columns[0]] = columns[1].replace('"', '')
+                        # Check if the line is not empty and not a comment line
+                        if bool(line.strip()) and not line.strip().startswith('#'):
+                            columns = line[0:-1].split("=")
+                            configAttr2Value[columns[0]] = columns[1].replace('"', '')
                     for sampleName in samples:
                         samples[sampleName].attribute2value["ReferenceGenome"] = configAttr2Value['ref']
             else:

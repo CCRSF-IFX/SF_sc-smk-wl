@@ -11,19 +11,35 @@ import sys
 
 ## aggregate is set to "True" in the step below
 include: "rules/singlecell_import.smk"
-if config.pipeline == 'pipseq':
-    aggregate = False
-
-inlcude: "rules/singlecell_pipseq_import.smk"
 include: "rules/singlecell_rules_common.smk"
 
+## if there is only one sample, there is no need to run cellrange aggr 
+aggregate = getattr(config, "aggregate", True)
+aggr_output4ruleall = ["aggregate.complete"] if aggregate else []
+
+## variable `samples` is created in Snakefile_singlecell_import
+if  config.pipeline == 'pipseq': ## only one sample 
+    aggregate = False
+    aggr_output4ruleall = []
+
+chemistry = config.chemistry
+include: "rules/singlecell_pipseq_import.smk"
+
+copy_complete = 'copy.complete'
+
+if external == True:
+    wreport_result = []
+    xreport_result = [] 
+    copy_complete = []
+
 rule all:
-    input: 
-        #expand("run_{sample}_fluent_pipseq_count.err", sample=samples),
-        expand("{sample}/barcodes/barcode_whitelist.txt", sample = samples),
+    input:
+        expand("{sample}/barcodes/barcode_whitelist.txt", sample=samples),  
         "finalreport/metric_summary.xlsx", 
+        expand("finalreport/summaries/{sample}_web_summary.html", sample=samples), 
+        aggr_output4ruleall, 
         wreport_result, 
         xreport_result, 
-        #"QC/" + project_name + "_multiqc.html", 
-        'copy.complete', 
+        "QC/" + project_name + "_multiqc.html", 
+        copy_complete,
         rule_all_append

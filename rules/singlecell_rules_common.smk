@@ -70,7 +70,7 @@ cd {one_up}; perl {active_script_folder}/run_GenerateAllReports.pl -flowcell {fl
 """
 
     rule xreport:
-        input: report_result, metric="finalreport/metric_summary.xlsx"
+        input: report_result, metric = "finalreport/metric_summary.xlsx"
         output: xreport_result
         shell: "cp {input.metric} {xreport_result}"
 

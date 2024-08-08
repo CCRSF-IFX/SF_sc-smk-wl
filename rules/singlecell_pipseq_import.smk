@@ -17,44 +17,55 @@ def get_summary_script4pipseq_data():
         return "workflow/scripts/rna/python_scripts/generateSummaryFiles4pipseq.py"
 
 numcell = getattr(config, "numcells", False)
+include_introns = getattr(config, "include_introns", True)
+
 def count_expect_force():
     params_cell_number = dict()
     cells_flag = ""
     if forcecells:
         cells_flag = '--force-cells'
-        numcells = numcell.split(',') 
-        params_cell_num = dict(zip(samples, [ f"{cells_flag} {num}" for num in numcells ]))
     else:
-        params_cell_num = dict(zip(samples, [ f"" for sample in samples ]))
+        ## that --expect is used
+        if numcell:
+            cells_flag = '--expect-cells'
+    ## cell number to be auto-estimated
+    if cells_flag == "":
+        params_cell_num = dict(zip(samples, [ " " for sample in samples ]))
+    else:
+        numcells = numcell.split(',') 
+        params_cell_num = dict(zip(samples, [ f"{cells_flag}={num}" for num in numcells ]))
     return params_cell_num
 
 params_cell_number = count_expect_force()
-print(params_cell_number)
 
-# this variable is used in `bin/currentsnake/single_cell/Snakefile_singlecell_rules`
-# so I keep the old name. 
-current_cellranger = program.pipseeker
+current_cellranger = program.cellranger
+ 
+#rule count:
+#    output: "{sample}/outs/web_summary.html"
+#    log: err = "run_{sample}_10x_cellranger_count.err", log ="run_{sample}_10x_cellranger_count.log"
+#    params: batch = "-l nodes=1:ppn=16,mem=96gb", prefix = "{sample}", prefix2 = filterFastq, cells_flag=lambda wildcards: params_cell_number[wildcards.sample], include_introns = str(include_introns).lower()
+#    container: program.cellranger
+#    shell: "rm -r {params.prefix}; cellranger count {flag4cellranger_create_bam} --include-introns {params.include_introns} --id={params.prefix} --sample={params.prefix} --fastqs={params.prefix2} {params.cells_flag} --transcriptome={reference.transcriptome} 2>{log.err} 1>{log.log}"
 
 rule count:
     output: "{sample}/barcodes/barcode_whitelist.txt"
     log: err = "run_{sample}_fluent_pipseq_count.err", log ="run_{sample}_fluent_pipseq_count.log",
-    params: prefix = "{sample}", prefix2 = filterFastq4pipseeker, cells_flag = lambda wildcards: params_cell_number[wildcards.sample],
-    container: program.pipseeker
-    shell: 
+    params: 
+        prefix = "{sample}", 
+        prefix2 = filterFastq4pipseeker, 
+        cells_flag = lambda wildcards: params_cell_number[wildcards.sample],
+    container:
+        program.pipseeker
+    shell:
         """
-rm -r {params.prefix}; pipseeker full --skip-version-check --chemistry {config.chemistry}  --fastq {params.prefix2}. --output-path {params.prefix} --star-index-path {reference.pipseq_reference}  {params.cells_flag} 2>{log.err} 1>{log.log}
+rm -r {params.prefix}; pipseeker full --skip-version-check --chemistry {chemistry}  --fastq {params.prefix2}. --output-path {params.prefix} --star-index-path {reference.pipseq_reference}  {params.cells_flag} 2>{log.err} 1>{log.log}
 """
 
 rule aggregateCSV:
-    input: expand(rules.count.output, sample=samples)
+    input: expand(rules.count.output, sample=samples) 
     output: "AggregatedDatasets.csv"
     params: batch = "-l nodes=1:ppn=1"
-    shell: "{program.python2_7} {program.pythonscripts}/generateAggregateCSV.py {analysis}"
-
-#rule prep_fastq:
-#    input: unpack(getFirstFastqFile)
-#    output: R1 = "QC/Sample_{sample}/{sample}_R1.fastq.gz", R2 = "QC/Sample_{sample}/{sample}_R2.fastq.gz"
-#    shell: "ln -s {input.R1} {output.R1} && ln -s {input.R2} {output.R2}"
+    shell: "python workflow/scripts/rna/python_scripts/generateAggregateCSV.py {analysis}"
 
 include: "prep_fastq.smk"
 include: "fastqscreen.smk"
@@ -67,6 +78,6 @@ rule summaryFiles:
     params:
         summary_script = get_summary_script4pipseq_data()
     output: 
-        "finalreport/metric_summary.xlsx"
+        "finalreport/metric_summary.xlsx",
+        expand("finalreport/summaries/{sample}_report.html", sample=samples)
     shell: "python {params.summary_script}"
-

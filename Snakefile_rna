@@ -27,7 +27,7 @@ include: "rules/singlecell_rna_import.smk"
 
 sflog.info("rule all: " + " ".join(samples))
 #sflog.info("rule all: " + wildcards)
-sflog.info("rule all: " + " ".join(expand("run_{sample}_10x_cellranger_count.err", sample=samples)))
+#sflog.info("rule all: " + " ".join(expand("run_{sample}_10x_cellranger_count.err", sample=samples)))
 
 copy_complete = 'copy.complete'
 

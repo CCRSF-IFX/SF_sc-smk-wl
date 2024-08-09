@@ -46,7 +46,7 @@ if external == False:
             shell: "mkdir -p {program.copydir}/{run_name}/{project_name}; cp -r finalreport {program.copydir}/{run_name}/{project_name} >> {log}; cd {one_up}; cp -v *.docx {program.copydir}/{run_name}/{project_name} >> {log}; cp -v *.xlsx {program.copydir}/{run_name}/{project_name} >> {log}"
     
     if aggregate:
-        sflog.info(aggregate)
+        sflog.debug(aggregate)
         rule archive:
             input: metadata = report_result, aggr_log = "run_10x_aggregate.log"
             output: touch('archive_setup.complete')

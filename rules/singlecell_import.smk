@@ -5,12 +5,27 @@ import shutil
 from pathlib import Path
 
 include: "runParametersImport" 
+
+## Path().absolute() return PosixPath object.
+## PosixPath object cause import issue. So str()
+## is used here to convert PosixPath to regular path
+sys.path.insert(0, str(Path().absolute()))
+import config
+import reference
+import program
+
 if 'sflog' not in globals():
     import logging as sflog
-    sflog.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=sflog.INFO)
+    debug_bool = getattr(config, "debug", False)  
+    if debug_bool == True:
+        sflog.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=sflog.DEBUG)
+    else: 
+        sflog.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=sflog.INFO)
 else:
     pass
     sflog.debug("sflog has been imported")
+
+sflog.debug(str(Path().absolute()))
 
 # by default, config is an empty dictionary.
 # if --configfile is provided, meaning that external users
@@ -18,14 +33,6 @@ else:
 sflog.debug("Is config a dictionary: " + str(isinstance(config, dict)))
 sflog.debug("Is config empty: " + str(not config))
 
-## Path().absolute() return PosixPath object.
-## PosixPath object cause import issue. So str()
-## is used here to convert PosixPath to regular path
-sys.path.insert(0, str(Path().absolute())) 
-sflog.debug(str(Path().absolute()))
-import config
-import reference
-import program
 
 def get_bool4internal(): 
     program_filep = os.path.join(config.analysis, "program.py")
@@ -40,7 +47,7 @@ def get_bool4internal():
         return False
 
 external = get_bool4internal()
-sflog.info(f"Workflow is used by external user: {external}.")
+sflog.debug(f"Workflow is used by external user: {external}.")
 
 container: program.global_container
 

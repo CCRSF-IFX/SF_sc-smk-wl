@@ -65,7 +65,8 @@ nextflow run /mnt/ccrsf-ifx/Software/tools/curioseeker/curioseeker-v3.0.0/main.n
                 --igenomes_base /mnt/ccrsf-ifx/Software/tools/curioseeker/References \
                 -resume \
                 -profile slurm \
-                -config /mnt/ccrsf-ifx/Software/tools/curioseeker/curioseeker-v3.0.0/curioseeker_slurm.config
+                -config /mnt/ccrsf-ifx/Software/tools/curioseeker/curioseeker-v3.0.0/curioseeker_slurm.config \
+                2> {log.err} 1>{log.log}
 """
 
 include: "prep_fastq.smk"

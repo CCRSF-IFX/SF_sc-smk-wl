@@ -20,7 +20,6 @@ def count_expect_force():
     return params_cell_num
 
 params_cell_number = count_expect_force()
-sflog.info(params_cell_number)
 
 current_cellranger = program.cellranger
 rule generate_sample_csv:
@@ -31,7 +30,7 @@ rule generate_sample_csv:
         csv_list = expand("{sample}.csv", sample = samples)
     shell:
         """
-python workflow/scripts/curio/generate_sample_sheet.py > {output.meta4curio} 
+python workflow/scripts/curio/generate_sample_sheet.py {input.csv} {analysis} > {output.meta4curio} 
 touch {output.csv_list}
 """
 

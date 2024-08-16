@@ -34,6 +34,8 @@ parser.add_argument("-f", "--fastq_path", metavar="fastq_path", dest="fastq_path
 parser.add_argument("-o", "--output", metavar="file_list", dest="foutput",
                     action="store", default="file_list.txt", type=str, 
                     help="file list to archive (default: %(default)s)")
+parser.add_argument("-l", "--library_file", type=str,
+                    help="CSV files with first column as the output folder")
 parser.add_argument("--dme_analysis_path", dest="dme_analysis_path",
                     action="store", type=str,
                     help="Analysis path for DME in case a customized path is needed")
@@ -473,7 +475,8 @@ def configWorkingDirectory(flowcellID, sampleName, **samples):
     if args.count_path:
         if os.path.exists(f'{args.count_path}/libraries.csv'):
             libraryName2cmd = dict()
-            with open (f'{args.count_path}/libraries.csv', 'r') as LIBRARIES:
+            libfile = f'{args.count_path}/libraries.csv' 
+            with open (libfile, 'r') as LIBRARIES:
                 header = ''
                 for line in LIBRARIES:
                     if 'Name,Flowcell,Sample,Type' in line:
@@ -495,6 +498,9 @@ def configWorkingDirectory(flowcellID, sampleName, **samples):
                             SLURMOUT.write(f'{libraryName2cmd[columns[0]]}\n')
                         else:
                             continue
+
+        elif args.library_file and os.path.exists(args.library_file):
+            meta2json4curioseeker(args, SLURMOUT, OUT, analysis_folder, path, analysis_subfolder)
         else:
             for entryName in os.listdir(args.count_path):
                 if "__" in entryName:

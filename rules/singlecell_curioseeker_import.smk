@@ -58,7 +58,7 @@ mkdir -p fastq4curio/
 cat {params.prefix2}*_R1_001.fastq.gz > fastq4curio/{params.prefix}_R1.fastq.gz &
 cat {params.prefix2}*_R2_001.fastq.gz > fastq4curio/{params.prefix}_R2.fastq.gz &
 wait
-module load nextflow singularity
+module load nextflow
 nextflow run /mnt/ccrsf-ifx/Software/tools/curioseeker/curioseeker-v3.0.0/main.nf \
                 --input {input.sample_sheet} \
                 --outdir {params.prefix} \

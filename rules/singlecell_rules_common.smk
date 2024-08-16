@@ -78,7 +78,7 @@ cd {one_up}; perl {active_script_folder}/run_GenerateAllReports.pl -flowcell {fl
         input: metadata = report_result, excel = "finalreport/metric_summary.xlsx"
         output: wreport_result
         params: runs = ','.join(run_names), pipeline = config.pipeline, workflow_img = get_workflow_img
-        shell: "cd {one_up}; python {analysis}/workflow/scripts/SF_scWordReport/run_wordreport_sc.py -e {analysis}/{input.excel} -m {input.metadata} -c {current_cellranger} -p {params.pipeline} -r {params.runs} {params.workflow_img} {args4wreport_test} {args4wreport_yields}"
+        shell: "cd {one_up}; python {analysis}/scripts/SF_scWordReport/run_wordreport_sc.py -e {analysis}/{input.excel} -m {input.metadata} -c {current_cellranger} -p {params.pipeline} -r {params.runs} {params.workflow_img} {args4wreport_test} {args4wreport_yields}"
 
     if testing: 
         onsuccess:

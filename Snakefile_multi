@@ -246,5 +246,4 @@ if aggregate == True:
         output: 'aggregate.complete'
         log: err="run_10x_aggregate.err", log="run_10x_aggregate.log"
         container: program.cellranger
-        params: batch = "-l nodes=1:ppn=16,mem=96gb"
         shell: "cellranger aggr --id=AggregatedDatasets --csv={input.csv} --normalize=mapped 2>{log.err} 1>{log.log} && touch {output}" 

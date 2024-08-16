@@ -17,7 +17,8 @@ include: "rules/singlecell_featurebarcode_import.smk"
 aggregate = getattr(config, "aggregate", True)
 aggr_output4ruleall = ["aggregate.complete"] if aggregate else []
 
-if len(samples) == 1 or hasattr(config, "cmo"):  ## only one sample or Multiplexing Capture 
+## only one sample or Multiplexing Capture 
+if len(samples) == 1 or hasattr(config, "cmo") or config.pipeline == "fixedrna":
     aggregate = False
     aggr_output4ruleall = []
 #rule_all_append defined in Snakefile_singlecell_import
@@ -162,6 +163,15 @@ def conditional_flags(wildcards):
         ## numcell has numbers but --force is not provided means --expect is selected. 
         if numcell:
             flags.append('--expect')
+    
+    if config.pipeline == "fixedrna":
+        if hasattr(config, "probe_set"):
+            flags.append(f"--probe_set {os.path.abspath(config.probe_set)}")
+        else:
+            sys.exit("Error: probe_set is required for pipeline: fixedrna!")
+    
+        if hasattr(config, "multiplex"):
+            flags.append(f"--multiplex {os.path.abspath(config.multiplex)}")
 
     if hasattr(config, "features"):
         flags.append(f"--feature {os.path.abspath(config.features)}")

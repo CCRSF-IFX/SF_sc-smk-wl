@@ -1,6 +1,6 @@
-#!/usr/bin/env /mnt/nasapps/development/python/3.7.1/bin/python
+#!/usr/bin/env python
 
-import argparse, csv
+import argparse, csv, re
 
 def main(raw_args=None):
     parser = argparse.ArgumentParser(description="""Help to set up and run the single cell multi pipeline""")
@@ -42,6 +42,12 @@ def main(raw_args=None):
         help="Use include-introns,false option")
     parser.add_argument("--create_bam", action="store_true",
         help="Use include-introns,false option")
+    ## Fix RNA profiling parameters
+    parser.add_argument("--probe_set", type=str,
+        help="Text files containing probe sets")
+    parser.add_argument("--multiplex", type=str,
+        help="Text files containing multiplex information")
+
     args = parser.parse_args(raw_args)
     print(args)
 
@@ -49,6 +55,9 @@ def main(raw_args=None):
         spamwriter = csv.writer(csvfile, delimiter=',')
         spamwriter.writerow(['[gene-expression]'])
         spamwriter.writerow(['reference', args.ref])
+        ## Parameter for fixed RNA profiling 
+        if args.probe_set != None:
+            spamwriter.writerow(['probe-set', args.probe_set])
         if args.force:
             spamwriter.writerow(['force-cells', args.cell])
         elif args.expect:
@@ -109,6 +118,19 @@ def main(raw_args=None):
                     line = line.strip().split(',')
                     spamwriter.writerow(['HTO_%s' % index, line[0]])
                     index += 1
+        ## For fixed RNA profiling
+        if args.multiplex != None:
+            spamwriter.writerow([])
+            spamwriter.writerow(['[samples]'])
+            spamwriter.writerow(['sample_id', 'probe_barcode_ids', 'description'])
+            with open(args.multiplex, 'r') as lib:
+                line = next(lib)
+                index = 1
+                for line in lib:
+                    ele = line.strip().split(',')
+                    sample_name = re.sub(".csv$", "", args.output)
+                    if ele[0] == sample_name:
+                        spamwriter.writerow(ele[1:])
 
 if __name__ == '__main__':
     main()

@@ -205,7 +205,8 @@ if count == False:
 
     rule count:
         input: rules.multiConfig.output
-        output: "{sample}/outs/config.csv", "{sample}/outs/per_sample_outs/{sample}/web_summary.html" 
+        #output: "{sample}/outs/config.csv", "{sample}/outs/per_sample_outs/{sample}/web_summary.html" 
+        output: "{sample}/_cmdline"
         log: err = "run_{sample}_10x_cellranger_count.err", log ="run_{sample}_10x_cellranger_count.log"
         params: batch = "-l nodes=1:ppn=16,mem=96gb", prefix = "{sample}" 
         container: program.cellranger
@@ -232,7 +233,8 @@ rule summaryFiles:
     shell: "python {pythonpath}/generateSummaryFiles.py"
 
 rule aggregateCSV:
-    input: expand("{sample}/outs/config.csv", sample=samples)
+    #input: expand("{sample}/outs/config.csv", sample=samples)
+    input: expand("{sample}/_cmdline", sample = samples)
     output: csv = "AggregatedDatasets.csv"
     params: batch = "-l nodes=1:ppn=1", config_file = os.path.join(analysis, "config.py") 
     run:

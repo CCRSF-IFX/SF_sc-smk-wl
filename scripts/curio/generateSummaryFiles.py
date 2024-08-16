@@ -53,10 +53,10 @@ def createMetricsSummary(arg1):
             col = 1
             for i in line:
                 i = i.strip('"')
-                if '%' in i or '.' in i:
-                    worksheet.write(row, col, float(i.strip('%'))/100, formatPer)
-                else:
-                    worksheet.write(row, col, int(i.replace(',','')), formatNum)
+                #if '%' in i or '.' in i:
+                #    worksheet.write(row, col, float(i.strip('%'))/100, formatPer)
+                #else:
+                worksheet.write(row, col, str(i.replace(',','')))
                 col += 1
             row += 1
 

@@ -84,5 +84,8 @@ rule copyScripts:
 rule summaryFiles:
     input: expand(rules.count.output, sample = samples) 
     output: "finalreport/metric_summary.xlsx", 
-    shell: "python workflow/scripts/curio/generateSummaryFiles.py"
-
+    container: program.global_container
+    shell: 
+        """
+python workflow/scripts/curio/generateSummaryFiles.py
+"""

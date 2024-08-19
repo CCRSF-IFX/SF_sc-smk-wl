@@ -1,7 +1,7 @@
 copydir = "/mnt/ccrsf-ifx/Report_archive/report_archive_singlecell/"
 active_scripts = "/mnt/ccrsf-ifx/Software/scripts/bin/"
 
-cellranger     = "docker://ccrsfifx/cellranger:8.0.0"
+cellranger     = "docker://ccrsfifx/cellranger:8.0.1"
 cellranger_arc = "docker://ccrsfifx/cellranger-arc2.0.2"
 spaceranger    = "docker://ccrsfifx/spaceranger:3.0.0"
 Renv           = "docker://ccrsfifx/sc-smk-wl:r1.0.0"

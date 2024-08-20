@@ -1,10 +1,14 @@
 import os
-def get_workflow_img(wildcards):
-    img_path = ""
+def get_flag4report(wildcards):
+    flag = ""
     if config.pipeline == "pipseq": 
         img_abs_path = os.path.join(os.getcwd(), "workflow/images/SingleCell_RNA_PIPseq.png")
-        img_path = f" -w {img_abs_path}"
-    return img_path
+        flag = flag + f" -w {img_abs_path}"
+    if config.pipeline == "fixedrna":
+        multiplex = getattr(config, "multiplex", False) 
+        if multiplex:
+            flag = flag + f" --multiplex {config.multiplex}"
+    return flag 
 
 testing = getattr(config, "test_email", False)
 args4wreport_test = "--test" if testing else ""
@@ -77,8 +81,8 @@ cd {one_up}; perl {active_script_folder}/run_GenerateAllReports.pl -flowcell {fl
     rule wreport:
         input: metadata = report_result, excel = "finalreport/metric_summary.xlsx"
         output: wreport_result
-        params: runs = ','.join(run_names), pipeline = config.pipeline, workflow_img = get_workflow_img
-        shell: "cd {one_up}; python {analysis}/scripts/SF_scWordReport/run_wordreport_sc.py -e {analysis}/{input.excel} -m {input.metadata} -c {current_cellranger} -p {params.pipeline} -r {params.runs} {params.workflow_img} {args4wreport_test} {args4wreport_yields}"
+        params: runs = ','.join(run_names), pipeline = config.pipeline, workflow_flag = get_flag4report
+        shell: "cd {one_up}; python {analysis}/scripts/SF_scWordReport/run_wordreport_sc.py -e {analysis}/{input.excel} -m {input.metadata} -c {current_cellranger} -p {params.pipeline} -r {params.runs} {params.workflow_flag} {args4wreport_test} {args4wreport_yields}"
 
     if testing: 
         onsuccess:

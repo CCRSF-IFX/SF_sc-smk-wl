@@ -63,7 +63,8 @@ cd {params.dir4test} && echo "{submit_job}" | {input.run_snakemake4sc} --rerun
 rule test_sc_multi_expect_cell:
     input:
         run_snakemake4sc = config["path2run_snakemake_sc"],
-        lib_csv = os.path.abspath(config["multi"]["lib_csv"])
+        lib_csv = os.path.abspath(config["multi"]["lib_csv"]),
+        metadata = os.path.abspath(config["multi"]["metadata"]),
     params:
         dir4test = os.path.join(outdir_abspath, config["multi"]["projectname"] + "_multi_expectcell/Analysis/"),
         cell_number = config["multi"]["cell_number"]
@@ -72,6 +73,7 @@ rule test_sc_multi_expect_cell:
     shell:
         """
 mkdir -p {params.dir4test}
+cp {input.metadata} {params.dir4test}/../ 
 cd {params.dir4test} && echo "n" | {input.run_snakemake4sc} {fastqpath4multi} multi {ref4multi} --expect {params.cell_number} -p {projectname4multi} -a {run_info4multi} {param_test_email} > {output.log} 2>&1
 sed -i 's/""/"libraries.csv"/g' {params.dir4test}/config.py
 cp {input.lib_csv} {params.dir4test}/libraries.csv

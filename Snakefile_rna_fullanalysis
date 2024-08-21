@@ -27,9 +27,6 @@ include: "rules/singlecell_rna_seurat_proc.smk"
 include: "rules/singlecell_rna_singleR.smk"
 #rule_all_append defined in Snakefile_singlecell_import
 
-sflog.info("rule all: " + " ".join(samples))
-#sflog.info("rule all: " + wildcards)
-sflog.info("rule all: " + " ".join(expand("run_{sample}_10x_cellranger_count.err", sample=samples)))
 rule all:
     input:
         expand(os.path.join(analysis, "{sample}/singleR/seur_10x_cluster_singler.rds"), sample=samples),

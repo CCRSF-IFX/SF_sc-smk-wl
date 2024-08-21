@@ -5,24 +5,18 @@ import shutil
 from pathlib import Path
 
 include: "runParametersImport" 
-if 'sflog' not in globals():
-    import logging as sflog
-    sflog.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=sflog.INFO)
-else:
-    pass
-    sflog.debug("sflog has been imported")
 
 # by default, config is an empty dictionary.
 # if --configfile is provided, meaning that external users
 # are using the workflow
-sflog.debug("Is config a dictionary: " + str(isinstance(config, dict)))
-sflog.debug("Is config empty: " + str(not config))
+#print("Is config a dictionary: " + str(isinstance(config, dict)))
+#print("Is config empty: " + str(not config))
 
 ## Path().absolute() return PosixPath object.
 ## PosixPath object cause import issue. So str()
 ## is used here to convert PosixPath to regular path
 sys.path.insert(0, str(Path().absolute())) 
-sflog.debug(str(Path().absolute()))
+#print(str(Path().absolute()))
 import config
 import reference
 import program
@@ -36,11 +30,11 @@ def get_bool4internal():
                    return False 
         return True
     except FileNotFoundError:
-        sflog.info(f"{program_filep} not found")
+        #print(f"{program_filep} not found")
         return False
 
 external = get_bool4internal()
-sflog.info(f"Workflow is used by external user: {external}.")
+#print(f"Workflow is used by external user: {external}.")
 
 container: program.global_container
 
@@ -93,7 +87,7 @@ else:
     ## For example, Tube_1___Sample_3__GEX_library in CS033737 
     samples = list(set(s.replace('Sample_', '') if s.startswith('Sample_') else s for s in set(samps)))
     samples = sorted(samples)
-    sflog.info("Samples to be analyzed: " + " ".join(samples))
+    #print("Samples to be analyzed: " + " ".join(samples))
 
 # Move fastq files to subfolders with the names of the sample.
 from subprocess import Popen, PIPE

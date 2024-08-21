@@ -11,7 +11,7 @@ def count_expect_force():
     return params_cell_num
 
 params_cell_number = count_expect_force()
-print(params_cell_number)
+#print(params_cell_number)
 
 # this variable is used in `bin/currentsnake/single_cell/Snakefile_singlecell_rules`
 # so I keep the old name. 
@@ -43,7 +43,6 @@ include: "fastqscreen.smk"
 include: "kraken.smk"
 include: "multiqc.smk"
 
-print("XXX")
 rule summaryFiles:
     input: expand(rules.count.output, sample=samples)
     output: "finalreport/metric_summary.xlsx"

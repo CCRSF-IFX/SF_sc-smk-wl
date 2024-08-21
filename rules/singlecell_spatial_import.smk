@@ -6,19 +6,16 @@ def check_spatial_files_exist(df, img_path):
     slide_files = set(df['Slide'].tolist())
     missing_slide_files = [file for file in slide_files if not os.path.exists(os.path.join(img_path, file))]
     if missing_slide_files:
-        sflog.error("Missing Slide files:" + ",".join(missing_slide_files))
-        sys.exit("Pipeline stopped: missing Slides files")
+        sys.exit("Pipeline stopped because of missing Slides files: " + ",".join(missing_slide_files))
     else:
-        sflog.info("All Slide files deteceted.")
+        pass
     img_files = set(df['Image'].tolist())
     missing_img_files = [file for file in img_files if not os.path.exists(os.path.join(img_path, file))]
     if missing_img_files:
-        sflog.error("Missing Image files:" + ",".join(missing_img_files))
-        sys.exit("Pipeline stopped: missing Image files")
+        sys.exit("Pipeline stopped because of missing Image files:" + ",".join(missing_img_files))
     else:
-        sflog.info("All Image files deteceted.")
+        pass
 
-sflog.info("Check image file existense...")
 check_spatial_files_exist(metadata_df, img_path)
 
 def get_image_data(wildcards):
@@ -33,7 +30,7 @@ def get_image_data(wildcards):
         #print(" ".join([slide_name, slide_file, area, image]))
         return [slide_name, slide_file, area, image]
     else:
-        sflog.error(f"{wildcards} not complete in {config.images}")
+        sys.exit(f"{wildcards} not complete in {config.images}")
 
 flag_probe_set = ""
 probe_set = getattr(reference, config.spatial_method, "") 

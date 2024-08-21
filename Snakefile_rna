@@ -25,10 +25,6 @@ include: "rules/singlecell_rna_import.smk"
 
 #rule_all_append defined in Snakefile_singlecell_import
 
-sflog.info("rule all: " + " ".join(samples))
-#sflog.info("rule all: " + wildcards)
-sflog.info("rule all: " + " ".join(expand("run_{sample}_10x_cellranger_count.err", sample=samples)))
-
 copy_complete = 'copy.complete'
 
 if external == True:

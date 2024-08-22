@@ -1,21 +1,16 @@
 #!/usr/bin/env python3
-#2021/04/21 shent2: added attributes of data_curator and data_owner in createPILabJson
-#2021/04/21 shent2: retrieve read lengths from RanParameters.xml and the reference from count_path/config.py
-#2021/05/07 chenv3: changed to use only first run name when trying to grab run parameters"
-#2021/07/22 shent2: 1. added {os.path.dirname(fastqPath)}/input_samplesheet.csv to run_name_supplement.tar
-#                   2. added retrieveReadLength() to retrieve read lengths from fastq.gz when RunParameters.xml/RunInfo.xml does not exist
-#2022/02/23 shent2: added the regular expression to parse the format of the PI name as "LastName, FirstName"
-#2022/03/13 shent2: added "meta2json_md5.py -p 4 -l fastqFileList.txt/analysisFileList.txt --rewrite" to generate the checksum and add to metadata.json for uploading
-#2022/04/04 shent2: modified to parse library.csv and tar the count results based on column name in libraries.csv
 import re,os,sys,warnings,argparse,subprocess,glob,gzip,datetime
 from xml.dom import minidom
 from pathlib import PurePath
+import shutil
 
 parser = argparse.ArgumentParser(description="""Read metadata and gnerate json files
                                                 for collections and objects.""")
 parser.add_argument("-m", "--metadata", metavar="metadata.txt", dest="fmetadata",
                     action="store", type=str, required=False,
                     help="input metadata.txt (optional)")
+parser.add_argument("--pipeline", action="store", type=str, required=True,
+                    help="Pipeline name")
 parser.add_argument("-c", "--count_path", metavar="count_path",
                     dest="count_path", action="store", type=str,
                     required=False, help="count folder (optional)")

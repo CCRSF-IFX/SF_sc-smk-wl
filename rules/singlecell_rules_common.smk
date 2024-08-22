@@ -55,14 +55,14 @@ if external == False:
             output: touch('archive_setup.complete')
             params: fastqs = ",".join([os.path.dirname(name.rstrip('/')) for name in flowcells.values()]), runs = ','.join([j for i in flowcells for j in run_names if i in j])
             log: "archive.log"
-            shell: "cd {one_up}; python {analysis}/workflow/scripts/meta2json_single_cell_v0.1.py -m {input.metadata} -r {params.runs} -f {params.fastqs} -c {config.analysis} -a {config.analysis}/AggregatedDatasets > {log}"
+            shell: "cd {one_up}; python {analysis}/workflow/scripts/meta2json_single_cell_v0.1.py --pipeline {config.pipeline} -m {input.metadata} -r {params.runs} -f {params.fastqs} -c {config.analysis} -a {config.analysis}/AggregatedDatasets > {log}"
     else:   ## aggregate is false 
         rule archive:
             input:  metadata = report_result, summaryFiles = "finalreport/metric_summary.xlsx"
             output: touch('archive_setup.complete')
             params: fastqs = ",".join([os.path.dirname(name.rstrip('/')) for name in flowcells.values()]), runs = ','.join([j for i in flowcells for j in run_names if i in j])
             log: "archive.log"
-            shell: "cd {one_up}; python {analysis}/workflow/scripts/meta2json_single_cell_v0.1.py -m {input.metadata} -r {params.runs} -f {params.fastqs} -c {config.analysis} > {log}"
+            shell: "cd {one_up}; python {analysis}/workflow/scripts/meta2json_single_cell_v0.1.py --pipeline {config.pipeline} -m {input.metadata} -r {params.runs} -f {params.fastqs} -c {config.analysis} > {log}"
 
     rule report:
         output: 

@@ -300,6 +300,9 @@ def configWorkingDirectory(flowcellID, sampleName, **samples):
     path = "PI_Lab_" + PINamePath
     if not os.path.exists(path):
         os.mkdir(path)
+    else:
+        shutil.rmtree(path)
+        os.mkdir(path)
     createPILabJson(path, PIName)
 
     OUT = open(args.foutput, "w")
@@ -466,10 +469,11 @@ def configWorkingDirectory(flowcellID, sampleName, **samples):
     analysis_subfolder = f"Analysis_{'_'.join(flowcellIDs)}"
     if args.dme_analysis_path:
         analysis_subfolder = args.dme_analysis_path
+    ## this variable to record whether analysis folder needed or not
     analysis_folder = os.path.join(f"{homePath}/{path}", analysis_subfolder)
-    if not os.path.exists(analysis_folder):
+    if not os.path.exists(analysis_folder) and args.pipeline != "nopipe":
         os.mkdir(analysis_folder)
-    createFlowcellJson(analysis_folder, '-'.join(flowcellIDs), '-'.join(runNames), sampleName, **samples)
+        createFlowcellJson(analysis_folder, '-'.join(flowcellIDs), '-'.join(runNames), sampleName, **samples)
     if args.count_path:
         if os.path.exists(f'{args.count_path}/libraries.csv'):
             libraryName2cmd = dict()
@@ -569,7 +573,8 @@ def configWorkingDirectory(flowcellID, sampleName, **samples):
 
     for flowcellID in flowcellIDs:
         SLURMOUT.write(f'dm_register_collection PI_Lab_{PINamePath}/Project_{samples[sampleName].attribute2value["ProjectName"]}/Flowcell_{flowcellID}.metadata.json /FNL_SF_Archive/PI_Lab_{PINamePath}/Project_{samples[sampleName].attribute2value["ProjectName"]}/Flowcell_{flowcellID}\n')
-    SLURMOUT.write(f'dm_register_collection {path}/{analysis_subfolder}.metadata.json /FNL_SF_Archive/PI_Lab_{PINamePath}/Project_{samples[sampleName].attribute2value["ProjectName"]}/{analysis_subfolder}\n')
+    if args.pipeline != "nopipe": 
+        SLURMOUT.write(f'dm_register_collection {path}/{analysis_subfolder}.metadata.json /FNL_SF_Archive/PI_Lab_{PINamePath}/Project_{samples[sampleName].attribute2value["ProjectName"]}/{analysis_subfolder}\n')
     SLURMOUT.write(f'python {pathPythonScripts}/meta2json_md5.py -p 4 -l {args.foutput} --rewrite\n')
     SLURMOUT.write(f'dm_register_directory -s -l {args.foutput} . /FNL_SF_Archive 1> dm_register_directory.log 2> dm_register_directory.err\n')
     fout_dme_chk = re.sub(".txt", "_dme_check.txt", args.foutput)

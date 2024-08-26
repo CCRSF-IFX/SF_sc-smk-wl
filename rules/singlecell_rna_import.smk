@@ -1,4 +1,3 @@
-
 numcell = getattr(config, "numcells", False)
 include_introns = getattr(config, "include_introns", True)
 
@@ -26,9 +25,14 @@ current_cellranger = program.cellranger
 rule count:
     output: "{sample}/outs/web_summary.html"
     log: err = "run_{sample}_10x_cellranger_count.err", log ="run_{sample}_10x_cellranger_count.log"
-    params: batch = "-l nodes=1:ppn=16,mem=96gb", prefix = "{sample}", prefix2 = filterFastq, cells_flag=lambda wildcards: params_cell_number[wildcards.sample], include_introns = str(include_introns).lower()
+    params: 
+        prefix = "{sample}", 
+        prefix2 = filterFastq, 
+        cells_flag=lambda wildcards: params_cell_number[wildcards.sample], 
+        include_introns = str(include_introns).lower(),
+        reference = get_reference_transcriptome
     container: program.cellranger
-    shell: "rm -r {params.prefix}; cellranger count {flag4cellranger_create_bam} --include-introns {params.include_introns} --id={params.prefix} --sample={params.prefix} --fastqs={params.prefix2} {params.cells_flag} --transcriptome={reference.transcriptome} 2>{log.err} 1>{log.log}"
+    shell: "rm -r {params.prefix}; cellranger count {flag4cellranger_create_bam} --include-introns {params.include_introns} --id={params.prefix} --sample={params.prefix} --fastqs={params.prefix2} {params.cells_flag} --transcriptome={params.reference} 2>{log.err} 1>{log.log}"
 
 rule aggregateCSV:
     input: expand("{sample}/outs/web_summary.html", sample=samples)

@@ -3,6 +3,7 @@ import packaging.version
 from xml.dom import minidom
 import shutil
 from pathlib import Path
+import pandas as pd
 
 include: "runParametersImport" 
 
@@ -111,6 +112,19 @@ def getFirstFastqFile(wildcards):
     path = filterFastq(wildcards).split(',')[0]
     suffix = '_001.fastq.gz'
     return({i: glob.glob(f'{path}/*_{i}{suffix}')[0] for i in ['R1', 'R2', 'R3'] if len(glob.glob(f'{path}/*_{i}{suffix}')) > 0})
+
+def get_reference_transcriptome(wildcards):
+    ref_path = reference.transcriptome
+    if hasattr(config, 'libraries'):
+        lib_df = pd.read_csv(config.libraries)
+        if "Reference" in lib_df.columns:
+            tem_ref = lib_df.loc[lib_df['Sample'] == wildcards.sample, 'Reference']
+            if not tem_ref.empty:
+                ref_path = tem_ref.iloc[0]
+            if config.aggregate == True:
+                sys.stderr.write("\n'Reference' column detected, indicating more than one reference exist. Please set `aggregate` as `False`\n\n")
+                sys.exit() 
+    return ref_path
 
 def filterFastq4pipseeker(wildcards):
     """

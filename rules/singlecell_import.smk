@@ -121,8 +121,11 @@ def get_reference_transcriptome(wildcards):
             tem_ref = lib_df.loc[lib_df['Sample'] == wildcards.sample, 'Reference']
             if not tem_ref.empty:
                 ref_path = tem_ref.iloc[0]
-            if config.aggregate == True:
-                sys.stderr.write("\n'Reference' column detected, indicating more than one reference exist. Please set `aggregate` as `False`\n\n")
+            else:
+                sys.stderr.write(f"\n'No refeference information found in 'Reference' column of 'libraries.csv' for sample '{wildcards.sample}'\n\n")
+                sys.exit()
+            if not hasattr(config, 'aggregate') or config.aggregate == True:
+                sys.stderr.write("\n'Reference' column in 'libraries.csv' detected, indicating more than one reference exist. Please set `aggregate` as `False`\n\n")
                 sys.exit() 
     return ref_path
 

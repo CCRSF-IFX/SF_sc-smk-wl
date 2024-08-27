@@ -20,14 +20,14 @@ default-resources:
   slurm_partition: "norm"
 # set-threads: map rule names to threads
 set-threads:
-  count: 8
-  arc_count: 16 
+  count: 36
+  arc_count: 36 
 # set-resources: map rule names to resources in general
 set-resources:
   count:
     mem_mb: 
-      600000
+      773497
   arc_count:
-    mem_gb:
-      128
+    mem_mb:
+      773497
 

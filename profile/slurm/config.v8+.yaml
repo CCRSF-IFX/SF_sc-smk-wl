@@ -21,13 +21,17 @@ default-resources:
 # set-threads: map rule names to threads
 set-threads:
   count: 36
-  arc_count: 36 
+  arc_count: 36
+  atac_count: 36 
 # set-resources: map rule names to resources in general
 set-resources:
   count:
     mem_mb: 
       773497
   arc_count:
+    mem_mb:
+      773497
+  atac_count:
     mem_mb:
       773497
 

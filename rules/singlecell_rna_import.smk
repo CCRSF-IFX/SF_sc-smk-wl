@@ -38,14 +38,12 @@ rule count:
 rule aggregateCSV:
     input: expand("{sample}/outs/web_summary.html", sample=samples)
     output: "AggregatedDatasets.csv"
-    params: batch = "-l nodes=1:ppn=1"
     shell: "python workflow/scripts/rna/python_scripts/generateAggregateCSV.py {analysis}"
 
 rule aggregate:
     input: csv="AggregatedDatasets.csv"
     output: touch("aggregate.complete")
     log: err="run_10x_aggregate.err", log="run_10x_aggregate.log"
-    params: batch = "-l nodes=1:ppn=16,mem=96gb"
     container: program.cellranger 
     shell: "cellranger aggr --id=AggregatedDatasets --csv={input.csv} --normalize=mapped 2>{log.err} 1>{log.log}"
 

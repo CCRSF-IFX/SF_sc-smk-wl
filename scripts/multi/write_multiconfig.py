@@ -116,7 +116,7 @@ def main(raw_args=None):
                 index = 1
                 for line in lib:
                     line = line.strip().split(',')
-                    spamwriter.writerow(['HTO_%s' % index, line[0]])
+                    spamwriter.writerow(['HTO_%s' % index, line[0], line[0]])
                     index += 1
         ## For fixed RNA profiling
         if args.multiplex != None:

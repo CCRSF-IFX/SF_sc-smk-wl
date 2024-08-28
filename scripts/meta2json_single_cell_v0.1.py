@@ -3,6 +3,7 @@ import re,os,sys,warnings,argparse,subprocess,glob,gzip,datetime
 from xml.dom import minidom
 from pathlib import PurePath
 import shutil
+import pandas as pd
 
 parser = argparse.ArgumentParser(description="""Read metadata and gnerate json files
                                                 for collections and objects.""")
@@ -577,6 +578,19 @@ def configWorkingDirectory(flowcellID, sampleName, **samples):
     SLURMOUT.close()
     sys.stdout.write("sbatch dm_register_directory.sh\n")
 
+def get_reference_transcriptome(sample, configAttr2Value):
+    ref = configAttr2Value["ref"]
+    if 'libraries' in configAttr2Value:
+        lib_df = pd.read_csv(f'{args.count_path}/{configAttr2Value["libraries"]}')
+        if "transcriptome" in lib_df.columns:
+            tem_ref = lib_df.loc[lib_df['Sample'] == sample, 'transcriptome']
+            if not tem_ref.empty:
+                ref = os.path.basename(tem_ref.iloc[0].rstrip("/"))
+            else:
+                sys.stderr.write(f"\n'No information found in 'transcriptome' column of 'libraries.csv' for sample '{wildcards.sample}'\n\n")
+                sys.exit()
+    return ref
+
 def checkMetadata(flowcellID, runName, readLengths, instrument, fastqPath):
     samples = dict()
     sampleName = ""
@@ -611,7 +625,7 @@ def checkMetadata(flowcellID, runName, readLengths, instrument, fastqPath):
                             columns = line[0:-1].split("=")
                             configAttr2Value[columns[0]] = columns[1].replace('"', '')
                     for sampleName in samples:
-                        samples[sampleName].attribute2value["ReferenceGenome"] = configAttr2Value['ref']
+                        samples[sampleName].attribute2value["ReferenceGenome"] = get_reference_transcriptome(sampleName, configAttr2Value)
             else:
                 configAttr2Value['ref'] = samples[sampleName].attribute2value["ReferenceGenome"]
                 sys.stdout.write(f'{samples[sampleName].attribute2value["ProjectName"]}/config.py does not exist, or --count_path is not assgined.\n'

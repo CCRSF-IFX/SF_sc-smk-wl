@@ -1,12 +1,13 @@
 copydir = "/mnt/ccrsf-ifx/Report_archive/report_archive_singlecell/"
 active_scripts = "/mnt/ccrsf-ifx/Software/scripts/bin/"
 
-cellranger     = "docker://ccrsfifx/cellranger:8.0.1"
-cellranger_arc = "docker://ccrsfifx/cellranger-arc2.0.2"
-spaceranger    = "docker://ccrsfifx/spaceranger:3.0.0"
-Renv           = "docker://ccrsfifx/sc-smk-wl:r1.0.0"
+cellranger      = "docker://ccrsfifx/cellranger:8.0.1"
+cellranger_atac = "docker://ccrsfifx/cellranger-atac:2.1.0"
+cellranger_arc  = "docker://ccrsfifx/cellranger-arc2.0.2"
+spaceranger     = "docker://ccrsfifx/spaceranger:3.0.0"
+Renv            = "docker://ccrsfifx/sc-smk-wl:r1.0.0"
 
-multiqc        = "docker://multiqc/multiqc:v1.12"
+multiqc         = "docker://multiqc/multiqc:v1.12"
 multiqc_conf = "/mnt/ccrsf-ifx/Software/tools/MultiQC/config_multiQC.yaml"
 fastq_screen = "docker://quay.io/biocontainers/fastq-screen:0.15.2--pl5321hdfd78af_0"
 conf = "workflow/config/fastq_screen_slurm.conf"

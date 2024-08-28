@@ -239,9 +239,7 @@ def generate_option_flag(wildcards, lib_df, column_name, optional_flag):
     if column_name in lib_df.columns:
         tem_vals = lib_df.loc[lib_df['Sample'] == wildcards.sample, column_name]
         if not tem_vals.empty:
-            print(tem_vals)
             tem_val = tem_vals.iloc[0]
-            print(tem_val)
             optional_flag = f'{optional_flag} --{column_name}={tem_val}'
         else:
             sys.stderr.write(f"\n'No information found in '{column_name}' column of 'libraries.csv' for sample '{wildcards.sample}'\n\n")

@@ -10,7 +10,6 @@ import sys
 
 ## aggregate is set to "True" in the step below
 include: "rules/singlecell_import.smk"
-include: "rules/singlecell_rules_common.smk"
 
 ## if there is only one sample, there is no need to run cellrange aggr 
 aggregate = getattr(config, "aggregate", True)
@@ -21,12 +20,12 @@ if len(samples) == 1:  ## only one sample
     aggregate = False
     aggr_output4ruleall = []
 
+include: "rules/singlecell_rules_common.smk"
 include: "rules/singlecell_rna_import.smk"
 
 #rule_all_append defined in Snakefile_singlecell_import
 
 copy_complete = 'copy.complete'
-
 if external == True:
     wreport_result = []
     xreport_result = [] 

@@ -3,6 +3,7 @@ import packaging.version
 from xml.dom import minidom
 import shutil
 from pathlib import Path
+import pandas as pd
 
 include: "runParametersImport" 
 
@@ -218,3 +219,38 @@ flag4spaceranger_create_bam = ""
 if is_version_greater_than(program.spaceranger, "3.0.0"):
     flag4spaceranger_create_bam = " --create-bam=true "
 
+def get_reference_transcriptome(wildcards):
+    ref_path = reference.transcriptome
+    if hasattr(config, 'libraries'):
+        lib_df = pd.read_csv(config.libraries)
+        if "transcriptome" in lib_df.columns:
+            tem_ref = lib_df.loc[lib_df['Sample'] == wildcards.sample, 'transcriptome']
+            if not tem_ref.empty:
+                ref_path = tem_ref.iloc[0]
+            else:
+                sys.stderr.write(f"\n'No information found in 'transcriptome' column of 'libraries.csv' for sample '{wildcards.sample}'\n\n")
+                sys.exit()
+            if not hasattr(config, 'aggregate') or config.aggregate == True:
+                sys.stderr.write("\n'transcriptome' column in 'libraries.csv' detected, indicating more than one reference exist. Please set `aggregate` as `False`\n\n")
+                sys.exit()
+    return ref_path
+
+def generate_option_flag(wildcards, lib_df, column_name, optional_flag):
+    if column_name in lib_df.columns:
+        tem_vals = lib_df.loc[lib_df['Sample'] == wildcards.sample, column_name]
+        if not tem_vals.empty:
+            tem_val = tem_vals.iloc[0]
+            optional_flag = f'{optional_flag} --{column_name}={tem_val}'
+        else:
+            sys.stderr.write(f"\n'No information found in '{column_name}' column of 'libraries.csv' for sample '{wildcards.sample}'\n\n")
+            sys.exit()
+    return optional_flag
+
+def get_optional_flag_from_lib_csv(wildcards):
+    optional_flag = ''
+    flags = ['force-cells', 'expect-cells', 'chemistry']
+    if hasattr(config, 'libraries'):
+        lib_df = pd.read_csv(config.libraries)
+        for flag in flags:
+            optional_flag = generate_option_flag(wildcards, lib_df, flag, optional_flag)
+    return optional_flag

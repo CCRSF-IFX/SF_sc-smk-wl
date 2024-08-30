@@ -10,5 +10,5 @@
 #SBATCH --job-name=submit.sh
 
 conda activate /mnt/ccrsf-ifx/Software/tools/conda_env4scwf
-module load singularity 
-snakemake --jobname 's.{jobid}.{rulename}' --profile workflow/profile/slurm/  -e cluster-generic > snakemake.log 2>&1 
+module load singularity/4.1.5
+snakemake --jobname 's.{jobid}.{rulename}' --profile workflow/profile/slurm/  -e cluster-generic > snakemake.log 2>&1

@@ -474,27 +474,27 @@ def configWorkingDirectory(flowcellID, sampleName, **samples):
         if os.path.exists(f'{args.count_path}/libraries.csv'):
             libraryName2cmd = dict()
             with open (f'{args.count_path}/libraries.csv', 'r') as LIBRARIES:
-                header = ''
+                header = next(LIBRARIES)
                 for line in LIBRARIES:
-                    if 'Name,Flowcell,Sample,Type' in line:
-                        header = line
+                    #if 'Name,Flowcell,Sample,Type' in line:
+                    #    header = line
+                    #else:
+                    columns = line[:-1].split(',')
+                    if columns[0] not in libraryName2cmd:
+                        libraryName2cmd[columns[0]] = (f'tar -cvhf {analysis_folder}/{columns[0]}_count.tar -C {args.count_path} {columns[0]}/outs\n')
+                        with open(path + f"/{analysis_subfolder}/" + columns[0] + "_count.tar.metadata.json", "w") as TARJSON:
+                            TARJSON.write("{\"metadataEntries\":[\n" +
+                                          "    {\"attribute\":\"object_name\",\"value\":\"" + columns[0] + "_count.tar\"},\n" +
+                                          "    {\"attribute\":\"file_type\",\"value\":\"TAR\"},\n" +
+                                          "    {\"attribute\":\"reference_genome\",\"value\":\"" + samples[sampleName].attribute2value["ReferenceGenome"]  + "\"},\n" +
+                                          "    {\"attribute\":\"reference_annotation\",\"value\":\"" + refAnnotation + "\"},\n" +
+                                          "    {\"attribute\":\"software_tool\",\"value\":\"cellranger\"},\n" +
+                                          "    {\"attribute\":\"data_compression_status\",\"value\":\"Compressed\"}\n    ]\n}"
+                            )
+                        OUT.write(path + f"/{analysis_subfolder}/" + columns[0] + "_count.tar\n")
+                        SLURMOUT.write(f'{libraryName2cmd[columns[0]]}\n')
                     else:
-                        columns = line[:-1].split(',')
-                        if columns[0] not in libraryName2cmd:
-                            libraryName2cmd[columns[0]] = (f'tar -cvhf {analysis_folder}/{columns[0]}_count.tar -C {args.count_path} {columns[0]}/outs\n')
-                            with open(path + f"/{analysis_subfolder}/" + columns[0] + "_count.tar.metadata.json", "w") as TARJSON:
-                                TARJSON.write("{\"metadataEntries\":[\n" +
-                                              "    {\"attribute\":\"object_name\",\"value\":\"" + columns[0] + "_count.tar\"},\n" +
-                                              "    {\"attribute\":\"file_type\",\"value\":\"TAR\"},\n" +
-                                              "    {\"attribute\":\"reference_genome\",\"value\":\"" + samples[sampleName].attribute2value["ReferenceGenome"]  + "\"},\n" +
-                                              "    {\"attribute\":\"reference_annotation\",\"value\":\"" + refAnnotation + "\"},\n" +
-                                              "    {\"attribute\":\"software_tool\",\"value\":\"cellranger\"},\n" +
-                                              "    {\"attribute\":\"data_compression_status\",\"value\":\"Compressed\"}\n    ]\n}"
-                                )
-                            OUT.write(path + f"/{analysis_subfolder}/" + columns[0] + "_count.tar\n")
-                            SLURMOUT.write(f'{libraryName2cmd[columns[0]]}\n')
-                        else:
-                            continue
+                        continue
         else:
             for entryName in os.listdir(args.count_path):
                 if "__" in entryName:

@@ -127,7 +127,7 @@ rule librariesCSV:
     shell: "python workflow/scripts/fb/create_library_files.py {config.libraries} {params.fastq}"
 
 def count_expect_force(wildcards):
-    if forcecells:
+    if getattr(config, forcecells, False):
         return('--force')
     else:
         return('')
@@ -157,7 +157,7 @@ def conditional_flags(wildcards):
         flags.append('--exclude_introns')
 
     # defined in bin/currentsnake/single_cell/Snakefile_singlecell_import
-    if forcecells:
+    if getattr(config, 'forcecells', False):
         flags.append('--force')
     else:
         ## numcell has numbers but --force is not provided means --expect is selected. 
@@ -192,10 +192,12 @@ def conditional_flags(wildcards):
     # for cellranger >=8.0.0
     if flag4cellranger_create_bam != "":
         flags.append(f"--create_bam")
+    if hasattr(config, "check_library_compatibility"):
+        if config.check_library_compatibility == False:
+            flags.append(f"--disable_lib_check")
     return(' '.join(flags))
 
-
-count = getattr(config, "count", False) 
+count = getattr(config, "count", False)
 if count == False: 
     rule multiConfig:
         input: "{sample}_libraries.csv"

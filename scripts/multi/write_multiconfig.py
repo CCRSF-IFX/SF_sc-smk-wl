@@ -41,7 +41,9 @@ def main(raw_args=None):
     parser.add_argument("-i", "--exclude_introns", action="store_true",
         help="Use include-introns,false option")
     parser.add_argument("--create_bam", action="store_true",
-        help="Use include-introns,false option")
+        help="Use create_bam,true option")
+    parser.add_argument("--disable_lib_check", action="store_true",
+        help="Use check-library-compatibility,false option (default option)")
     ## Fix RNA profiling parameters
     parser.add_argument("--probe_set", type=str,
         help="Text files containing probe sets")
@@ -66,6 +68,8 @@ def main(raw_args=None):
             pass
         if args.create_bam:
             spamwriter.writerow(['create-bam', "true"])
+        if args.disable_lib_check:
+            spamwriter.writerow(['check-library-compatibility', "false"])
         if args.cmo != None:
             spamwriter.writerow(['cmo-set', args.cmo])
         if args.exclude_introns:

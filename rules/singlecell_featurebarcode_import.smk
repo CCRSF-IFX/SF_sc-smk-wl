@@ -1,3 +1,4 @@
+import re
 f = open(config.libraries)
 line = next(f)
 samples = [i.split(',')[0] for i in f.read().strip().split('\n')]
@@ -20,6 +21,18 @@ if numcell != False:
     dict2 = dict(zip(samples, numcells))
 else:
     dict2 = { item:0 for item in samples} 
+
+def get_cell_number_from_lib_csv():
+    flags = ['force-cells', 'expect-cells']
+    if hasattr(config, 'libraries'):
+        lib_df = pd.read_csv(config.libraries)
+        for flag in flags: 
+            if flag in lib_df.columns:
+                setattr(config, re.sub("-", "", flag), True)
+                for index, row in lib_df.iterrows():
+                    dict2[row['Name']] = row[flag]
+
+get_cell_number_from_lib_csv()
 
 include_introns = getattr(config, "include_introns", True)
 

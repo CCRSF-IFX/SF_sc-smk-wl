@@ -38,7 +38,7 @@ rule arc_count:
     container: program.cellranger_arc
     shell:
         """
-rm -r {params.prefix}; cellranger-arc count {params.count_intronic} --id={params.prefix} --reference={reference.arc_reference} --libraries={input} --localcores={threads} --localmem={resources.mem_gb} 2>{log.err} 1>{log.log}
+rm -r {params.prefix}; cellranger-arc count {params.count_intronic} --id={params.prefix} --reference={reference.arc_reference} --libraries={input} 2>{log.err} 1>{log.log}
 """
 
 rule summaryFiles:

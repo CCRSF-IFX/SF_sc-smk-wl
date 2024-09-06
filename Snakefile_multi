@@ -175,9 +175,21 @@ def conditional_flags(wildcards):
 
     if hasattr(config, "features"):
         flags.append(f"--feature {os.path.abspath(config.features)}")
-
+       
     if hasattr(config, "cmo"):
-        flags.append(f"--cmo {os.path.abspath(config.cmo)}")
+        if type(config.cmo) is str:
+            flags.append(f"--cmo {os.path.abspath(config.cmo)}")
+            if not os.path.isfile(config.cmo):
+                sys.exit(f"Error: file {config.cmo} not found. Please fix the issue.") 
+        elif type(config.cmo) is dict:
+            if wildcards.sample in config.cmo:
+                flags.append(f"--cmo {os.path.abspath(config.cmo[wildcards.sample])}")
+                if not os.path.isfile(config.cmo[wildcards.sample]): 
+                    sys.exit(f"Error: file {config.cmo[wildcards.sample]} not found. Please fix the issue.") 
+            else:
+                sys.exit(f"Error: dictionary detected for 'cmo' but key '{wildcards.sample}' is missing. Please fix the issue.")
+        else:
+            sys.exit("Error: 'cmo' should be either string or a dictionary. Please fix the issue.")
 
     # For Gamma and Delta TCR and non-human and non-mouse species, 
     # "inner-enrichment-primers" is required to provided

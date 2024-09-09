@@ -1,7 +1,7 @@
 import os
 
 run_info4multi = config["multi"]["archive_run"]
-fastqpath4multi=config["multi"]["fastqpath"]
+fastqpath4multi = ",".join([os.path.abspath(tempath) for tempath in config["multi"]["fastqpath"].split(",")])
 projectname4multi = config["multi"]["projectname"]
 ref4multi = config["multi"]["ref"]
 
@@ -17,7 +17,7 @@ rule test_sc_multi_default:
     shell:
         """
 if [ -d "{params.dir4test}" ]; then
-    rm -rf {params.dir4test}/../
+    rm -rf $(readlink -f {params.dir4test}/../)
 fi
 mkdir -p {params.dir4test}
 cd {params.dir4test} && echo "n" | {input.run_snakemake4sc} {fastqpath4multi} multi {ref4multi}  -p {projectname4multi} -a {run_info4multi} {param_test_email} > {output.log} 2>&1
@@ -38,6 +38,9 @@ rule test_sc_multi_exclude_introns:
         log = os.path.join(outdir_abspath, "test_sc_multi_exclude_introns.log")
     shell:
         """
+if [ -d "{params.dir4test}" ]; then
+    rm -rf $(readlink -f {params.dir4test}/../)
+fi
 mkdir -p {params.dir4test}
 cd {params.dir4test} && echo "n" | {input.run_snakemake4sc} {fastqpath4multi} multi {ref4multi} --exclude-introns -p {projectname4multi} -a {run_info4multi} {param_test_email} > {output.log} 2>&1
 sed -i 's/""/"libraries.csv"/g' {params.dir4test}/config.py

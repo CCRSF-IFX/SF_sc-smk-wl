@@ -16,9 +16,11 @@ include: "rules/test_vdj.smk"
 include: "rules/test_multiome.smk"
 include: "rules/test_atac.smk"
 include: "rules/test_nopipe.smk"
+include: "rules/test_fixedrna_singleplex.smk"
 
 rule all:
     input:
+        rules.test_sc_fixedrna_singleplex_default.log,
         rules.test_sc_rna_full_default.output.log,
         rules.test_sc_spatial_default.output.log,
         rules.test_sc_spatial_polyA_default.output.log,

@@ -15,6 +15,9 @@ rule test_sc_rna_default:
         log = os.path.join(outdir_abspath, "test_scRNA_default.log")
     shell:
         """
+if [ -d "{params.dir4test}" ]; then
+    rm -rf $(readlink -f {params.dir4test}/../)
+fi
 mkdir -p {params.dir4test}
 cd {params.dir4test} && echo "n" | {input.run_snakemake4sc} {fastqpath4rna} rna {ref}  -p {projectname4rna} -a {run_info4rna} {param_test_email} > {output.log} 2>&1
 cp {input.metadata} {params.dir4test}/../
@@ -32,6 +35,9 @@ rule test_sc_rna_exclude_introns:
         log = os.path.join(outdir_abspath, "test_scRNA_exclude_introns.log")
     shell:
         """
+if [ -d "{params.dir4test}" ]; then
+    rm -rf $(readlink -f {params.dir4test}/../)
+fi
 mkdir -p {params.dir4test}
 cp {input.metadata} {params.dir4test}/../
 touch archive_setup.complete
@@ -50,6 +56,9 @@ rule test_sc_rna_force_cell:
         log = os.path.join(outdir_abspath, "test_scRNA_force_cell.log")
     shell:
         """
+if [ -d "{params.dir4test}" ]; then
+    rm -rf $(readlink -f {params.dir4test}/../)
+fi
 mkdir -p {params.dir4test}
 cp {input.metadata} {params.dir4test}/../
 touch archive_setup.complete
@@ -66,6 +75,9 @@ rule test_sc_rna_expect_cell:
         log = os.path.join(outdir_abspath, "test_scRNA_expect_cell.log")
     shell:
         """
+if [ -d "{params.dir4test}" ]; then
+    rm -rf $(readlink -f {params.dir4test}/../)
+fi
 mkdir -p {params.dir4test}
 cd {params.dir4test} && echo "{submit_job}" | {input.run_snakemake4sc} {fastqpath4rna} rna {ref} --expect {params.cell_number} -p {projectname4rna} -a {run_info4rna}  {param_test_email} > {output.log} 2>&1
 """

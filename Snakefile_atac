@@ -4,13 +4,18 @@ import os
 import itertools
 
 include: "rules/singlecell_import.smk"
+
+aggregate = getattr(config, "aggregate", True)
+aggr_output4ruleall = ["aggregate.complete"] if aggregate else []
+
 include: "rules/singlecell_rules_common.smk"
 include: "rules/singlecell_atac_import.smk"
+
 
 rule all:
     input: 
         expand("run_{sample}_10x_cellranger_atac.err", sample=samples), 
-        "aggregate.complete", 
+        aggr_output4ruleall, 
         "finalreport/metric_summary.xlsx", 
         "QC/" + project_name + "_multiqc.html", 
         'copy.complete', 

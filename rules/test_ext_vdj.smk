@@ -14,6 +14,9 @@ rule test_sc_vdj_default:
         log = os.path.join(outdir_abspath, "test_sc_vdj_default.log")
     shell:
         """
+if [ -d "{params.dir4test}" ]; then
+    rm -rf $(readlink -f "{params.dir4test}")
+fi
 mkdir -p {params.dir4test}
 cd {params.dir4test} && echo "{submit_job}" | {input.run_snakemake4sc} vdj --fastq {fastqpath4vdj} --reference {ref4vdj} --genome {genome4vdj} --chain {chain_type} > {output.log} 2>&1
 """
@@ -28,6 +31,10 @@ rule test_sc_vdj_chain:
         log = os.path.join(outdir_abspath, "test_sc_vdj_chain.log")
     shell:
         """
+        """
+if [ -d "{params.dir4test}" ]; then
+    rm -rf $(readlink -f "{params.dir4test}")
+fi
 mkdir -p {params.dir4test}
 cd {params.dir4test} && echo "{submit_job}" | {input.run_snakemake4sc} {fastqpath4vdj} vdj {ref4vdj} --chain {params.chain}  > {output.log} 2>&1
 """

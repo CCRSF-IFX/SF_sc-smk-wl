@@ -31,7 +31,6 @@ rule test_sc_vdj_chain:
         log = os.path.join(outdir_abspath, "test_sc_vdj_chain.log")
     shell:
         """
-        """
 if [ -d "{params.dir4test}" ]; then
     rm -rf $(readlink -f "{params.dir4test}")
 fi

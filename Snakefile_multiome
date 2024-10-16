@@ -7,6 +7,13 @@ include: "rules/singlecell_import.smk"
 include: "rules/singlecell_multiome_import.smk"
 include: "rules/singlecell_rules_common.smk"
 
+copy_complete = 'copy.complete'
+
+if external == True:
+    wreport_result = []
+    xreport_result = []
+    copy_complete = []
+
 rule all:
     input: 
         expand("run_{sample}_10x_cellranger_count.err", sample=samples), 
@@ -15,7 +22,7 @@ rule all:
         "aggregate.complete", 
         xreport_result, 
         wreport_result, 
-        'copy.complete', 
+        copy_complete,  
         rule_all_append
 
 rule librariesCSV:

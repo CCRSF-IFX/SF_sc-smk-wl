@@ -5,3 +5,4 @@ outdir_abspath = os.path.abspath(config["outdir"])
 include: "rules/test_ext_rna.smk"
 include: "rules/test_ext_vdj.smk"
 include: "rules/test_ext_multi.smk"
+include: "rules/test_ext_atac.smk"

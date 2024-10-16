@@ -11,6 +11,11 @@ aggr_output4ruleall = ["aggregate.complete"] if aggregate else []
 include: "rules/singlecell_rules_common.smk"
 include: "rules/singlecell_atac_import.smk"
 
+copy_complete = 'copy.complete'
+if external == True:
+    wreport_result = []
+    xreport_result = []
+    copy_complete = []
 
 rule all:
     input: 
@@ -18,5 +23,7 @@ rule all:
         aggr_output4ruleall, 
         "finalreport/metric_summary.xlsx", 
         "QC/" + project_name + "_multiqc.html", 
-        'copy.complete', 
-        rule_all_append
+        rule_all_append,
+        wreport_result,
+        xreport_result,
+        copy_complete

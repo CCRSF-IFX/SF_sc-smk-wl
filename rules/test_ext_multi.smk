@@ -3,6 +3,7 @@ import os
 fastqpath4multi= config["multi"]["fastqpath"].split(",")
 genome4multi = config["multi"]["genome"]
 ref4multi = config["multi"]["ref"]
+vdj_ref4multi = config["multi"]["vdj_ref"] 
 
 rule test_sc_multi_default:
     input:
@@ -18,8 +19,9 @@ if [ -d "{params.dir4test}" ]; then
     rm -rf $(readlink -f "{params.dir4test}")
 fi
 mkdir -p {params.dir4test}
-cd {params.dir4test} && echo "n" | python {input.run_snakemake4sc} multi -f {fastqpath4multi} -r {ref4multi} -g {genome4multi} -l {input.lib_csv} > {output.log} 2>&1
+cd {params.dir4test} && echo "n" | python {input.run_snakemake4sc} multi -f {fastqpath4multi} -r {ref4multi} -g {genome4multi} --vdj_ref {vdj_ref4multi} -l {input.lib_csv} > {output.log} 2>&1
 cd {params.dir4test} && echo "{submit_job}" | python {input.run_snakemake4sc} rerun 
+sed -i 's/^#aggregate/aggregate/' config.py
 """
 
 

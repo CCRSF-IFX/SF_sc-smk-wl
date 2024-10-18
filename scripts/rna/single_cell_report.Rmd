@@ -1,0 +1,111 @@
+---
+title: "`r params$project`"
+subtitle: "Sing cell RNA-seq report"
+#date: "`r Sys.Date()`"
+output: 
+  html_document:
+    lightbox: true
+    toc: true
+    toc_float: 
+        collapsed: false
+    toc_depth: 3
+    fig_width: 8
+    fig_height: 5
+    number_sections: false 
+params:
+  project: null
+  dir: null
+  sample: null
+---
+
+```{r setup, include=FALSE}
+## Code was adapted from the Rmd file developed by Dr. Culbha Choudhary 
+## for MAS scRNA-seq data
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr, quietly = T)
+library(kableExtra)
+library(stringr)
+
+maindir <-params$dir
+```
+
+# QC Analysis of sample: `r params$sample`
+
+## Filtering  {.tabset .tabset-fade}
+
+```{r  echo = F, results = 'asis'}
+  img_list <- file.path(maindir,list.files(pattern = "seurat/*VlnPlot_[A-Z][a-z]+Filter.png$"))
+  l <- img_list[rev(1:length(img_list))]
+  title <- c("PreFilter", "PostFilter")
+  for (i in c(1,2)){
+      # j = gsub(".png", "", i)
+      cat(paste("###", title[i], '\n', sep =' '))
+      cat(paste('\n![](', l[i],')','{height=520px, width=520px}\n', sep = ''))
+      cat("\n\n")
+  }
+```
+<br><br><br>
+
+## Cell Filter Thresholds {.tabset .tabset-fade}
+
+### Cell Filter Threshold
+
+```{r  echo=F ,results='asis'}
+    data <- read.csv(paste(maindir, list.files(pattern = "seurat/FilterNumbers.csv$"), sep = '/'))
+    kable(data, format='html') %>%
+    column_spec(1:dim(data)[2], width = "5cm")
+    cat("\n\n")
+```
+<br><br><br>
+
+### Cell Filter Numbers
+```{r  echo=F ,results='asis'}
+    data1 <- read.csv(file.path(maindir,list.files(pattern = "seurat/FilterThresholds.csv$")))
+    kable(data1, format='html') %>%
+    column_spec(1:dim(data1)[2], width = "5cm")
+    cat("\n\n")
+```
+
+
+<br><br><br>
+
+
+## Variable Features
+
+```{r  echo = F, results = 'asis'}
+  img_list <- file.path(maindir,list.files(pattern = 'seurat/VariableFeatures.png$'))
+  for (i in img_list) {
+       j = gsub(".png", "", i)
+      #cat(paste("###", j, '\n', sep =' '))
+      cat(paste('\n![](', i, ')','{height=520px, width=520px}\n', sep = ''))
+      cat("\n")
+  }
+```
+<br><br><br>
+
+## UMAP  {.tabset .tabset-fade}
+
+```{r echo = F, results = 'asis'}
+
+  img_list <- file.path(maindir,list.files(pattern ='seurat/*UMAPPlotwith[0-9]+PCs_0.[0-9].png$'))
+  resolutions <- c(0.1, 0.3, 0.6, 0.8)
+  for (i in (1:length(img_list))) {
+      cat(paste("### Resolution", resolutions[i]))
+      cat(paste('\n![](', img_list[i], ')','{height=520px, width=520px}\n', sep = ''))
+      cat("\n")
+  }
+```
+<br><br><br>
+
+## Cell type annotation {.tabset .tabset-fade}
+
+```{r echo = F, results = 'asis'}
+  img_list <- file.path(maindir,list.files(pattern ='singleR/*UMAP_[a-z]+.png$'))
+  title <- c("blueprintencode", "hpca")
+  for (i in (1:length(img_list))) {    
+      #j = gsub(".png", "", img_list[i])
+      cat(paste("###", title[i]))
+      cat(paste('\n![](', img_list[i], ')','{height=520px, width=520px}\n', sep = ''))
+      cat("\n")
+}
+```

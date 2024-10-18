@@ -31,8 +31,9 @@ dir_seurat <- file.path(maindir, "seurat")
 dir_singler <- file.path(maindir, "singleR")
 ```
 
+```{r, include=FALSE}
 # QC Analysis of sample: `r params$sample`
-
+```
 ## Filtering  {.tabset .tabset-fade}
 
 ```{r  echo = F, results = 'asis'}

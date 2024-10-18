@@ -25,12 +25,19 @@ include: "rules/singlecell_rna_import.smk"
 ## Full analysis part
 include: "rules/singlecell_rna_seurat_proc.smk"
 include: "rules/singlecell_rna_singleR.smk"
-#rule_all_append defined in Snakefile_singlecell_import
+include: "rules/singlecell_rna_report.smk"
+
+copy_complete = 'copy.complete'
+if external == True:
+    wreport_result = []
+    xreport_result = []
+    copy_complete = []
 
 rule all:
     input:
         expand(os.path.join(analysis, "{sample}/singleR/seur_10x_cluster_singler.rds"), sample=samples),
         expand(os.path.join(analysis, "{sample}/seurat/seur_10x_cluster_object.rds"), sample=samples), 
+        expand(os.path.join(analysis, "{sample}_sc_report.html"), sample = samples), 
         expand("run_{sample}_10x_cellranger_count.err", sample=samples), 
         "finalreport/metric_summary.xlsx", 
         expand("finalreport/summaries/{sample}_web_summary.html", sample=samples), 
@@ -38,5 +45,5 @@ rule all:
         wreport_result, 
         xreport_result, 
         "QC/" + project_name + "_multiqc.html", 
-        'copy.complete', 
+        copy_complete, 
         rule_all_append

@@ -210,6 +210,10 @@ def conditional_flags(wildcards):
     return(' '.join(flags))
 
 count = getattr(config, "count", False)
+
+if config.pipeline == "fixedrna":
+    reference.transcriptome = "NA"
+
 if count == False: 
     rule multiConfig:
         input: "{sample}_libraries.csv"

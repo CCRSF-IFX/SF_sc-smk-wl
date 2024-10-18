@@ -6,6 +6,7 @@ cellranger_atac = "docker://ccrsfifx/cellranger-atac:2.1.0"
 cellranger_arc  = "docker://ccrsfifx/cellranger-arc:2.0.2"
 spaceranger     = "docker://ccrsfifx/spaceranger:3.0.0"
 Renv            = "docker://ccrsfifx/sc-smk-wl:r1.0.0"
+Renv4rmd        = "docker://ccrsfifx/sc-rmd-report:1.0.0"
 
 multiqc         = "docker://multiqc/multiqc:v1.12"
 multiqc_conf = "/mnt/ccrsf-ifx/Software/tools/MultiQC/config_multiQC.yaml"

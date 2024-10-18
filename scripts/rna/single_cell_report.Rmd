@@ -25,8 +25,10 @@ knitr::opts_chunk$set(echo = TRUE)
 library(knitr, quietly = T)
 library(kableExtra)
 library(stringr)
-
+knitr::opts_knit$set(upload.fun = knitr::image_uri)
 maindir <-params$dir
+dir_seurat <- file.path(maindir, "seurat")
+dir_singler <- file.path(maindir, "singleR")
 ```
 
 # QC Analysis of sample: `r params$sample`
@@ -34,13 +36,12 @@ maindir <-params$dir
 ## Filtering  {.tabset .tabset-fade}
 
 ```{r  echo = F, results = 'asis'}
-  img_list <- file.path(maindir,list.files(pattern = "seurat/*VlnPlot_[A-Z][a-z]+Filter.png$"))
-  l <- img_list[rev(1:length(img_list))]
+  img_list <- file.path(dir_seurat, c("VlnPlot_PreFilter.png", "VlnPlot_Filtered.png"))
   title <- c("PreFilter", "PostFilter")
   for (i in c(1,2)){
       # j = gsub(".png", "", i)
       cat(paste("###", title[i], '\n', sep =' '))
-      cat(paste('\n![](', l[i],')','{height=520px, width=520px}\n', sep = ''))
+      cat(paste('\n![](', img_list[i],')','{height=520px, width=520px}\n', sep = ''))
       cat("\n\n")
   }
 ```
@@ -51,7 +52,7 @@ maindir <-params$dir
 ### Cell Filter Threshold
 
 ```{r  echo=F ,results='asis'}
-    data <- read.csv(paste(maindir, list.files(pattern = "seurat/*FilterNumbers.csv$")))
+    data <- read.csv(file.path(dir_seurat, "FilterNumbers.csv"))
     kable(data, format='html') %>%
     column_spec(1:dim(data)[2], width = "5cm")
     cat("\n\n")
@@ -60,7 +61,7 @@ maindir <-params$dir
 
 ### Cell Filter Numbers
 ```{r  echo=F ,results='asis'}
-    data1 <- read.csv(file.path(maindir,list.files(pattern = "seurat/*FilterThresholds.csv$")))
+    data1 <- read.csv(file.path(dir_seurat, "FilterThresholds.csv"))
     kable(data1, format='html') %>%
     column_spec(1:dim(data1)[2], width = "5cm")
     cat("\n\n")
@@ -73,7 +74,7 @@ maindir <-params$dir
 ## Variable Features
 
 ```{r  echo = F, results = 'asis'}
-  img_list <- file.path(maindir,list.files(pattern = 'seurat/*VariableFeatures.png$'))
+  img_list <- file.path(dir_seurat, "VariableFeatures.png")
   for (i in img_list) {
        j = gsub(".png", "", i)
       #cat(paste("###", j, '\n', sep =' '))
@@ -87,7 +88,7 @@ maindir <-params$dir
 
 ```{r echo = F, results = 'asis'}
 
-  img_list <- file.path(maindir,list.files(pattern ='seurat/*UMAPPlotwith[0-9]+PCs_0.[0-9].png$'))
+  img_list <- file.path(dir_seurat, list.files(dir_seurat, pattern ='*UMAPPlotwith[0-9]+PCs_0.[0-9].png$')) 
   resolutions <- c(0.1, 0.3, 0.6, 0.8)
   for (i in (1:length(img_list))) {
       cat(paste("### Resolution", resolutions[i]))
@@ -100,12 +101,12 @@ maindir <-params$dir
 ## Cell type annotation {.tabset .tabset-fade}
 
 ```{r echo = F, results = 'asis'}
-  img_list <- file.path(maindir,list.files(pattern ='singleR/*UMAP_[a-z]+.png$'))
+  img_list <- file.path(dir_singler, list.files(dir_singler, pattern ='*UMAP_[a-z]+.png$'))
   title <- c("blueprintencode", "hpca")
   for (i in (1:length(img_list))) {    
-      #j = gsub(".png", "", img_list[i])
+      j = gsub(".png", "", img_list[i])
       cat(paste("###", title[i]))
       cat(paste('\n![](', img_list[i], ')','{height=520px, width=520px}\n', sep = ''))
       cat("\n")
-}
+  }
 ```

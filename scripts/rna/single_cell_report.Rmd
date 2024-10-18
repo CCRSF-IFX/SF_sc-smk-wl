@@ -51,7 +51,7 @@ maindir <-params$dir
 ### Cell Filter Threshold
 
 ```{r  echo=F ,results='asis'}
-    data <- read.csv(paste(maindir, list.files(pattern = "seurat/FilterNumbers.csv$"), sep = '/'))
+    data <- read.csv(paste(maindir, list.files(pattern = "seurat/*FilterNumbers.csv$")))
     kable(data, format='html') %>%
     column_spec(1:dim(data)[2], width = "5cm")
     cat("\n\n")
@@ -60,7 +60,7 @@ maindir <-params$dir
 
 ### Cell Filter Numbers
 ```{r  echo=F ,results='asis'}
-    data1 <- read.csv(file.path(maindir,list.files(pattern = "seurat/FilterThresholds.csv$")))
+    data1 <- read.csv(file.path(maindir,list.files(pattern = "seurat/*FilterThresholds.csv$")))
     kable(data1, format='html') %>%
     column_spec(1:dim(data1)[2], width = "5cm")
     cat("\n\n")
@@ -73,7 +73,7 @@ maindir <-params$dir
 ## Variable Features
 
 ```{r  echo = F, results = 'asis'}
-  img_list <- file.path(maindir,list.files(pattern = 'seurat/VariableFeatures.png$'))
+  img_list <- file.path(maindir,list.files(pattern = 'seurat/*VariableFeatures.png$'))
   for (i in img_list) {
        j = gsub(".png", "", i)
       #cat(paste("###", j, '\n', sep =' '))

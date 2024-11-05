@@ -561,7 +561,7 @@ def configWorkingDirectory(flowcellID, sampleName, **samples):
             OUT.write(path + f"/{analysis_subfolder}/" + elements[-1] + ".tar\n")
     OUT.close()
 
-    SLURMOUT.write(f'module load java/11\n'
+    SLURMOUT.write(f'module load java/21\n'
                    f'export HPC_DM_UTILS={pathHPCDMECLU}/utils\n'
                    f'source $HPC_DM_UTILS/functions\n'
                    f'dm_register_collection PI_Lab_{PINamePath}.metadata.json /FNL_SF_Archive/PI_Lab_{PINamePath}\n'

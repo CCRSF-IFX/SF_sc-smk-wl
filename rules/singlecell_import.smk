@@ -181,7 +181,46 @@ for run_name in run_names:
 
 #Create file names
 #flowcell = os.path.basename(config.unaligned[0].strip('/'))
-flowcells = {os.path.basename(i.strip('/')): i for i in config.unaligned}
+
+
+#flowcells = {os.path.basename(i.strip('/')): i for i in config.unaligned}
+
+def get_flowcell_name_from_reports(path):
+    """
+    Tries to retrieve the flowcell name from the Reports/html directory for a given path.
+
+    Args:
+        path (str): The directory path to check for flowcell in Reports/html.
+    
+    Returns:
+        str: The flowcell name if found, otherwise None.
+    """
+    reports_html_path = os.path.join(path, "../Reports/html")
+    if os.path.exists(reports_html_path):
+        try:
+            # Find a folder in html directory that matches the flowcell naming pattern
+            flowcell_name = next(
+                d for d in os.listdir(reports_html_path) 
+                    if os.path.isdir(os.path.join(reports_html_path, d))
+            )
+            return flowcell_name
+        except StopIteration:
+            return None  # No valid flowcell name found
+    return None
+
+# Combine with your existing logic for `config.unaligned`
+flowcells = {}
+for path in config.unaligned:
+    base_name = os.path.basename(path)
+    flowcell_name = base_name  # Default to the base name
+
+    # Check if the flowcell name needs to be extracted from Reports/html
+    alternative_name = get_flowcell_name_from_reports(path)
+    if alternative_name:
+        flowcell_name = alternative_name
+    
+    flowcells[flowcell_name] = path
+
 #cfile = one_up + "/" + project_name+"_"+'_'.join(flowcells)+".count.tar"
 report_result = one_up + "/" + project_name + "_" + flowcell + "_Metadata.txt"
 wreport_result = one_up + "/" + project_name + "_" + flowcell + ".docx"

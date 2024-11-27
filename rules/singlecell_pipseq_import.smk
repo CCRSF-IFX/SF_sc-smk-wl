@@ -1,3 +1,21 @@
+import re
+
+def is_pipseeker_version_greater_than_3(pipseeker_uri):
+    # Extract version using regex
+    match = re.search(r"fluent-pipseeker:(\d+)\.(\d+)\.(\d+)", pipseeker_uri)
+    
+    if match:
+        major_version = int(match.group(1))
+        return major_version >= 3
+    else:
+        raise ValueError("Invalid Pipseeker URI format")
+
+def get_summary_script4pipseq_data():
+    if is_pipseeker_version_greater_than_3(program.pipseeker):
+        return "workflow/scripts/rna/python_scripts/generateSummaryFiles4pipseq_v3.py" 
+    else:
+        return "workflow/scripts/rna/python_scripts/generateSummaryFiles4pipseq.py"
+
 numcell = getattr(config, "numcells", False)
 def count_expect_force():
     params_cell_number = dict()
@@ -11,7 +29,7 @@ def count_expect_force():
     return params_cell_num
 
 params_cell_number = count_expect_force()
-#print(params_cell_number)
+print(params_cell_number)
 
 # this variable is used in `bin/currentsnake/single_cell/Snakefile_singlecell_rules`
 # so I keep the old name. 

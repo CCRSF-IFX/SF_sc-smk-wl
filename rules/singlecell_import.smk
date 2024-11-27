@@ -88,7 +88,6 @@ else:
     ## For example, Tube_1___Sample_3__GEX_library in CS033737 
     samples = list(set(s.replace('Sample_', '') if s.startswith('Sample_') else s for s in set(samps)))
     samples = sorted(samples)
-    #print("Samples to be analyzed: " + " ".join(samples))
 
 # Move fastq files to subfolders with the names of the sample.
 from subprocess import Popen, PIPE

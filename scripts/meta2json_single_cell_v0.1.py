@@ -173,7 +173,7 @@ def createProjectJson(projectPath, sampleName, **samples):
 
 def createFlowcellJson(flowcellPath, flowcellID, runName, sampleName, **samples):
     runDate = ""
-    oRunDate = re.compile("(\d{6,})_(.+)")
+    oRunDate = re.compile(r"(\d{6,})_(.+)")
     sRunDate = oRunDate.search(runName)
     if sRunDate:
         year = 2000 + int(sRunDate.group(1)[0:2])
@@ -262,13 +262,13 @@ def configWorkingDirectory(flowcellID, sampleName, **samples):
     homePath = os.getcwd()
     PIName = samples[sampleName].attribute2value["PrincipalInvestigator"]
     PINamePath = ''
-    oPIName = re.compile('(.+)(\s{1})([A-Za-z\-]+)')
+    oPIName = re.compile(r'(.+)(\s{1})([A-Za-z\-]+)')
     if PIName == 'CCRSF':
         PIName = PIName
     elif "," not in PIName:
         sPIName = oPIName.search(PIName)
         if sPIName:
-            firstName = re.sub("\s", "", sPIName.group(1))
+            firstName = re.sub(r"\s", "", sPIName.group(1))
             PIName = f'{sPIName.group(3)}, {firstName}'
             PINamePath = firstName + "_" + sPIName.group(3)
         else:
@@ -276,7 +276,7 @@ def configWorkingDirectory(flowcellID, sampleName, **samples):
                              ", in metadata.txt is not correct.\n")
             sys.exit(1)
     else:
-        oListedPIName = re.compile('^([A-Za-z\-\s]+), ([A-Za-z\-\s\.]+)$')
+        oListedPIName = re.compile(r'^([A-Za-z\-\s]+), ([A-Za-z\-\s\.]+)$')
         sListedPIName = oListedPIName.search(PIName)
         if sListedPIName:
             PIName = sListedPIName.group(0)
@@ -286,7 +286,7 @@ def configWorkingDirectory(flowcellID, sampleName, **samples):
             names = PIName.split(',')
             sPIName = oPIName.search(names[0])
             if sPIName:
-                firstName = re.sub("\s", "", sPIName.group(1))
+                firstName = re.sub(r"\s", "", sPIName.group(1))
                 PIName = f'{sPIName.group(3)}, {firstName}'
                 PINamePath = firstName + "_" + sPIName.group(3)
             else:
@@ -675,8 +675,8 @@ def checkMetadata(flowcellID, runName, readLengths, instrument, fastqPath):
                 )
                 sys.stderr.write(f'Checking sample names in {fastqPath}...\n')
                 if fastqPath:
-                    oSampleName = re.compile('Sample_(.+)')
-                    oFastqName = re.compile("(.+)_R1_001.fastq.gz")
+                    oSampleName = re.compile(r'Sample_(.+)')
+                    oFastqName = re.compile(r"(.+)_R1_001.fastq.gz")
                     for dirName in os.listdir(fastqPath):
                         if os.path.isdir(f'{fastqPath}/{dirName}') and dirName == projectName:
                             for dirSampleName in os.listdir(f'{fastqPath}/{dirName}'):
@@ -685,7 +685,7 @@ def checkMetadata(flowcellID, runName, readLengths, instrument, fastqPath):
                                 if sSampleName:
                                     sampleName = sSampleName.group(1)
                                 elif sFastqName:
-                                    oSampleName = re.compile('(.+)_S(\d+)_R1_001.fastq.gz')
+                                    oSampleName = re.compile(r'(.+)_S(\d+)_R1_001.fastq.gz')
                                     sSampleName = oSampleName.search(dirSampleName)
                                     if sSampleName:
                                         sampleName = sSampleName.group(1)
@@ -787,7 +787,7 @@ def main(argv):
     flowcellMode = "Unknown"
     chemistry = "Unknown"
     chemistryVersion = "Unknown"
-    oRunName = re.compile("(\d{6,})_([A-Z0-9]+)_(\d+)_([-A-Z0-9]+)")
+    oRunName = re.compile(r"(\d{6,})_([A-Z0-9]+)_(\d+)_([-A-Z0-9]+)")
     sRunName = oRunName.search(runName)
     if sRunName:
         (instrument, runPath) = getRunPath(sRunName)

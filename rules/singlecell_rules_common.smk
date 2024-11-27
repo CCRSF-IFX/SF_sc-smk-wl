@@ -78,9 +78,15 @@ cd {one_up}; perl {active_script_folder}/run_GenerateAllReports.pl -flowcell {fl
         shell: "cp {input.metric} {xreport_result}"
 
     rule wreport:
-        input: metadata = report_result, excel = "finalreport/metric_summary.xlsx"
-        output: wreport_result
-        params: runs = ','.join(run_names), pipeline = config.pipeline, workflow_flag = get_flag4report
+        input: 
+            metadata = report_result, 
+            excel = "finalreport/metric_summary.xlsx"
+        output: 
+            wreport_result
+        params: 
+            runs = ','.join(run_names), 
+            pipeline = config.pipeline, 
+            workflow_flag = get_flag4report
         shell: "cd {one_up}; python {analysis}/scripts/SF_scWordReport/run_wordreport_sc.py -e {analysis}/{input.excel} -m {input.metadata} -c {current_cellranger} -p {params.pipeline} -r {params.runs} {params.workflow_flag} {args4wreport_test} {args4wreport_yields}"
 
     if testing: 

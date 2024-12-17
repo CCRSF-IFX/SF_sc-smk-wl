@@ -4,6 +4,8 @@ from xml.dom import minidom
 import shutil
 from pathlib import Path
 import pandas as pd
+import xml.etree.ElementTree as ET
+
 
 include: "runParametersImport" 
 
@@ -195,6 +197,7 @@ def get_flowcell_name_from_reports(path):
     Returns:
         str: The flowcell name if found, otherwise None.
     """
+    ## bcl2fastq output folder
     reports_html_path = os.path.join(path, "../Reports/html")
     if os.path.exists(reports_html_path):
         try:
@@ -205,6 +208,19 @@ def get_flowcell_name_from_reports(path):
             )
             return flowcell_name
         except StopIteration:
+            return None  # No valid flowcell name found
+    ## bcl converter 
+    runinf_xml = os.path.join(path, "../Reports/RunInfo.xml") 
+    if os.path.exists(runinf_xml):
+        try:
+            # Find a folder in html directory that matches the flowcell naming pattern
+            tree = ET.parse(runinf_xml)
+            root = tree.getroot()
+            # Find the Flowcell element
+            flowcell = root.find(".//Flowcell")
+            return flowcell.text if flowcell is not None else None
+        except ET.ParseError as e:
+            print(f"Error parsing XML: {e}")
             return None  # No valid flowcell name found
     return None
 
@@ -226,6 +242,8 @@ report_result = one_up + "/" + project_name + "_" + flowcell + "_Metadata.txt"
 wreport_result = one_up + "/" + project_name + "_" + flowcell + ".docx"
 xreport_result = one_up + "/" + project_name + "_" + flowcell + ".xlsx"
 copy_result = one_up + "/" + project_name + "_" + flowcell + "_copy.txt"
+
+print(flowcells)
 
 rule_all_append = []
 if hasattr(config, 'archive'):

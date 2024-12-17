@@ -369,9 +369,12 @@ def configWorkingDirectory(flowcellID, sampleName, **samples):
                     modifiedFolderName = folderName.replace("__", "_")
                 else:
                     modifiedFolderName = folderName
+                sample_name = modifiedFolderName
+                if "Sample_" in modifiedFolderName:
+                    sample_name = modifiedFolderName.split("Sample_")[1]
                 if not os.path.exists(flowcellPath + "/" + modifiedFolderName):
                     os.mkdir(flowcellPath + "/" + modifiedFolderName)
-                    createSampleJson(flowcellPath + "/" + modifiedFolderName, modifiedFolderName.split('Sample_')[1], **samples)
+                    createSampleJson(flowcellPath + "/" + modifiedFolderName, sample_name, **samples)
                 for fileName in os.listdir(fastqPath + "/" + samples[sampleName].attribute2value["ProjectName"] + "/" + folderName):
                     if "__" in fileName:
                         modifiedFileName = fileName.replace("__", "_")
@@ -381,7 +384,7 @@ def configWorkingDirectory(flowcellID, sampleName, **samples):
                            "/" + fileName + " " + flowcellPath + "/" +
                            modifiedFolderName + "/" + modifiedFileName)
                     runCommand(cmd)
-                    createObjectJson(flowcellPath + "/" + modifiedFolderName, modifiedFileName, refAnnotation, modifiedFolderName.split('Sample_')[1], **samples)
+                    createObjectJson(flowcellPath + "/" + modifiedFolderName, modifiedFileName, refAnnotation, sample_name, **samples)
                     OUT.write(flowcellPath + "/" + modifiedFolderName + "/" + modifiedFileName + "\n")
         else:
             sys.stdout.write(f'No Fastq files are identified in {fastqPath}\n')

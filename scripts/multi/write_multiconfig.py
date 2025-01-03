@@ -19,6 +19,8 @@ def main(raw_args=None):
     parser.add_argument("--cmo", metavar="cmo.csv",
         nargs='?', action = "store", type=str,
         help="Path to cmo file if applicable")
+    parser.add_argument("--hashedabc", action="store_true",
+        help="Hashing with Antibody Capture libraries")
     parser.add_argument("--feature", metavar="feature.csv",
         nargs='?', action = "store", type=str,
         help="Path to feature barcode reference file if applicable")
@@ -70,7 +72,7 @@ def main(raw_args=None):
             spamwriter.writerow(['create-bam', "true"])
         if args.disable_lib_check:
             spamwriter.writerow(['check-library-compatibility', "false"])
-        if args.cmo != None:
+        if args.cmo != None and args.hashedabc != True:
             spamwriter.writerow(['cmo-set', args.cmo])
         if args.exclude_introns:
             spamwriter.writerow(['include-introns', 'false'])
@@ -114,14 +116,23 @@ def main(raw_args=None):
         if args.cmo != None:
             spamwriter.writerow([])
             spamwriter.writerow(['[samples]'])
-            spamwriter.writerow(['sample_id', 'cmo_ids', 'description'])
-            with open(args.cmo, 'r') as lib:
-                line = next(lib)
-                index = 1
-                for line in lib:
-                    line = line.strip().split(',')
-                    spamwriter.writerow(['HTO_%s' % index, line[0], line[0]])
-                    index += 1
+            if args.hashedabc != True:
+                spamwriter.writerow(['sample_id', 'cmo_ids', 'description'])
+                with open(args.cmo, 'r') as lib:
+                    line = next(lib)
+                    index = 1
+                    for line in lib:
+                        line = line.strip().split(',')
+                        spamwriter.writerow(['HTO_%s' % index, line[0], line[0]])
+                        index += 1
+            else: ## hashed antibody capture
+                with open(args.cmo, 'r') as lib:
+                    index = 1
+                    for line in lib:
+                        line = line.strip().split(',')
+                        spamwriter.writerow(line)
+                        index += 1
+
         ## For fixed RNA profiling
         if args.multiplex != None:
             spamwriter.writerow([])

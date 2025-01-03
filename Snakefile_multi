@@ -191,6 +191,12 @@ def conditional_flags(wildcards):
         else:
             sys.exit("Error: 'cmo' should be either string or a dictionary. Please fix the issue.")
 
+        ## https://www.10xgenomics.com/support/software/cell-ranger/latest/analysis/running-pipelines/cr-3p-multi#hashing
+        if not hasattr(config, "hashedabc"):
+            config.hashedabc = False
+        if config.hashedabc == True:
+            flags.append("--hashedabc")
+        
     # For Gamma and Delta TCR and non-human and non-mouse species, 
     # "inner-enrichment-primers" is required to provided
     if hasattr(config, "inner_enrichment_primers"):

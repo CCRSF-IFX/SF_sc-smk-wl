@@ -10,7 +10,14 @@ line = next(f)
 fcells = set([i.split(',')[1] for i in f.read().strip().split('\n')])
 #print(fcells)
 if len(set(config.unaligned) - set([i for i in config.unaligned for j in fcells if j in i])) > 0:
-    raise Exception(f"\nNot all paths in config.unaligned were used in the libraries.csv file. Missing path(s): \n{chr(10).join(set(config.unaligned) - set([i for i in config.unaligned for j in fcells if j in i]))}\n")
+    # Identify paths in config.unaligned that contain any of the cells from fcells
+    aligned_paths = {i for i in config.unaligned for j in fcells if j in i}
+
+    # Find the missing paths by subtracting aligned paths from config.unaligned
+    missing_paths = set(config.unaligned) - aligned_paths
+
+    # If there are missing paths, raise an exception with a formatted message
+    raise Exception(f"\nNot all paths in config.unaligned were used in the libraries.csv file. Missing path(s): \n{chr(10).join(missing_paths)}\n")
 
 f.close()
 

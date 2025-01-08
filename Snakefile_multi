@@ -217,8 +217,8 @@ def conditional_flags(wildcards):
 
 count = getattr(config, "count", False)
 
-if config.pipeline == "fixedrna":
-    reference.transcriptome = "NA"
+#if config.pipeline == "fixedrna":
+#    reference.transcriptome = "NA"
 
 if count == False: 
     rule multiConfig:

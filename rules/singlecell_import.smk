@@ -243,7 +243,7 @@ wreport_result = one_up + "/" + project_name + "_" + flowcell + ".docx"
 xreport_result = one_up + "/" + project_name + "_" + flowcell + ".xlsx"
 copy_result = one_up + "/" + project_name + "_" + flowcell + "_copy.txt"
 
-print(flowcells)
+#print(flowcells)
 
 rule_all_append = []
 if hasattr(config, 'archive'):

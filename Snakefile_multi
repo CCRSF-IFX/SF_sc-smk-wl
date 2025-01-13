@@ -17,7 +17,8 @@ include: "rules/singlecell_featurebarcode_import.smk"
 aggregate = getattr(config, "aggregate", True)
 aggr_output4ruleall = ["aggregate.complete"] if aggregate else []
 
-if len(samples) == 1 or hasattr(config, "cmo"):  ## only one sample or Multiplexing Capture 
+## only one sample or Multiplexing Capture 
+if len(samples) == 1 or hasattr(config, "cmo") or config.pipeline == "fixedrna":
     aggregate = False
     aggr_output4ruleall = []
 #rule_all_append defined in Snakefile_singlecell_import
@@ -126,7 +127,7 @@ rule librariesCSV:
     shell: "python workflow/scripts/fb/create_library_files.py {config.libraries} {params.fastq}"
 
 def count_expect_force(wildcards):
-    if forcecells:
+    if getattr(config, forcecells, False):
         return('--force')
     else:
         return('')
@@ -156,19 +157,46 @@ def conditional_flags(wildcards):
         flags.append('--exclude_introns')
 
     # defined in bin/currentsnake/single_cell/Snakefile_singlecell_import
-    if forcecells:
+    if getattr(config, 'forcecells', False):
         flags.append('--force')
     else:
         ## numcell has numbers but --force is not provided means --expect is selected. 
         if numcell:
             flags.append('--expect')
+    
+    if config.pipeline == "fixedrna":
+        if hasattr(config, "probe_set"):
+            flags.append(f"--probe_set {os.path.abspath(config.probe_set)}")
+        else:
+            sys.exit("Error: probe_set is required for pipeline: fixedrna!")
+    
+        if hasattr(config, "multiplex"):
+            flags.append(f"--multiplex {os.path.abspath(config.multiplex)}")
 
     if hasattr(config, "features"):
         flags.append(f"--feature {os.path.abspath(config.features)}")
-
+       
     if hasattr(config, "cmo"):
-        flags.append(f"--cmo {os.path.abspath(config.cmo)}")
+        if type(config.cmo) is str:
+            flags.append(f"--cmo {os.path.abspath(config.cmo)}")
+            if not os.path.isfile(config.cmo):
+                sys.exit(f"Error: file {config.cmo} not found. Please fix the issue.") 
+        elif type(config.cmo) is dict:
+            if wildcards.sample in config.cmo:
+                flags.append(f"--cmo {os.path.abspath(config.cmo[wildcards.sample])}")
+                if not os.path.isfile(config.cmo[wildcards.sample]): 
+                    sys.exit(f"Error: file {config.cmo[wildcards.sample]} not found. Please fix the issue.") 
+            else:
+                sys.exit(f"Error: dictionary detected for 'cmo' but key '{wildcards.sample}' is missing. Please fix the issue.")
+        else:
+            sys.exit("Error: 'cmo' should be either string or a dictionary. Please fix the issue.")
 
+        ## https://www.10xgenomics.com/support/software/cell-ranger/latest/analysis/running-pipelines/cr-3p-multi#hashing
+        if not hasattr(config, "hashedabc"):
+            config.hashedabc = False
+        if config.hashedabc == True:
+            flags.append("--hashedabc")
+        
     # For Gamma and Delta TCR and non-human and non-mouse species, 
     # "inner-enrichment-primers" is required to provided
     if hasattr(config, "inner_enrichment_primers"):
@@ -182,10 +210,16 @@ def conditional_flags(wildcards):
     # for cellranger >=8.0.0
     if flag4cellranger_create_bam != "":
         flags.append(f"--create_bam")
+    if hasattr(config, "check_library_compatibility"):
+        if config.check_library_compatibility == False:
+            flags.append(f"--disable_lib_check")
     return(' '.join(flags))
 
+count = getattr(config, "count", False)
 
-count = getattr(config, "count", False) 
+#if config.pipeline == "fixedrna":
+#    reference.transcriptome = "NA"
+
 if count == False: 
     rule multiConfig:
         input: "{sample}_libraries.csv"
@@ -195,7 +229,8 @@ if count == False:
 
     rule count:
         input: rules.multiConfig.output
-        output: "{sample}/outs/config.csv", "{sample}/outs/per_sample_outs/{sample}/web_summary.html" 
+        #output: "{sample}/outs/config.csv", "{sample}/outs/per_sample_outs/{sample}/web_summary.html" 
+        output: "{sample}/_cmdline"
         log: err = "run_{sample}_10x_cellranger_count.err", log ="run_{sample}_10x_cellranger_count.log"
         params: batch = "-l nodes=1:ppn=16,mem=96gb", prefix = "{sample}" 
         container: program.cellranger
@@ -222,7 +257,8 @@ rule summaryFiles:
     shell: "python {pythonpath}/generateSummaryFiles.py"
 
 rule aggregateCSV:
-    input: expand("{sample}/outs/config.csv", sample=samples)
+    #input: expand("{sample}/outs/config.csv", sample=samples)
+    input: expand("{sample}/_cmdline", sample = samples)
     output: csv = "AggregatedDatasets.csv"
     params: batch = "-l nodes=1:ppn=1", config_file = os.path.join(analysis, "config.py") 
     run:
@@ -234,5 +270,4 @@ if aggregate == True:
         output: 'aggregate.complete'
         log: err="run_10x_aggregate.err", log="run_10x_aggregate.log"
         container: program.cellranger
-        params: batch = "-l nodes=1:ppn=16,mem=96gb"
         shell: "cellranger aggr --id=AggregatedDatasets --csv={input.csv} --normalize=mapped 2>{log.err} 1>{log.log} && touch {output}" 

@@ -5,17 +5,34 @@ import itertools
 
 include: "rules/singlecell_import.smk"
 include: "rules/singlecell_multiome_import.smk"
+
+## if there is only one sample, there is no need to run cellrange aggr 
+aggregate = getattr(config, "aggregate", True)
+aggr_output4ruleall = ["aggregate.complete"] if aggregate else []
+
+## only one sample or Multiplexing Capture 
+if len(samples) == 1 or hasattr(config, "cmo"):
+    aggregate = False
+    aggr_output4ruleall = []
+
 include: "rules/singlecell_rules_common.smk"
+
+copy_complete = 'copy.complete'
+
+if external == True:
+    wreport_result = []
+    xreport_result = []
+    copy_complete = []
 
 rule all:
     input: 
         expand("run_{sample}_10x_cellranger_count.err", sample=samples), 
         "finalreport/metric_summary.xlsx", 
         expand("finalreport/summaries/{sample}_web_summary.html", sample=samples), 
-        "aggregate.complete", 
+        aggr_output4ruleall, 
         xreport_result, 
         wreport_result, 
-        'copy.complete', 
+        copy_complete,  
         rule_all_append
 
 rule librariesCSV:
@@ -38,7 +55,7 @@ rule arc_count:
     container: program.cellranger_arc
     shell:
         """
-rm -r {params.prefix}; cellranger-arc count {params.count_intronic} --id={params.prefix} --reference={reference.arc_reference} --libraries={input} --localcores={threads} --localmem={resources.mem_gb} 2>{log.err} 1>{log.log}
+rm -r {params.prefix}; cellranger-arc count {params.count_intronic} --id={params.prefix} --reference={reference.arc_reference} --libraries={input} 2>{log.err} 1>{log.log}
 """
 
 rule summaryFiles:
@@ -46,14 +63,15 @@ rule summaryFiles:
     output: "finalreport/metric_summary.xlsx", expand("finalreport/summaries/{sample}_web_summary.html", sample=samples)
     shell: "python {analysis}/workflow/scripts/multiome/generateSummaryFiles.py"
 
-rule aggregateCSV:
-    input: expand("{sample}/outs/web_summary.html", sample=samples)
-    output: "AggregatedDatasets.csv"
-    shell: "python {analysis}/workflow/scripts/multiome/generateAggregateCSV.py {analysis}"
+if aggregate == True:
+    rule aggregateCSV:
+        input: expand("{sample}/outs/web_summary.html", sample=samples)
+        output: "AggregatedDatasets.csv"
+        shell: "python {analysis}/workflow/scripts/multiome/generateAggregateCSV.py {analysis}"
 
-rule aggregate:
-    input: csv="AggregatedDatasets.csv"
-    output: touch('aggregate.complete')
-    log: err="run_10x_aggregate.err", log="run_10x_aggregate.log"
-    container: program.cellranger_arc
-    shell: "cellranger-arc aggr --id=AggregatedDatasets --csv={input.csv}  --reference={reference.arc_reference} --normalize=depth 2>{log.err} 1>{log.log}"
+    rule aggregate:
+        input: csv="AggregatedDatasets.csv"
+        output: touch('aggregate.complete')
+        log: err="run_10x_aggregate.err", log="run_10x_aggregate.log"
+        container: program.cellranger_arc
+        shell: "cellranger-arc aggr --id=AggregatedDatasets --csv={input.csv}  --reference={reference.arc_reference} --normalize=depth 2>{log.err} 1>{log.log}"

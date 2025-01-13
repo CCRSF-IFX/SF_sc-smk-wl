@@ -1,6 +1,6 @@
-#!/usr/bin/env /mnt/nasapps/development/python/3.7.1/bin/python
+#!/usr/bin/env python
 
-import argparse, csv
+import argparse, csv, re
 
 def main(raw_args=None):
     parser = argparse.ArgumentParser(description="""Help to set up and run the single cell multi pipeline""")
@@ -19,6 +19,8 @@ def main(raw_args=None):
     parser.add_argument("--cmo", metavar="cmo.csv",
         nargs='?', action = "store", type=str,
         help="Path to cmo file if applicable")
+    parser.add_argument("--hashedabc", action="store_true",
+        help="Hashing with Antibody Capture libraries")
     parser.add_argument("--feature", metavar="feature.csv",
         nargs='?', action = "store", type=str,
         help="Path to feature barcode reference file if applicable")
@@ -41,7 +43,15 @@ def main(raw_args=None):
     parser.add_argument("-i", "--exclude_introns", action="store_true",
         help="Use include-introns,false option")
     parser.add_argument("--create_bam", action="store_true",
-        help="Use include-introns,false option")
+        help="Use create_bam,true option")
+    parser.add_argument("--disable_lib_check", action="store_true",
+        help="Use check-library-compatibility,false option (default option)")
+    ## Fix RNA profiling parameters
+    parser.add_argument("--probe_set", type=str,
+        help="Text files containing probe sets")
+    parser.add_argument("--multiplex", type=str,
+        help="Text files containing multiplex information")
+
     args = parser.parse_args(raw_args)
     print(args)
 
@@ -49,6 +59,9 @@ def main(raw_args=None):
         spamwriter = csv.writer(csvfile, delimiter=',')
         spamwriter.writerow(['[gene-expression]'])
         spamwriter.writerow(['reference', args.ref])
+        ## Parameter for fixed RNA profiling 
+        if args.probe_set != None:
+            spamwriter.writerow(['probe-set', args.probe_set])
         if args.force:
             spamwriter.writerow(['force-cells', args.cell])
         elif args.expect:
@@ -57,7 +70,9 @@ def main(raw_args=None):
             pass
         if args.create_bam:
             spamwriter.writerow(['create-bam', "true"])
-        if args.cmo != None:
+        if args.disable_lib_check:
+            spamwriter.writerow(['check-library-compatibility', "false"])
+        if args.cmo != None and args.hashedabc != True:
             spamwriter.writerow(['cmo-set', args.cmo])
         if args.exclude_introns:
             spamwriter.writerow(['include-introns', 'false'])
@@ -101,14 +116,36 @@ def main(raw_args=None):
         if args.cmo != None:
             spamwriter.writerow([])
             spamwriter.writerow(['[samples]'])
-            spamwriter.writerow(['sample_id', 'cmo_ids', 'description'])
-            with open(args.cmo, 'r') as lib:
+            if args.hashedabc != True:
+                spamwriter.writerow(['sample_id', 'cmo_ids', 'description'])
+                with open(args.cmo, 'r') as lib:
+                    line = next(lib)
+                    index = 1
+                    for line in lib:
+                        line = line.strip().split(',')
+                        spamwriter.writerow(['HTO_%s' % index, line[0], line[0]])
+                        index += 1
+            else: ## hashed antibody capture
+                with open(args.cmo, 'r') as lib:
+                    index = 1
+                    for line in lib:
+                        line = line.strip().split(',')
+                        spamwriter.writerow(line)
+                        index += 1
+
+        ## For fixed RNA profiling
+        if args.multiplex != None:
+            spamwriter.writerow([])
+            spamwriter.writerow(['[samples]'])
+            spamwriter.writerow(['sample_id', 'probe_barcode_ids', 'description'])
+            with open(args.multiplex, 'r') as lib:
                 line = next(lib)
                 index = 1
                 for line in lib:
-                    line = line.strip().split(',')
-                    spamwriter.writerow(['HTO_%s' % index, line[0]])
-                    index += 1
+                    ele = line.strip().split(',')
+                    sample_name = re.sub(".csv$", "", args.output)
+                    if ele[0] == sample_name:
+                        spamwriter.writerow(ele[1:])
 
 if __name__ == '__main__':
     main()

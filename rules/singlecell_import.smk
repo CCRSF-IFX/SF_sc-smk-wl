@@ -8,30 +8,6 @@ import xml.etree.ElementTree as ET
 
 
 include: "runParametersImport" 
-<<<<<<< HEAD
-
-## Path().absolute() return PosixPath object.
-## PosixPath object cause import issue. So str()
-## is used here to convert PosixPath to regular path
-sys.path.insert(0, str(Path().absolute()))
-import config
-import reference
-import program
-
-if 'sflog' not in globals():
-    import logging as sflog
-    debug_bool = getattr(config, "debug", False)  
-    if debug_bool == True:
-        sflog.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=sflog.DEBUG)
-    else: 
-        sflog.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=sflog.INFO)
-else:
-    pass
-    sflog.debug("sflog has been imported")
-=======
->>>>>>> main
-
-sflog.debug(str(Path().absolute()))
 
 # by default, config is an empty dictionary.
 # if --configfile is provided, meaning that external users
@@ -39,8 +15,6 @@ sflog.debug(str(Path().absolute()))
 #print("Is config a dictionary: " + str(isinstance(config, dict)))
 #print("Is config empty: " + str(not config))
 
-<<<<<<< HEAD
-=======
 ## Path().absolute() return PosixPath object.
 ## PosixPath object cause import issue. So str()
 ## is used here to convert PosixPath to regular path
@@ -49,7 +23,6 @@ sys.path.insert(0, str(Path().absolute()))
 import config
 import reference
 import program
->>>>>>> main
 
 def get_bool4internal(): 
     program_filep = os.path.join(config.analysis, "program.py")
@@ -64,15 +37,9 @@ def get_bool4internal():
         return False
 
 external = get_bool4internal()
-<<<<<<< HEAD
-sflog.debug(f"Workflow is used by external user: {external}.")
-=======
 #print(f"Workflow is used by external user: {external}.")
->>>>>>> main
 
-#container: program.global_container
-
-localrules: count
+container: program.global_container
 
 csas = re.search("CS[0-9]{6}", config.analysis).group(0) if re.search("CS[0-9]{6}", config.analysis) else os.path.basename(config.analysis.strip('/'))
 unaligned = config.unaligned[0]
@@ -216,9 +183,6 @@ for run_name in run_names:
 
 #Create file names
 #flowcell = os.path.basename(config.unaligned[0].strip('/'))
-<<<<<<< HEAD
-#flowcells = {os.path.basename(i.strip('/')): i for i in config.unaligned}
-=======
 
 
 #flowcells = {os.path.basename(i.strip('/')): i for i in config.unaligned}
@@ -273,15 +237,13 @@ for path in config.unaligned:
     
     flowcells[flowcell_name] = path
 
->>>>>>> main
 #cfile = one_up + "/" + project_name+"_"+'_'.join(flowcells)+".count.tar"
 report_result = one_up + "/" + project_name + "_" + flowcell + "_Metadata.txt"
-#print(one_up)
 wreport_result = one_up + "/" + project_name + "_" + flowcell + ".docx"
 xreport_result = one_up + "/" + project_name + "_" + flowcell + ".xlsx"
 copy_result = one_up + "/" + project_name + "_" + flowcell + "_copy.txt"
 
-#print(flowcells)
+print(flowcells)
 
 rule_all_append = []
 if hasattr(config, 'archive'):

@@ -49,7 +49,6 @@ rule count:
     log: 
         err = "run_{sample}_curioseeker.err", 
         log = "run_{sample}_curioseeker.log",
-        nextflow = "run_{sample}_curioseeker_nextflow.log"
     params: prefix = "{sample}", prefix2 = filterFastq4pipseeker
     shell: 
         """
@@ -67,8 +66,7 @@ nextflow run /mnt/ccrsf-ifx/Software/tools/curioseeker/curioseeker-v3.0.0/main.n
                 -resume \
                 -profile slurm \
                 -config /mnt/ccrsf-ifx/Software/tools/curioseeker/curioseeker-v3.0.0/curioseeker_slurm.config \
-                -log {log.nextflow} 
-                2> {log.err} 1>{log.log}
+                2>{log.err} 1>{log.log}
 """
 
 include: "prep_fastq.smk"

@@ -22,7 +22,7 @@ def count_expect_force():
 
 
 params_cell_number = count_expect_force()
-print(params_cell_number)
+#print(params_cell_number)
 
 current_cellranger = program.cellranger
 

@@ -1,10 +1,14 @@
 import os
-def get_workflow_img(wildcards):
-    img_path = ""
+def get_flag4report(wildcards):
+    flag = ""
     if config.pipeline == "pipseq": 
         img_abs_path = os.path.join(os.getcwd(), "workflow/images/SingleCell_RNA_PIPseq.png")
-        img_path = f" -w {img_abs_path}"
-    return img_path
+        flag = flag + f" -w {img_abs_path}"
+    if config.pipeline == "fixedrna":
+        multiplex = getattr(config, "multiplex", False) 
+        if multiplex:
+            flag = flag + f" --multiplex {config.multiplex}"
+    return flag 
 
 testing = getattr(config, "test_email", False)
 args4wreport_test = "--test" if testing else ""
@@ -46,20 +50,19 @@ if external == False:
             shell: "mkdir -p {program.copydir}/{run_name}/{project_name}; cp -r finalreport {program.copydir}/{run_name}/{project_name} >> {log}; cd {one_up}; cp -v *.docx {program.copydir}/{run_name}/{project_name} >> {log}; cp -v *.xlsx {program.copydir}/{run_name}/{project_name} >> {log}"
     
     if aggregate:
-        sflog.debug(aggregate)
         rule archive:
             input: metadata = report_result, aggr_log = "run_10x_aggregate.log"
             output: touch('archive_setup.complete')
             params: fastqs = ",".join([os.path.dirname(name.rstrip('/')) for name in flowcells.values()]), runs = ','.join([j for i in flowcells for j in run_names if i in j])
             log: "archive.log"
-            shell: "cd {one_up}; python {analysis}/workflow/scripts/meta2json_single_cell_v0.1.py -m {input.metadata} -r {params.runs} -f {params.fastqs} -c {config.analysis} -a {config.analysis}/AggregatedDatasets > {log}"
+            shell: "cd {one_up}; python {analysis}/workflow/scripts/meta2json_single_cell_v0.1.py --pipeline {config.pipeline} -m {input.metadata} -r {params.runs} -f {params.fastqs} -c {config.analysis} -a {config.analysis}/AggregatedDatasets > {log}"
     else:   ## aggregate is false 
         rule archive:
             input:  metadata = report_result, summaryFiles = "finalreport/metric_summary.xlsx"
             output: touch('archive_setup.complete')
             params: fastqs = ",".join([os.path.dirname(name.rstrip('/')) for name in flowcells.values()]), runs = ','.join([j for i in flowcells for j in run_names if i in j])
             log: "archive.log"
-            shell: "cd {one_up}; python {analysis}/workflow/scripts/meta2json_single_cell_v0.1.py -m {input.metadata} -r {params.runs} -f {params.fastqs} -c {config.analysis} > {log}"
+            shell: "cd {one_up}; python {analysis}/workflow/scripts/meta2json_single_cell_v0.1.py --pipeline {config.pipeline} -m {input.metadata} -r {params.runs} -f {params.fastqs} -c {config.analysis} > {log}"
 
     rule report:
         output: 
@@ -75,10 +78,16 @@ cd {one_up}; perl {active_script_folder}/run_GenerateAllReports.pl -flowcell {fl
         shell: "cp {input.metric} {xreport_result}"
 
     rule wreport:
-        input: metadata = report_result, excel = "finalreport/metric_summary.xlsx"
-        output: wreport_result
-        params: runs = ','.join(run_names), pipeline = config.pipeline, workflow_img = get_workflow_img
-        shell: "cd {one_up}; python {analysis}/scripts/SF_scWordReport/run_wordreport_sc.py -e {analysis}/{input.excel} -m {input.metadata} -c {current_cellranger} -p {params.pipeline} -r {params.runs} {params.workflow_img} {args4wreport_test} {args4wreport_yields}"
+        input: 
+            metadata = report_result, 
+            excel = "finalreport/metric_summary.xlsx"
+        output: 
+            wreport_result
+        params: 
+            runs = ','.join(run_names), 
+            pipeline = config.pipeline, 
+            workflow_flag = get_flag4report
+        shell: "cd {one_up}; python {analysis}/scripts/SF_scWordReport/run_wordreport_sc.py -e {analysis}/{input.excel} -m {input.metadata} -c {current_cellranger} -p {params.pipeline} -r {params.runs} {params.workflow_flag} {args4wreport_test} {args4wreport_yields}"
 
     if testing: 
         onsuccess:

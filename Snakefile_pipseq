@@ -14,16 +14,21 @@ include: "rules/singlecell_import.smk"
 if config.pipeline == 'pipseq':
     aggregate = False
 
-inlcude: "rules/singlecell_pipseq_import.smk"
 include: "rules/singlecell_rules_common.smk"
+include: "rules/singlecell_pipseq_import.smk"
+
+copy_complete = 'copy.complete'
+if external == True:
+    wreport_result = []
+    xreport_result = []
+    copy_complete = []
 
 rule all:
     input: 
-        #expand("run_{sample}_fluent_pipseq_count.err", sample=samples),
-        expand("{sample}/barcodes/barcode_whitelist.txt", sample = samples),
+        expand("run_{sample}_fluent_pipseq_count.log", sample=samples),
         "finalreport/metric_summary.xlsx", 
         wreport_result, 
         xreport_result, 
-        #"QC/" + project_name + "_multiqc.html", 
-        'copy.complete', 
+        "QC/" + project_name + "_multiqc.html", 
+        copy_complete, 
         rule_all_append

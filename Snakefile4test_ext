@@ -3,4 +3,9 @@ submit_job = config["submit_job"]
 outdir_abspath = os.path.abspath(config["outdir"])
 
 include: "rules/test_ext_rna.smk"
+include: "rules/test_ext_rna_fullanalysis.smk"
 include: "rules/test_ext_vdj.smk"
+include: "rules/test_ext_multi.smk"
+include: "rules/test_ext_atac.smk"
+include: "rules/test_ext_multiome.smk"
+include: "rules/test_ext_fixedrna_singleplex.smk"

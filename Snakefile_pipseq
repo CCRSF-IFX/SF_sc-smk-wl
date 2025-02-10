@@ -11,7 +11,17 @@ import sys
 
 ## aggregate is set to "True" in the step below
 include: "rules/singlecell_import.smk"
+if config.pipeline == 'pipseq':
+    aggregate = False
+
 include: "rules/singlecell_rules_common.smk"
+include: "rules/singlecell_pipseq_import.smk"
+
+copy_complete = 'copy.complete'
+if external == True:
+    wreport_result = []
+    xreport_result = []
+    copy_complete = []
 
 ## if there is only one sample, there is no need to run cellrange aggr 
 aggregate = getattr(config, "aggregate", True)
@@ -35,6 +45,7 @@ if external == True:
 rule all:
     input:
         expand("{sample}/barcodes/barcode_whitelist.txt", sample=samples),  
+        expand("run_{sample}_fluent_pipseq_count.log", sample=samples),
         "finalreport/metric_summary.xlsx", 
         expand("finalreport/summaries/{sample}_web_summary.html", sample=samples), 
         aggr_output4ruleall, 

@@ -1,3 +1,20 @@
+import re
+
+def is_pipseeker_version_greater_than_3(pipseeker_uri):
+    # Extract version using regex
+    match = re.search(r"fluent-pipseeker:(\d+)\.(\d+)\.(\d+)", pipseeker_uri)
+    
+    if match:
+        major_version = int(match.group(1))
+        return major_version >= 3
+    else:
+        raise ValueError("Invalid Pipseeker URI format")
+
+def get_summary_script4pipseq_data():
+    if is_pipseeker_version_greater_than_3(program.pipseeker):
+        return "workflow/scripts/rna/python_scripts/generateSummaryFiles4pipseq_v3.py" 
+    else:
+        return "workflow/scripts/rna/python_scripts/generateSummaryFiles4pipseq.py"
 
 numcell = getattr(config, "numcells", False)
 include_introns = getattr(config, "include_introns", True)
@@ -41,7 +58,7 @@ rule count:
     container: program.pipseeker
     shell:
         """
-rm -r {params.prefix}; pipseeker full --skip-version-check --chemistry {chemistry}   --fastq {params.prefix2}. --output-path {params.prefix} --star-index-path {reference.pipseq_reference}  {params.cells_flag} 2>{log.err} 1>{log.log}
+rm -r {params.prefix}; pipseeker full --skip-version-check --chemistry {chemistry}  --fastq {params.prefix2}. --output-path {params.prefix} --star-index-path {reference.pipseq_reference}  {params.cells_flag} 2>{log.err} 1>{log.log}
 """
 
 rule aggregateCSV:
@@ -50,36 +67,16 @@ rule aggregateCSV:
     params: batch = "-l nodes=1:ppn=1"
     shell: "python workflow/scripts/rna/python_scripts/generateAggregateCSV.py {analysis}"
 
-rule aggregate:
-    input: csv="AggregatedDatasets.csv"
-    output: touch("aggregate.complete")
-    log: err="run_10x_aggregate.err", log="run_10x_aggregate.log"
-    params: batch = "-l nodes=1:ppn=16,mem=96gb"
-    container: program.cellranger 
-    shell: "cellranger aggr --id=AggregatedDatasets --csv={input.csv} --normalize=mapped 2>{log.err} 1>{log.log}"
-
 include: "prep_fastq.smk"
 include: "fastqscreen.smk"
 include: "kraken.smk"
 include: "multiqc.smk"
 
-rule copyScripts:
-    output: directory("scripts")
-    params: batch = "-l nodes=1:ppn=1"
-    shell: "mkdir scripts; cp -r {program.rscripts} scripts; cp -r {program.pythonscripts} scripts"
-
 rule summaryFiles:
-    input:
-        #expand("{sample}/outs/web_summary.html", sample=samples)
-        expand("{sample}/barcodes/barcode_whitelist.txt", sample=samples)
-    output:
-        "finalreport/metric_summary.xlsx", expand("finalreport/summaries/{sample}_web_summary.html", sample=samples)
-    shell:
-        "python workflow/scripts/rna/python_scripts/generateSummaryFiles4pipseq.py"
-
-#rule summaryFiles:
-#    input: expand("{sample}/outs/web_summary.html", sample=samples)
-#    output: "finalreport/metric_summary.xlsx", expand("finalreport/summaries/{sample}_web_summary.html", sample=samples)
-#    params: batch = "-l nodes=1:ppn=1"
-#    shell: "python workflow/scripts/rna/python_scripts/generateSummaryFiles.py"
-
+    input: 
+        expand(rules.count.output, sample=samples),
+    params:
+        summary_script = get_summary_script4pipseq_data()
+    output: 
+        "finalreport/metric_summary.xlsx"
+    shell: "python {params.summary_script}"

@@ -3,26 +3,23 @@ import packaging.version
 from xml.dom import minidom
 import shutil
 from pathlib import Path
+import pandas as pd
+import xml.etree.ElementTree as ET
+
 
 include: "runParametersImport" 
-if 'sflog' not in globals():
-    import logging as sflog
-    sflog.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=sflog.INFO)
-else:
-    pass
-    sflog.debug("sflog has been imported")
 
 # by default, config is an empty dictionary.
 # if --configfile is provided, meaning that external users
 # are using the workflow
-sflog.debug("Is config a dictionary: " + str(isinstance(config, dict)))
-sflog.debug("Is config empty: " + str(not config))
+#print("Is config a dictionary: " + str(isinstance(config, dict)))
+#print("Is config empty: " + str(not config))
 
 ## Path().absolute() return PosixPath object.
 ## PosixPath object cause import issue. So str()
 ## is used here to convert PosixPath to regular path
 sys.path.insert(0, str(Path().absolute())) 
-sflog.debug(str(Path().absolute()))
+#print(str(Path().absolute()))
 import config
 import reference
 import program
@@ -36,11 +33,11 @@ def get_bool4internal():
                    return False 
         return True
     except FileNotFoundError:
-        sflog.info(f"{program_filep} not found")
+        #print(f"{program_filep} not found")
         return False
 
 external = get_bool4internal()
-sflog.info(f"Workflow is used by external user: {external}.")
+#print(f"Workflow is used by external user: {external}.")
 
 container: program.global_container
 
@@ -93,7 +90,6 @@ else:
     ## For example, Tube_1___Sample_3__GEX_library in CS033737 
     samples = list(set(s.replace('Sample_', '') if s.startswith('Sample_') else s for s in set(samps)))
     samples = sorted(samples)
-    sflog.info("Samples to be analyzed: " + " ".join(samples))
 
 # Move fastq files to subfolders with the names of the sample.
 from subprocess import Popen, PIPE
@@ -186,13 +182,68 @@ for run_name in run_names:
     flowcell = flowcellRunParameters if flowcell in flowcellRunParameters else flowcell
 
 #Create file names
-flowcell = os.path.basename(config.unaligned[0].strip('/'))
-flowcells = {os.path.basename(i.strip('/')): i for i in config.unaligned}
+#flowcell = os.path.basename(config.unaligned[0].strip('/'))
+
+
+#flowcells = {os.path.basename(i.strip('/')): i for i in config.unaligned}
+
+def get_flowcell_name_from_reports(path):
+    """
+    Tries to retrieve the flowcell name from the Reports/html directory for a given path.
+
+    Args:
+        path (str): The directory path to check for flowcell in Reports/html.
+    
+    Returns:
+        str: The flowcell name if found, otherwise None.
+    """
+    ## bcl2fastq output folder
+    reports_html_path = os.path.join(path, "../Reports/html")
+    if os.path.exists(reports_html_path):
+        try:
+            # Find a folder in html directory that matches the flowcell naming pattern
+            flowcell_name = next(
+                d for d in os.listdir(reports_html_path) 
+                    if os.path.isdir(os.path.join(reports_html_path, d))
+            )
+            return flowcell_name
+        except StopIteration:
+            return None  # No valid flowcell name found
+    ## bcl converter 
+    runinf_xml = os.path.join(path, "../Reports/RunInfo.xml") 
+    if os.path.exists(runinf_xml):
+        try:
+            # Find a folder in html directory that matches the flowcell naming pattern
+            tree = ET.parse(runinf_xml)
+            root = tree.getroot()
+            # Find the Flowcell element
+            flowcell = root.find(".//Flowcell")
+            return flowcell.text if flowcell is not None else None
+        except ET.ParseError as e:
+            print(f"Error parsing XML: {e}")
+            return None  # No valid flowcell name found
+    return None
+
+# Combine with your existing logic for `config.unaligned`
+flowcells = {}
+for path in config.unaligned:
+    base_name = os.path.basename(path)
+    flowcell_name = base_name  # Default to the base name
+
+    # Check if the flowcell name needs to be extracted from Reports/html
+    alternative_name = get_flowcell_name_from_reports(path)
+    if alternative_name:
+        flowcell_name = alternative_name
+    
+    flowcells[flowcell_name] = path
+
 #cfile = one_up + "/" + project_name+"_"+'_'.join(flowcells)+".count.tar"
 report_result = one_up + "/" + project_name + "_" + flowcell + "_Metadata.txt"
 wreport_result = one_up + "/" + project_name + "_" + flowcell + ".docx"
 xreport_result = one_up + "/" + project_name + "_" + flowcell + ".xlsx"
 copy_result = one_up + "/" + project_name + "_" + flowcell + "_copy.txt"
+
+print(flowcells)
 
 rule_all_append = []
 if hasattr(config, 'archive'):
@@ -224,3 +275,38 @@ flag4spaceranger_create_bam = ""
 if is_version_greater_than(program.spaceranger, "3.0.0"):
     flag4spaceranger_create_bam = " --create-bam=true "
 
+def get_reference_transcriptome(wildcards):
+    ref_path = reference.transcriptome
+    if hasattr(config, 'libraries'):
+        lib_df = pd.read_csv(config.libraries)
+        if "transcriptome" in lib_df.columns:
+            tem_ref = lib_df.loc[lib_df['Sample'] == wildcards.sample, 'transcriptome']
+            if not tem_ref.empty:
+                ref_path = tem_ref.iloc[0]
+            else:
+                sys.stderr.write(f"\n'No information found in 'transcriptome' column of 'libraries.csv' for sample '{wildcards.sample}'\n\n")
+                sys.exit()
+            if not hasattr(config, 'aggregate') or config.aggregate == True:
+                sys.stderr.write("\n'transcriptome' column in 'libraries.csv' detected, indicating more than one reference exist. Please set `aggregate` as `False`\n\n")
+                sys.exit()
+    return ref_path
+
+def generate_option_flag(wildcards, lib_df, column_name, optional_flag):
+    if column_name in lib_df.columns:
+        tem_vals = lib_df.loc[lib_df['Sample'] == wildcards.sample, column_name]
+        if not tem_vals.empty:
+            tem_val = tem_vals.iloc[0]
+            optional_flag = f'{optional_flag} --{column_name}={tem_val}'
+        else:
+            sys.stderr.write(f"\n'No information found in '{column_name}' column of 'libraries.csv' for sample '{wildcards.sample}'\n\n")
+            sys.exit()
+    return optional_flag
+
+def get_optional_flag_from_lib_csv(wildcards):
+    optional_flag = ''
+    flags = ['force-cells', 'expect-cells', 'chemistry']
+    if hasattr(config, 'libraries'):
+        lib_df = pd.read_csv(config.libraries)
+        for flag in flags:
+            optional_flag = generate_option_flag(wildcards, lib_df, flag, optional_flag)
+    return optional_flag

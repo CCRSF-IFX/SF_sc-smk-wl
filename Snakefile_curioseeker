@@ -1,0 +1,43 @@
+#shell.executable("/bin/bash")
+#shell.prefix("source /etc/profile.d/modules.sh; ")
+
+from snakemake.utils import R
+import glob
+import os.path
+import os
+import itertools
+import sys
+
+## aggregate is set to "True" in the step below
+include: "rules/singlecell_import.smk"
+
+## if there is only one sample, there is no need to run cellrange aggr 
+aggregate = getattr(config, "aggregate", True)
+aggr_output4ruleall = ["aggregate.complete"] if aggregate else []
+
+## variable `samples` is created in Snakefile_singlecell_import
+if config.pipeline == "curioseeker":  ## only one sample 
+    aggregate = False
+    aggr_output4ruleall = []
+
+include: "rules/singlecell_rules_common.smk"
+include: "rules/singlecell_curioseeker_import.smk"
+
+copy_complete = 'copy.complete'
+
+if external == True:
+    wreport_result = []
+    xreport_result = [] 
+    copy_complete = []
+
+rule all:
+    input: 
+        expand("run_{sample}_curioseeker.err", sample=samples), 
+        "finalreport/metric_summary.xlsx", 
+        #expand("finalreport/summaries/{sample}_web_summary.html", sample=samples), 
+        aggr_output4ruleall, 
+        wreport_result, 
+        xreport_result, 
+        "QC/" + project_name + "_multiqc.html", 
+        copy_complete,
+        rule_all_append

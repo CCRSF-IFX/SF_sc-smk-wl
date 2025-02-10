@@ -82,7 +82,7 @@ def copyWebSummary():
     files = glob.glob('./*/report.html')
     for filename in files:
         basename_html = os.path.basename(filename) 
-    	copyfile(filename, '%s/%s_%s' % (summaryPath, filename.split('/')[1], basename_html))
+        copyfile(filename, '%s/%s_%s' % (summaryPath, filename.split('/')[1], basename_html))
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:

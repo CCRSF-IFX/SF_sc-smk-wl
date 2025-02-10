@@ -1,21 +1,17 @@
 #!/usr/bin/env python3
-#2021/04/21 shent2: added attributes of data_curator and data_owner in createPILabJson
-#2021/04/21 shent2: retrieve read lengths from RanParameters.xml and the reference from count_path/config.py
-#2021/05/07 chenv3: changed to use only first run name when trying to grab run parameters"
-#2021/07/22 shent2: 1. added {os.path.dirname(fastqPath)}/input_samplesheet.csv to run_name_supplement.tar
-#                   2. added retrieveReadLength() to retrieve read lengths from fastq.gz when RunParameters.xml/RunInfo.xml does not exist
-#2022/02/23 shent2: added the regular expression to parse the format of the PI name as "LastName, FirstName"
-#2022/03/13 shent2: added "meta2json_md5.py -p 4 -l fastqFileList.txt/analysisFileList.txt --rewrite" to generate the checksum and add to metadata.json for uploading
-#2022/04/04 shent2: modified to parse library.csv and tar the count results based on column name in libraries.csv
 import re,os,sys,warnings,argparse,subprocess,glob,gzip,datetime
 from xml.dom import minidom
 from pathlib import PurePath
+import shutil
+import pandas as pd
 
 parser = argparse.ArgumentParser(description="""Read metadata and gnerate json files
                                                 for collections and objects.""")
 parser.add_argument("-m", "--metadata", metavar="metadata.txt", dest="fmetadata",
                     action="store", type=str, required=False,
                     help="input metadata.txt (optional)")
+parser.add_argument("--pipeline", action="store", type=str, required=True,
+                    help="Pipeline name")
 parser.add_argument("-c", "--count_path", metavar="count_path",
                     dest="count_path", action="store", type=str,
                     required=False, help="count folder (optional)")
@@ -177,7 +173,7 @@ def createProjectJson(projectPath, sampleName, **samples):
 
 def createFlowcellJson(flowcellPath, flowcellID, runName, sampleName, **samples):
     runDate = ""
-    oRunDate = re.compile("(\d{6,})_(.+)")
+    oRunDate = re.compile(r"(\d{6,})_(.+)")
     sRunDate = oRunDate.search(runName)
     if sRunDate:
         year = 2000 + int(sRunDate.group(1)[0:2])
@@ -266,13 +262,13 @@ def configWorkingDirectory(flowcellID, sampleName, **samples):
     homePath = os.getcwd()
     PIName = samples[sampleName].attribute2value["PrincipalInvestigator"]
     PINamePath = ''
-    oPIName = re.compile('(.+)(\s{1})([A-Za-z\-]+)')
+    oPIName = re.compile(r'(.+)(\s{1})([A-Za-z\-]+)')
     if PIName == 'CCRSF':
         PIName = PIName
     elif "," not in PIName:
         sPIName = oPIName.search(PIName)
         if sPIName:
-            firstName = re.sub("\s", "", sPIName.group(1))
+            firstName = re.sub(r"\s", "", sPIName.group(1))
             PIName = f'{sPIName.group(3)}, {firstName}'
             PINamePath = firstName + "_" + sPIName.group(3)
         else:
@@ -280,7 +276,7 @@ def configWorkingDirectory(flowcellID, sampleName, **samples):
                              ", in metadata.txt is not correct.\n")
             sys.exit(1)
     else:
-        oListedPIName = re.compile('^([A-Za-z\-\s]+), ([A-Za-z\-\s\.]+)$')
+        oListedPIName = re.compile(r'^([A-Za-z\-\s]+), ([A-Za-z\-\s\.]+)$')
         sListedPIName = oListedPIName.search(PIName)
         if sListedPIName:
             PIName = sListedPIName.group(0)
@@ -290,7 +286,7 @@ def configWorkingDirectory(flowcellID, sampleName, **samples):
             names = PIName.split(',')
             sPIName = oPIName.search(names[0])
             if sPIName:
-                firstName = re.sub("\s", "", sPIName.group(1))
+                firstName = re.sub(r"\s", "", sPIName.group(1))
                 PIName = f'{sPIName.group(3)}, {firstName}'
                 PINamePath = firstName + "_" + sPIName.group(3)
             else:
@@ -299,6 +295,9 @@ def configWorkingDirectory(flowcellID, sampleName, **samples):
                 sys.exit(1)
     path = "PI_Lab_" + PINamePath
     if not os.path.exists(path):
+        os.mkdir(path)
+    else:
+        shutil.rmtree(path)
         os.mkdir(path)
     createPILabJson(path, PIName)
 
@@ -370,9 +369,12 @@ def configWorkingDirectory(flowcellID, sampleName, **samples):
                     modifiedFolderName = folderName.replace("__", "_")
                 else:
                     modifiedFolderName = folderName
+                sample_name = modifiedFolderName
+                if "Sample_" in modifiedFolderName:
+                    sample_name = modifiedFolderName.split("Sample_")[1]
                 if not os.path.exists(flowcellPath + "/" + modifiedFolderName):
                     os.mkdir(flowcellPath + "/" + modifiedFolderName)
-                    createSampleJson(flowcellPath + "/" + modifiedFolderName, modifiedFolderName.split('Sample_')[1], **samples)
+                    createSampleJson(flowcellPath + "/" + modifiedFolderName, sample_name, **samples)
                 for fileName in os.listdir(fastqPath + "/" + samples[sampleName].attribute2value["ProjectName"] + "/" + folderName):
                     if "__" in fileName:
                         modifiedFileName = fileName.replace("__", "_")
@@ -382,7 +384,7 @@ def configWorkingDirectory(flowcellID, sampleName, **samples):
                            "/" + fileName + " " + flowcellPath + "/" +
                            modifiedFolderName + "/" + modifiedFileName)
                     runCommand(cmd)
-                    createObjectJson(flowcellPath + "/" + modifiedFolderName, modifiedFileName, refAnnotation, modifiedFolderName.split('Sample_')[1], **samples)
+                    createObjectJson(flowcellPath + "/" + modifiedFolderName, modifiedFileName, refAnnotation, sample_name, **samples)
                     OUT.write(flowcellPath + "/" + modifiedFolderName + "/" + modifiedFileName + "\n")
         else:
             sys.stdout.write(f'No Fastq files are identified in {fastqPath}\n')
@@ -466,35 +468,36 @@ def configWorkingDirectory(flowcellID, sampleName, **samples):
     analysis_subfolder = f"Analysis_{'_'.join(flowcellIDs)}"
     if args.dme_analysis_path:
         analysis_subfolder = args.dme_analysis_path
+    ## this variable to record whether analysis folder needed or not
     analysis_folder = os.path.join(f"{homePath}/{path}", analysis_subfolder)
-    if not os.path.exists(analysis_folder):
+    if not os.path.exists(analysis_folder) and args.pipeline != "nopipe":
         os.mkdir(analysis_folder)
-    createFlowcellJson(analysis_folder, '-'.join(flowcellIDs), '-'.join(runNames), sampleName, **samples)
+        createFlowcellJson(analysis_folder, '-'.join(flowcellIDs), '-'.join(runNames), sampleName, **samples)
     if args.count_path:
         if os.path.exists(f'{args.count_path}/libraries.csv'):
             libraryName2cmd = dict()
             with open (f'{args.count_path}/libraries.csv', 'r') as LIBRARIES:
-                header = ''
+                header = next(LIBRARIES)
                 for line in LIBRARIES:
-                    if 'Name,Flowcell,Sample,Type' in line:
-                        header = line
+                    #if 'Name,Flowcell,Sample,Type' in line:
+                    #    header = line
+                    #else:
+                    columns = line[:-1].split(',')
+                    if columns[0] not in libraryName2cmd:
+                        libraryName2cmd[columns[0]] = (f'tar -cvhf {analysis_folder}/{columns[0]}_count.tar -C {args.count_path} {columns[0]}/outs\n')
+                        with open(path + f"/{analysis_subfolder}/" + columns[0] + "_count.tar.metadata.json", "w") as TARJSON:
+                            TARJSON.write("{\"metadataEntries\":[\n" +
+                                          "    {\"attribute\":\"object_name\",\"value\":\"" + columns[0] + "_count.tar\"},\n" +
+                                          "    {\"attribute\":\"file_type\",\"value\":\"TAR\"},\n" +
+                                          "    {\"attribute\":\"reference_genome\",\"value\":\"" + samples[sampleName].attribute2value["ReferenceGenome"]  + "\"},\n" +
+                                          "    {\"attribute\":\"reference_annotation\",\"value\":\"" + refAnnotation + "\"},\n" +
+                                          "    {\"attribute\":\"software_tool\",\"value\":\"cellranger\"},\n" +
+                                          "    {\"attribute\":\"data_compression_status\",\"value\":\"Compressed\"}\n    ]\n}"
+                            )
+                        OUT.write(path + f"/{analysis_subfolder}/" + columns[0] + "_count.tar\n")
+                        SLURMOUT.write(f'{libraryName2cmd[columns[0]]}\n')
                     else:
-                        columns = line[:-1].split(',')
-                        if columns[0] not in libraryName2cmd:
-                            libraryName2cmd[columns[0]] = (f'tar -cvhf {analysis_folder}/{columns[0]}_count.tar -C {args.count_path} {columns[0]}/outs\n')
-                            with open(path + f"/{analysis_subfolder}/" + columns[0] + "_count.tar.metadata.json", "w") as TARJSON:
-                                TARJSON.write("{\"metadataEntries\":[\n" +
-                                              "    {\"attribute\":\"object_name\",\"value\":\"" + columns[0] + "_count.tar\"},\n" +
-                                              "    {\"attribute\":\"file_type\",\"value\":\"TAR\"},\n" +
-                                              "    {\"attribute\":\"reference_genome\",\"value\":\"" + samples[sampleName].attribute2value["ReferenceGenome"]  + "\"},\n" +
-                                              "    {\"attribute\":\"reference_annotation\",\"value\":\"" + refAnnotation + "\"},\n" +
-                                              "    {\"attribute\":\"software_tool\",\"value\":\"cellranger\"},\n" +
-                                              "    {\"attribute\":\"data_compression_status\",\"value\":\"Compressed\"}\n    ]\n}"
-                                )
-                            OUT.write(path + f"/{analysis_subfolder}/" + columns[0] + "_count.tar\n")
-                            SLURMOUT.write(f'{libraryName2cmd[columns[0]]}\n')
-                        else:
-                            continue
+                        continue
         else:
             for entryName in os.listdir(args.count_path):
                 if "__" in entryName:
@@ -561,7 +564,7 @@ def configWorkingDirectory(flowcellID, sampleName, **samples):
             OUT.write(path + f"/{analysis_subfolder}/" + elements[-1] + ".tar\n")
     OUT.close()
 
-    SLURMOUT.write(f'module load java/11\n'
+    SLURMOUT.write(f'module load java/21\n'
                    f'export HPC_DM_UTILS={pathHPCDMECLU}/utils\n'
                    f'source $HPC_DM_UTILS/functions\n'
                    f'dm_register_collection PI_Lab_{PINamePath}.metadata.json /FNL_SF_Archive/PI_Lab_{PINamePath}\n'
@@ -569,13 +572,27 @@ def configWorkingDirectory(flowcellID, sampleName, **samples):
 
     for flowcellID in flowcellIDs:
         SLURMOUT.write(f'dm_register_collection PI_Lab_{PINamePath}/Project_{samples[sampleName].attribute2value["ProjectName"]}/Flowcell_{flowcellID}.metadata.json /FNL_SF_Archive/PI_Lab_{PINamePath}/Project_{samples[sampleName].attribute2value["ProjectName"]}/Flowcell_{flowcellID}\n')
-    SLURMOUT.write(f'dm_register_collection {path}/{analysis_subfolder}.metadata.json /FNL_SF_Archive/PI_Lab_{PINamePath}/Project_{samples[sampleName].attribute2value["ProjectName"]}/{analysis_subfolder}\n')
+    if args.pipeline != "nopipe": 
+        SLURMOUT.write(f'dm_register_collection {path}/{analysis_subfolder}.metadata.json /FNL_SF_Archive/PI_Lab_{PINamePath}/Project_{samples[sampleName].attribute2value["ProjectName"]}/{analysis_subfolder}\n')
     SLURMOUT.write(f'python {pathPythonScripts}/meta2json_md5.py -p 4 -l {args.foutput} --rewrite\n')
     SLURMOUT.write(f'dm_register_directory -s -l {args.foutput} . /FNL_SF_Archive 1> dm_register_directory.log 2> dm_register_directory.err\n')
     fout_dme_chk = re.sub(".txt", "_dme_check.txt", args.foutput)
     SLURMOUT.write(f'dme_check.py {args.foutput} > {fout_dme_chk}\n')
     SLURMOUT.close()
     sys.stdout.write("sbatch dm_register_directory.sh\n")
+
+def get_reference_transcriptome(sample, configAttr2Value):
+    ref = configAttr2Value["ref"]
+    if 'libraries' in configAttr2Value:
+        lib_df = pd.read_csv(f'{args.count_path}/{configAttr2Value["libraries"]}')
+        if "transcriptome" in lib_df.columns:
+            tem_ref = lib_df.loc[lib_df['Sample'] == sample, 'transcriptome']
+            if not tem_ref.empty:
+                ref = os.path.basename(tem_ref.iloc[0].rstrip("/"))
+            else:
+                sys.stderr.write(f"\n'No information found in 'transcriptome' column of 'libraries.csv' for sample '{wildcards.sample}'\n\n")
+                sys.exit()
+    return ref
 
 def checkMetadata(flowcellID, runName, readLengths, instrument, fastqPath):
     samples = dict()
@@ -611,7 +628,7 @@ def checkMetadata(flowcellID, runName, readLengths, instrument, fastqPath):
                             columns = line[0:-1].split("=")
                             configAttr2Value[columns[0]] = columns[1].replace('"', '')
                     for sampleName in samples:
-                        samples[sampleName].attribute2value["ReferenceGenome"] = configAttr2Value['ref']
+                        samples[sampleName].attribute2value["ReferenceGenome"] = get_reference_transcriptome(sampleName, configAttr2Value)
             else:
                 configAttr2Value['ref'] = samples[sampleName].attribute2value["ReferenceGenome"]
                 sys.stdout.write(f'{samples[sampleName].attribute2value["ProjectName"]}/config.py does not exist, or --count_path is not assgined.\n'
@@ -661,8 +678,8 @@ def checkMetadata(flowcellID, runName, readLengths, instrument, fastqPath):
                 )
                 sys.stderr.write(f'Checking sample names in {fastqPath}...\n')
                 if fastqPath:
-                    oSampleName = re.compile('Sample_(.+)')
-                    oFastqName = re.compile("(.+)_R1_001.fastq.gz")
+                    oSampleName = re.compile(r'Sample_(.+)')
+                    oFastqName = re.compile(r"(.+)_R1_001.fastq.gz")
                     for dirName in os.listdir(fastqPath):
                         if os.path.isdir(f'{fastqPath}/{dirName}') and dirName == projectName:
                             for dirSampleName in os.listdir(f'{fastqPath}/{dirName}'):
@@ -671,7 +688,7 @@ def checkMetadata(flowcellID, runName, readLengths, instrument, fastqPath):
                                 if sSampleName:
                                     sampleName = sSampleName.group(1)
                                 elif sFastqName:
-                                    oSampleName = re.compile('(.+)_S(\d+)_R1_001.fastq.gz')
+                                    oSampleName = re.compile(r'(.+)_S(\d+)_R1_001.fastq.gz')
                                     sSampleName = oSampleName.search(dirSampleName)
                                     if sSampleName:
                                         sampleName = sSampleName.group(1)
@@ -773,7 +790,7 @@ def main(argv):
     flowcellMode = "Unknown"
     chemistry = "Unknown"
     chemistryVersion = "Unknown"
-    oRunName = re.compile("(\d{6,})_([A-Z0-9]+)_(\d+)_([-A-Z0-9]+)")
+    oRunName = re.compile(r"(\d{6,})_([A-Z0-9]+)_(\d+)_([-A-Z0-9]+)")
     sRunName = oRunName.search(runName)
     if sRunName:
         (instrument, runPath) = getRunPath(sRunName)

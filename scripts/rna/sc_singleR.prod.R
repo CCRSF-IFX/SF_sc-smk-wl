@@ -62,10 +62,10 @@ generatePlots <- function(name, pred, seur, markers){
   seur@meta.data[name] <- ''
   seur@meta.data[rownames(pred),name] <- pred$pruned.labels
   Idents(seur) <- seur@meta.data[,name]
-  pdf(paste0("UMAP_", name, ".pdf"))
+  png(paste0("UMAP_", name, ".png"))
   print(DimPlot(seur))
   dev.off()
-  pdf(paste0("TSNE_", name, ".pdf"))
+  png(paste0("TSNE_", name, ".png"))
   print(DimPlot(seur, reduction='tsne'))
   dev.off()
   dir.create("gene_list_plots")

@@ -9,9 +9,6 @@
 #SBATCH --no-requeue
 #SBATCH --job-name=submit.sh
 
-module load miniconda
-eval "$(conda shell.bash hook)"
 conda activate /mnt/ccrsf-ifx/Software/tools/conda_env4scwf
-#source /mnt/nasapps/development/snakemake/8.10.6/bin/activate
-module load singularity 
-snakemake --jobname 's.{jobid}.{rulename}' --profile workflow/profile/slurm/  -e cluster-generic > snakemake.log 2>&1 
+module load singularity/4.1.5
+snakemake --jobname 's.{jobid}.{rulename}' --profile workflow/profile/slurm/  -e cluster-generic > snakemake.log 2>&1

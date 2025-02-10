@@ -37,7 +37,6 @@ def count_expect_force():
     return params_cell_num
 
 params_cell_number = count_expect_force()
-sflog.info(params_cell_number)
 
 current_cellranger = program.cellranger
  

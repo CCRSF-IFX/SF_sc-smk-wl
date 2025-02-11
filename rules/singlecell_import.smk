@@ -118,12 +118,12 @@ def filterFastq4pipseeker(wildcards):
     """
     Prepare the folders for pipseeker 
     """
-    path_fq_new = "fastq/Sample_%s/" % wildcards.sample
+    path_fq_new = "fastq/%s/" % wildcards.sample
     process = Popen("mkdir -p %s" % (path_fq_new), shell=True, stdout=PIPE, stderr=PIPE)
     process.wait()
     cnt_fq_file = 0
     for index, fq_path in enumerate(fastqpath):
-        path_sample = os.path.join(fq_path, "Sample_%s" % wildcards.sample) 
+        path_sample = os.path.join(fq_path, "%s" % wildcards.sample) 
         for fastq_file in glob.glob(os.path.join(path_sample,  "*fastq.gz")):
             cnt_fq_file = cnt_fq_file + 1 
             basename_fastq = os.path.basename(fastq_file)

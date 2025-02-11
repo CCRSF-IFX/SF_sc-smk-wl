@@ -54,7 +54,8 @@ rule count:
         prefix = "{sample}", 
         prefix2 = filterFastq4pipseeker, 
         cells_flag = lambda wildcards: params_cell_number[wildcards.sample],
-    container: program.pipseeker
+    container:
+        program.pipseeker
     shell:
         """
 rm -r {params.prefix}; pipseeker full --skip-version-check --chemistry {chemistry}  --fastq {params.prefix2}. --output-path {params.prefix} --star-index-path {reference.pipseq_reference}  {params.cells_flag} 2>{log.err} 1>{log.log}
@@ -77,5 +78,6 @@ rule summaryFiles:
     params:
         summary_script = get_summary_script4pipseq_data()
     output: 
-        "finalreport/metric_summary.xlsx"
+        "finalreport/metric_summary.xlsx",
+        expand("finalreport/summaries/{sample}_web_summary.html", sample=samples)
     shell: "python {params.summary_script}"

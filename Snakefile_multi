@@ -192,10 +192,12 @@ def conditional_flags(wildcards):
             sys.exit("Error: 'cmo' should be either string or a dictionary. Please fix the issue.")
 
         ## https://www.10xgenomics.com/support/software/cell-ranger/latest/analysis/running-pipelines/cr-3p-multi#hashing
-        if not hasattr(config, "hashedabc"):
-            config.hashedabc = False
-        if config.hashedabc == True:
-            flags.append("--hashedabc")
+        if not hasattr(config, "hashing_with_abc"):
+            config.hashing_with_abc = False
+        if config.hashing_with_abc == True:
+            flags.append("--hashing_with_abc")
+            if not hasattr(config, "cmo"): 
+                sys.exit(f"Error: 'cmo' is required in `config.py` when 'hashing_with_abc is true'")
         
     # For Gamma and Delta TCR and non-human and non-mouse species, 
     # "inner-enrichment-primers" is required to provided

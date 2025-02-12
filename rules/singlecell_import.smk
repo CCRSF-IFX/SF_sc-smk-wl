@@ -129,7 +129,6 @@ def filterFastq4pipseeker(wildcards):
     cnt_fq_file = 0
     for index, fq_path in enumerate(fastqpath):
         path_sample = os.path.join(fq_path, "Sample_%s" % wildcards.sample) 
-        print(path_sample)
         for fastq_file in glob.glob(os.path.join(path_sample,  "*fastq.gz")):
             cnt_fq_file = cnt_fq_file + 1 
             basename_fastq = os.path.basename(fastq_file)
@@ -247,7 +246,7 @@ wreport_result = one_up + "/" + project_name + "_" + flowcell + ".docx"
 xreport_result = one_up + "/" + project_name + "_" + flowcell + ".xlsx"
 copy_result = one_up + "/" + project_name + "_" + flowcell + "_copy.txt"
 
-print(flowcells)
+#print(flowcells)
 
 rule_all_append = []
 if hasattr(config, 'archive'):

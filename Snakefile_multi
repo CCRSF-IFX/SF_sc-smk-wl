@@ -196,8 +196,6 @@ def conditional_flags(wildcards):
             config.hashing_with_abc = False
         if config.hashing_with_abc == True:
             flags.append("--hashing_with_abc")
-            if not hasattr(config, "cmo"): 
-                sys.exit(f"Error: 'cmo' is required in `config.py` when 'hashing_with_abc is true'")
         
     # For Gamma and Delta TCR and non-human and non-mouse species, 
     # "inner-enrichment-primers" is required to provided

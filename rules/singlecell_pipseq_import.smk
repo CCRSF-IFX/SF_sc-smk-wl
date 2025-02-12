@@ -79,5 +79,5 @@ rule summaryFiles:
         summary_script = get_summary_script4pipseq_data()
     output: 
         "finalreport/metric_summary.xlsx",
-        expand("finalreport/summaries/{sample}_web_summary.html", sample=samples)
+        expand("finalreport/summaries/{sample}_report.html", sample=samples)
     shell: "python {params.summary_script}"

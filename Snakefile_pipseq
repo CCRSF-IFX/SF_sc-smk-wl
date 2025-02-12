@@ -47,7 +47,6 @@ rule all:
         expand("{sample}/barcodes/barcode_whitelist.txt", sample=samples),  
         expand("run_{sample}_fluent_pipseq_count.log", sample=samples),
         "finalreport/metric_summary.xlsx", 
-        expand("finalreport/summaries/{sample}_web_summary.html", sample=samples), 
         aggr_output4ruleall, 
         wreport_result, 
         xreport_result, 

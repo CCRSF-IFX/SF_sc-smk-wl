@@ -4,6 +4,7 @@ from xml.dom import minidom
 from pathlib import PurePath
 import shutil
 import pandas as pd
+from utils.curioseeker import meta2json as meta2json4curioseeker
 
 parser = argparse.ArgumentParser(description="""Read metadata and gnerate json files
                                                 for collections and objects.""")
@@ -30,6 +31,8 @@ parser.add_argument("-f", "--fastq_path", metavar="fastq_path", dest="fastq_path
 parser.add_argument("-o", "--output", metavar="file_list", dest="foutput",
                     action="store", default="file_list.txt", type=str, 
                     help="file list to archive (default: %(default)s)")
+parser.add_argument("-l", "--library_file", type=str,
+                    help="CSV files with first column as the output folder")
 parser.add_argument("--dme_analysis_path", dest="dme_analysis_path",
                     action="store", type=str,
                     help="Analysis path for DME in case a customized path is needed")
@@ -498,6 +501,9 @@ def configWorkingDirectory(flowcellID, sampleName, **samples):
                         SLURMOUT.write(f'{libraryName2cmd[columns[0]]}\n')
                     else:
                         continue
+        ## Curio seeker libraries files
+        elif args.library_file and os.path.exists(args.library_file):
+            meta2json4curioseeker(args, SLURMOUT, OUT, analysis_folder, path, analysis_subfolder)
         else:
             for entryName in os.listdir(args.count_path):
                 if "__" in entryName:

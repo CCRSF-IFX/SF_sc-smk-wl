@@ -39,12 +39,8 @@ def get_bool4internal():
 external = get_bool4internal()
 #print(f"Workflow is used by external user: {external}.")
 
-<<<<<<< HEAD
-if config.pipeline:
+if config.pipeline == "curioseeker":
     localrules: count
-=======
-container: program.global_container
->>>>>>> 63ee76a (Update rules/singlecell_import.smk)
 
 csas = re.search("CS[0-9]{6}", config.analysis).group(0) if re.search("CS[0-9]{6}", config.analysis) else os.path.basename(config.analysis.strip('/'))
 unaligned = config.unaligned[0]

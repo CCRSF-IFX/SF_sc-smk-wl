@@ -1,3 +1,4 @@
+import os
 
 numcell = getattr(config, "numcells", False)
 include_introns = getattr(config, "include_introns", True)
@@ -25,7 +26,7 @@ current_cellranger = "curioseeker:3.0.0"
 
 rule generate_sample_csv:
     input:
-        csv = config.metadata
+        csv = config.libraries
     output:
         meta4curio = "metadata_for_curiodata.csv",
         csv_list = expand("{sample}.csv", sample = samples)
@@ -43,19 +44,19 @@ First concatenate the R1 and R2 files, seperately, and then run curioseeker
 """
 rule count:
     input: 
-        sample_sheet = "{sample}.csv",
+        sample_sheet = os.path.join(analysis, "{sample}.csv"),
         meta4curio =  rules.generate_sample_csv.output.meta4curio
     output: 
         "{sample}/OUTPUT/{sample}/{sample}_Metrics.csv"
     log: 
-        err = "run_{sample}_curioseeker.err", 
-        log = "run_{sample}_curioseeker.log",
+        err = os.path.join(analysis, "run_{sample}_curioseeker.err"), 
+        log = os.path.join(analysis, "run_{sample}_curioseeker.log"),
     params: 
         prefix = "{sample}", 
         prefix2 = filterFastq4pipseeker
     shell: 
         """
-rm -r {params.prefix};
+rm -rf {analysis}/{params.prefix} {analysis}/{params.prefix}_work
 mkdir -p fastq4curio/ {params.prefix}
 # exit 1 is a shell command that terminates the script with an error status (1) 
 cat {params.prefix2}*_R1_001.fastq.gz > fastq4curio/{params.prefix}_R1.fastq.gz || exit 1
@@ -66,7 +67,7 @@ nextflow run /mnt/ccrsf-ifx/Software/tools/curioseeker/curioseeker-v3.0.0/main.n
                 --input {input.sample_sheet} \
                 --outdir {analysis}/{params.prefix} \
                 -work-dir {analysis}/{params.prefix}_work \
-                --igenomes_base  \
+                --igenomes_base /mnt/ccrsf-ifx/RefGenomes/SingleCell_REF/Curioseeker \
                 -resume \
                 -profile slurm \
                 -config /mnt/ccrsf-ifx/Software/tools/curioseeker/curioseeker-v3.0.0/curioseeker_slurm.config \

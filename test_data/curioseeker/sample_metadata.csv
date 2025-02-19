@@ -1,0 +1,5 @@
+sample,barcode_file,genome
+1_TUBE1,/mnt/ccrsf-static/singlecell_projects/KatrinMayerBarber_CS038386_4Curiolib_121724/tile_barcodes/B0135_001_BeadBarcodes.txt,GRCm38
+2_TUBE2,/mnt/ccrsf-static/singlecell_projects/KatrinMayerBarber_CS038386_4Curiolib_121724/tile_barcodes/B0135_002_BeadBarcodes.txt,GRCm38
+3_TUBE3,/mnt/ccrsf-static/singlecell_projects/KatrinMayerBarber_CS038386_4Curiolib_121724/tile_barcodes/B0135_003_BeadBarcodes.txt,GRCm38
+4_TUBE4,/mnt/ccrsf-static/singlecell_projects/KatrinMayerBarber_CS038386_4Curiolib_121724/tile_barcodes/B0135_004_BeadBarcodes.txt,GRCm38

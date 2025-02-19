@@ -39,7 +39,8 @@ def get_bool4internal():
 external = get_bool4internal()
 #print(f"Workflow is used by external user: {external}.")
 
-container: program.global_container
+if config.pipeline == "curioseeker":
+    localrules: count
 
 csas = re.search("CS[0-9]{6}", config.analysis).group(0) if re.search("CS[0-9]{6}", config.analysis) else os.path.basename(config.analysis.strip('/'))
 unaligned = config.unaligned[0]
@@ -183,8 +184,6 @@ for run_name in run_names:
 
 #Create file names
 #flowcell = os.path.basename(config.unaligned[0].strip('/'))
-
-
 #flowcells = {os.path.basename(i.strip('/')): i for i in config.unaligned}
 
 def get_flowcell_name_from_reports(path):

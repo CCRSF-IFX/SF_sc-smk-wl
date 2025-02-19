@@ -38,15 +38,8 @@ def count_expect_force():
 
 params_cell_number = count_expect_force()
 
-current_cellranger = program.cellranger
+current_cellranger = program.pipseeker
  
-#rule count:
-#    output: "{sample}/outs/web_summary.html"
-#    log: err = "run_{sample}_10x_cellranger_count.err", log ="run_{sample}_10x_cellranger_count.log"
-#    params: batch = "-l nodes=1:ppn=16,mem=96gb", prefix = "{sample}", prefix2 = filterFastq, cells_flag=lambda wildcards: params_cell_number[wildcards.sample], include_introns = str(include_introns).lower()
-#    container: program.cellranger
-#    shell: "rm -r {params.prefix}; cellranger count {flag4cellranger_create_bam} --include-introns {params.include_introns} --id={params.prefix} --sample={params.prefix} --fastqs={params.prefix2} {params.cells_flag} --transcriptome={reference.transcriptome} 2>{log.err} 1>{log.log}"
-
 rule count:
     output: "{sample}/barcodes/barcode_whitelist.txt"
     log: err = "run_{sample}_fluent_pipseq_count.err", log ="run_{sample}_fluent_pipseq_count.log",

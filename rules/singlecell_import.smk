@@ -5,7 +5,8 @@ import shutil
 from pathlib import Path
 import pandas as pd
 import xml.etree.ElementTree as ET
-
+import os
+import sys
 
 include: "runParametersImport" 
 
@@ -310,3 +311,41 @@ def get_optional_flag_from_lib_csv(wildcards):
         for flag in flags:
             optional_flag = generate_option_flag(wildcards, lib_df, flag, optional_flag)
     return optional_flag
+
+def process_config_attr(config, attr, sample, flags):
+    """
+    Processes a given attribute in the config object and updates the flag list.
+    Exits the program if any errors are encountered.
+
+    :param config: Configuration object with an optional attribute.
+    :param attr: The attribute name to process (e.g., 'cmo', 'reference').
+    :param sample: Sample key used if the attribute is a dictionary.
+    :param flag: List to append the processed flag.
+    """
+    if not hasattr(config, attr):
+        return
+
+    attr_value = getattr(config, attr)
+    if isinstance(attr_value, str):
+        flags.append(f"--{attr} {os.path.abspath(attr_value)}")
+        if not os.path.isfile(attr_value):
+            sys.exit(f"Error: file {attr_value} not found. Please fix the issue.")
+    
+    elif isinstance(attr_value, dict):
+        if sample in attr_value:
+            file_path = attr_value[sample]
+            flags.append(f"--{attr} {os.path.abspath(file_path)}")
+            if not os.path.isfile(file_path):
+                sys.exit(f"Error: file {file_path} not found. Please fix the issue.")
+        else:
+            sys.exit(f"Error: dictionary detected for '{attr}' but key '{sample}' is missing. Please fix the issue.")
+ 
+    else:
+        sys.exit(f"Error: '{attr}' should be either string or a dictionary. Please fix the issue.")
+
+    ## https://www.10xgenomics.com/support/software/cell-ranger/latest/analysis/running-pipelines/cr-3p-multi#hashing
+    if attr == "cmo": 
+        if not hasattr(config, "hashing_with_abc"):
+            config.hashing_with_abc = False
+        if config.hashing_with_abc == True:
+            flags.append("--hashing_with_abc")

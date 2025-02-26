@@ -30,6 +30,8 @@ parser.add_argument("-f", "--fastq_path", metavar="fastq_path", dest="fastq_path
 parser.add_argument("-o", "--output", metavar="file_list", dest="foutput",
                     action="store", default="file_list.txt", type=str, 
                     help="file list to archive (default: %(default)s)")
+parser.add_argument("-l", "--library_file", type=str,
+                    help="CSV files with first column as the output folder")
 parser.add_argument("--dme_analysis_path", dest="dme_analysis_path",
                     action="store", type=str,
                     help="Analysis path for DME in case a customized path is needed")
@@ -303,6 +305,12 @@ def configWorkingDirectory(flowcellID, sampleName, **samples):
 
     OUT = open(args.foutput, "w")
     refAnnotation = "10X Genomics"
+    if args.pipeline == "curioseeker":
+        refAnnotation = "Curio Bioscience"
+    elif args.pipeline == "pipseeker":
+        refAnnotation = "Fluent BioSciences"
+    else:
+        pass
     path += "/Project_" + samples[sampleName].attribute2value["ProjectName"]
     if not os.path.exists(path):
         os.mkdir(path)
@@ -484,18 +492,46 @@ def configWorkingDirectory(flowcellID, sampleName, **samples):
                     #else:
                     columns = line[:-1].split(',')
                     if columns[0] not in libraryName2cmd:
-                        libraryName2cmd[columns[0]] = (f'tar -cvhf {analysis_folder}/{columns[0]}_count.tar -C {args.count_path} {columns[0]}/outs\n')
-                        with open(path + f"/{analysis_subfolder}/" + columns[0] + "_count.tar.metadata.json", "w") as TARJSON:
+                        tar_file_path = os.path.join(analysis_folder, f"{columns[0]}_count.tar")
+                        metadata_file_path = os.path.join(path, analysis_subfolder, f"{columns[0]}_count.tar.metadata.json")
+
+                        if os.path.isdir(os.path.join(args.count_path, columns[0], "outs")):
+                            tool_name = "cellranger"
+                            libraryName2cmd[columns[0]] = f'tar -cvhf {tar_file_path} -C {args.count_path} {columns[0]}/outs\n'
+                        elif os.path.isdir(os.path.join(args.count_path, columns[0], "curioseeker")):
+                            tool_name = "curioseeker"
+                            libraryName2cmd[columns[0]] = f'tar --exclude="{columns[0]}/.nextflow" -cvhf {tar_file_path} -C {args.count_path} {columns[0]}/\n'
+                            # Define metadata dictionary
+                        else:
+                            pass
+                        with open(metadata_file_path, "w") as TARJSON:
                             TARJSON.write("{\"metadataEntries\":[\n" +
                                           "    {\"attribute\":\"object_name\",\"value\":\"" + columns[0] + "_count.tar\"},\n" +
                                           "    {\"attribute\":\"file_type\",\"value\":\"TAR\"},\n" +
                                           "    {\"attribute\":\"reference_genome\",\"value\":\"" + samples[sampleName].attribute2value["ReferenceGenome"]  + "\"},\n" +
                                           "    {\"attribute\":\"reference_annotation\",\"value\":\"" + refAnnotation + "\"},\n" +
-                                          "    {\"attribute\":\"software_tool\",\"value\":\"cellranger\"},\n" +
+                                          "    {\"attribute\":\"software_tool\",\"value\":\""+ tool_name + "\"},\n" +
                                           "    {\"attribute\":\"data_compression_status\",\"value\":\"Compressed\"}\n    ]\n}"
                             )
-                        OUT.write(path + f"/{analysis_subfolder}/" + columns[0] + "_count.tar\n")
-                        SLURMOUT.write(f'{libraryName2cmd[columns[0]]}\n')
+                        ## using json to write json files is a better way to write well formatted json file
+                        ## however, meta2json_md5.py needs to be updated. It will take lots of efforts.  
+                        #metadata = {
+                        #        "metadataEntries": [
+                        #            {"attribute": "object_name", "value": f"{columns[0]}_count.tar"},
+                        #            {"attribute": "file_type", "value": "TAR"},
+                        #            {"attribute": "reference_genome", "value": samples[sampleName].attribute2value["ReferenceGenome"]},
+                        #            {"attribute": "reference_annotation", "value": refAnnotation},
+                        #            {"attribute": "software_tool", "value": f"{tool_name}"},
+                        #            {"attribute": "data_compression_status", "value": "Compressed"}
+                        #        ]
+                        #}
+                        ## Write metadata as JSON
+                        #with open(metadata_file_path, "w") as TARJSON:
+                        #    json.dump(metadata, TARJSON, indent=4)
+
+                        # Write output file paths
+                        OUT.write(metadata_file_path + "\n")
+                        SLURMOUT.write(libraryName2cmd[columns[0]] + "\n")
                     else:
                         continue
         else:

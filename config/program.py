@@ -1,7 +1,10 @@
 copydir = "/mnt/ccrsf-ifx/Report_archive/report_archive_singlecell/"
 active_scripts = "/mnt/ccrsf-ifx/Software/scripts/bin/"
 
-cellranger      = "docker://ccrsfifx/cellranger:8.0.1"
+# Avaliable versions of cellranger:
+# 9.0.1;9.0.0;8.0.1;8.0.0;7.2.0;7.1.0; 
+# https://hub.docker.com/r/ccrsfifx/cellranger/tags
+cellranger      = "docker://ccrsfifx/cellranger:9.0.1"
 cellranger_atac = "docker://ccrsfifx/cellranger-atac:2.1.0"
 cellranger_arc  = "docker://ccrsfifx/cellranger-arc:2.0.2"
 spaceranger     = "docker://ccrsfifx/spaceranger:3.0.0"

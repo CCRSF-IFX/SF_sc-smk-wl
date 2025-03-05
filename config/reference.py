@@ -58,3 +58,6 @@ if config.ref == "mmul":
 if config.ref == "spol":
     transcriptome = "/mnt/ccrsf-ifx/RefGenomes/10X_REF/refdata-gex-SpolF1D1/Spol"
     gtf = "/mnt/ccrsf-ifx/RefGenomes/10X_REF/refdata-gex-SpolF1D1/Spol_FtD1_STAR_reference.gtf"
+if config.ref == "GRCg7b":  ## Chicken genome
+    pipseq_reference = "/mnt/ccrsf-ifx/RefGenomes/SingleCell_REF/PipSeq/GRCg7b/GRCg7b_release113/refdata-pipgex-GRCg7b-2024/"
+    gtf =  "/mnt/ccrsf-ifx/RefGenomes/SingleCell_REF/PipSeq/GRCg7b/GRCg7b_release113/Gallus_gallus.bGalGal1.mat.broiler.GRCg7b.113.gtf"

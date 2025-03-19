@@ -3,3 +3,4 @@
 register_user-response*
 **/*.ipynb_checkpoints/
 .smbdelete*
+**/.vscode/**

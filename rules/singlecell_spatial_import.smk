@@ -85,6 +85,7 @@ def get_params_from_metatab(wildcards):
             ("image", "--image"),
             ("darkimage", "--darkimage"),
             ("colorizedimage", "--colorizedimage"),
+            ("loupe-alignment", "--loupe-alignment"),
         ]
 
         # Check if at least one image-related column is provided

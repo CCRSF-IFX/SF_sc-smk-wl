@@ -78,7 +78,7 @@ def get_params_from_metatab(wildcards):
             if pd.isna(area) or area == "None":
                 sys.exit(f"Area not defined for sample {wildcards.sample}")
             sr_params.append(f"--area={area}")
-
+        with_loupe_alignment = False
         # Define optional columns and their corresponding flags
         optional_columns = [
             ("cytaimage", "--cytaimage"),
@@ -103,7 +103,10 @@ def get_params_from_metatab(wildcards):
                 if not os.path.exists(file_path):
                     sys.exit(f"{column} file {file_path} does not exist")
                 sr_params.append(f"{flag}={file_path}")
-
+                if column == "loupe-alignment":
+                    with_loupe_alignment = True
+        sr_params.append(f"--reorient-images="
+                 f"{'false' if with_loupe_alignment else 'true'}")
         return " ".join(sr_params)
     else:
         sys.exit(f"Sample {wildcards.sample} not found in metadata file {config.images}")
@@ -120,7 +123,7 @@ rule count:
     log: err = "run_{sample}_10x_spaceranger_count.err", log ="run_{sample}_10x_spaceranger_count.log"
     params: batch = "-l nodes=1:ppn=16,mem=96gb", prefix = "{sample}", prefix2 = filterFastq, params_from_metatab  = get_params_from_metatab
     container: program.spaceranger
-    shell: "rm -r {params.prefix}; spaceranger count {flag4spaceranger_create_bam}  --id={params.prefix} --sample={params.prefix} --fastqs={params.prefix2}  {flag_probe_set}  --transcriptome={reference.transcriptome} {params.params_from_metatab} --reorient-images=true  2>{log.err} 1>{log.log}"
+    shell: "rm -r {params.prefix}; spaceranger count {flag4spaceranger_create_bam}  --id={params.prefix} --sample={params.prefix} --fastqs={params.prefix2}  {flag_probe_set}  --transcriptome={reference.transcriptome} {params.params_from_metatab} 2>{log.err} 1>{log.log}"
 
 rule aggregateCSV:
     input: expand("{sample}/outs/web_summary.html", sample=samples)

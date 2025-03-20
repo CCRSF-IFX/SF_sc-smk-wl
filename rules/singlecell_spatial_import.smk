@@ -105,10 +105,9 @@ def get_params_from_metatab(wildcards):
                 sr_params.append(f"{flag}={file_path}")
                 if column == "loupe-alignment":
                     with_loupe_alignment = True
-        if with_loupe_alignment:
-            sr_params.append("--reorient-images=false")
-        else:
+        if not with_loupe_alignment:
             sr_params.append("--reorient-images=true")
+            
         return " ".join(sr_params)
     else:
         sys.exit(f"Sample {wildcards.sample} not found in metadata file {config.images}")

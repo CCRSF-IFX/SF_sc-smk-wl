@@ -19,9 +19,9 @@ def main(raw_args=None):
     parser.add_argument("--cmo", metavar="cmo.csv",
         nargs='?', action = "store", type=str,
         help="Path to cmo file if applicable")
-    parser.add_argument("--hashing_with_abc", action="store_true",
+    parser.add_argument("--hashedabc", action="store_true",
         help="Hashing with Antibody Capture libraries")
-    parser.add_argument("--features", metavar="feature.csv",
+    parser.add_argument("--feature", metavar="feature.csv",
         nargs='?', action = "store", type=str,
         help="Path to feature barcode reference file if applicable")
     parser.add_argument("--vdjref", metavar="refdata-cellranger-vdj-GRCh38-alts-ensembl-5.0.0",
@@ -72,15 +72,15 @@ def main(raw_args=None):
             spamwriter.writerow(['create-bam', "true"])
         if args.disable_lib_check:
             spamwriter.writerow(['check-library-compatibility', "false"])
-        if args.cmo != None and args.hashing_with_abc != True:
+        if args.cmo != None and args.hashedabc != True:
             spamwriter.writerow(['cmo-set', args.cmo])
         if args.exclude_introns:
             spamwriter.writerow(['include-introns', 'false'])
 
-        if args.features != None:
+        if args.feature != None:
             spamwriter.writerow([])
             spamwriter.writerow(['[feature]'])
-            spamwriter.writerow(['reference', args.features])
+            spamwriter.writerow(['reference', args.feature])
 
         if args.vdjref != None:
             spamwriter.writerow([])
@@ -116,7 +116,7 @@ def main(raw_args=None):
         if args.cmo != None:
             spamwriter.writerow([])
             spamwriter.writerow(['[samples]'])
-            if args.hashing_with_abc != True:
+            if args.hashedabc != True:
                 spamwriter.writerow(['sample_id', 'cmo_ids', 'description'])
                 with open(args.cmo, 'r') as lib:
                     line = next(lib)

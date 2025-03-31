@@ -21,7 +21,7 @@ def main(raw_args=None):
         help="Path to cmo file if applicable")
     parser.add_argument("--hashedabc", action="store_true",
         help="Hashing with Antibody Capture libraries")
-    parser.add_argument("--feature", metavar="feature.csv",
+    parser.add_argument("--features", metavar="feature.csv",
         nargs='?', action = "store", type=str,
         help="Path to feature barcode reference file if applicable")
     parser.add_argument("--vdjref", metavar="refdata-cellranger-vdj-GRCh38-alts-ensembl-5.0.0",
@@ -77,10 +77,10 @@ def main(raw_args=None):
         if args.exclude_introns:
             spamwriter.writerow(['include-introns', 'false'])
 
-        if args.feature != None:
+        if args.features != None:
             spamwriter.writerow([])
             spamwriter.writerow(['[feature]'])
-            spamwriter.writerow(['reference', args.feature])
+            spamwriter.writerow(['reference', args.features])
 
         if args.vdjref != None:
             spamwriter.writerow([])

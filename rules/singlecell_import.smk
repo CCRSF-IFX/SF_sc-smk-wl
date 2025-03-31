@@ -138,7 +138,7 @@ def filterFastq4pipseeker(wildcards):
         sys.exit()
     return(path_fq_new)
 
-def filterFastq4nopipe_old(wildcards):
+def filterFastq4nopipe(wildcards):
     """
     Prepare the folders for nopipe
     """
@@ -159,53 +159,6 @@ def filterFastq4nopipe_old(wildcards):
         sys.stderr.write("\nNo fastq detected. Please check it out! \n\n")
         sys.exit()
     return(path_fq_new)
-
-
-def filterFastq4nopipe(wildcards):
-    """
-    Prepare the folders for pipseeker or nopipe.
-    Automatically detects whether "Sample_" prefix is used in folder structure.
-    """
-    # Check for both possible sample folder structures
-    sample_folder_with_prefix = f"Sample_{wildcards.sample}"
-    sample_folder_without_prefix = wildcards.sample
-
-    detected_sample_folder = None
-    for fq_path in fastqpath:
-        if os.path.exists(os.path.join(fq_path, sample_folder_with_prefix)):
-            detected_sample_folder = sample_folder_with_prefix
-            break
-        elif os.path.exists(os.path.join(fq_path, sample_folder_without_prefix)):
-            detected_sample_folder = sample_folder_without_prefix
-            break
-
-    if detected_sample_folder is None:
-        sys.stderr.write(f"\nError: No FASTQ folder found for sample {wildcards.sample}. Check the directory structure.\n\n")
-        sys.exit(1)
-
-    # Define new FASTQ output directory
-    path_fq_new = f"fastq/{wildcards.sample}/"
-
-    # Create directory if it doesn't exist
-    os.makedirs(path_fq_new, exist_ok=True)
-
-    cnt_fq_file = 0
-    for index, fq_path in enumerate(fastqpath):
-        path_sample = os.path.join(fq_path, detected_sample_folder)
-        for fastq_file in glob.glob(os.path.join(path_sample, "*fastq.gz")):
-            cnt_fq_file += 1
-            basename_fastq = os.path.basename(fastq_file)
-            basename_fastq_new = f"{run_names[index]}_{basename_fastq}"
-            cmd = f"ln -s {fastq_file} {os.path.join(path_fq_new, basename_fastq_new)}"
-            process = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
-            process.wait()
-
-    if cnt_fq_file == 0:
-        sys.stderr.write("\nNo FASTQ files detected. Please check it out!\n\n")
-        sys.exit(1)
-
-    return path_fq_new
-
 
 #Setting aggregate flag, this gets turned off for certain pipelines
 aggregate = True
@@ -391,7 +344,7 @@ def process_config_attr(config, attr, sample, flags):
 
     ## https://www.10xgenomics.com/support/software/cell-ranger/latest/analysis/running-pipelines/cr-3p-multi#hashing
     if attr == "cmo": 
-        if not hasattr(config, "hashing_with_abc"):
-            config.hashing_with_abc = False
-        if config.hashing_with_abc == True:
-            flags.append("--hashing_with_abc")
+        if not hasattr(config, "hashedabc"):
+            config.hashedabc = False
+        if config.hashedabc == True:
+            flags.append("--hashedabc")

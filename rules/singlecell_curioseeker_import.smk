@@ -44,7 +44,6 @@ First concatenate the R1 and R2 files, seperately, and then run curioseeker
 """
 rule count:
     input: 
-        sample_sheet = os.path.join(analysis, "{sample}.csv"),
         meta4curio =  rules.generate_sample_csv.output.meta4curio
     output: 
         "{sample}/OUTPUT/{sample}/{sample}_Metrics.csv"
@@ -53,7 +52,8 @@ rule count:
         log = os.path.join(analysis, "run_{sample}_curioseeker.log"),
     params: 
         prefix = "{sample}", 
-        prefix2 = filterFastq4pipseeker
+        prefix2 = filterFastq4nopipe,
+        sample_sheet = os.path.join(analysis, "{sample}.csv"),
     shell: 
         """
 rm -rf {analysis}/{params.prefix} {analysis}/{params.prefix}_work
@@ -64,7 +64,7 @@ cat {params.prefix2}*_R2_001.fastq.gz > fastq4curio/{params.prefix}_R2.fastq.gz 
 cd {params.prefix}
 module load nextflow/23.08.0
 nextflow run /mnt/ccrsf-ifx/Software/tools/curioseeker/curioseeker-v3.0.0/main.nf \
-                --input {input.sample_sheet} \
+                --input {params.sample_sheet} \
                 --outdir {analysis}/{params.prefix} \
                 -work-dir {analysis}/{params.prefix}_work \
                 --igenomes_base /mnt/ccrsf-ifx/RefGenomes/SingleCell_REF/Curioseeker \

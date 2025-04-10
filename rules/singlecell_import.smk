@@ -58,7 +58,8 @@ else:
         run_names.append(unaligned.split('outs')[0].split('/')[-3])
 
 #Try to get the most recent run, used in copy rule
-run_names = list(set(run_names))
+run_names = list(dict.fromkeys(run_names))  # Removes duplicates while preserving order
+run_names_orig = run_names.copy()
 run_names.sort()
 run_name = run_names[-1]
 
@@ -129,8 +130,11 @@ def filterFastq4pipseeker(wildcards):
         for fastq_file in glob.glob(os.path.join(path_sample,  "*fastq.gz")):
             cnt_fq_file = cnt_fq_file + 1 
             basename_fastq = os.path.basename(fastq_file)
-            basename_fastq_new = "%s_%s" % (run_names[index], basename_fastq) 
-            cmd = "ln -s %s %s%s" % (fastq_file, path_fq_new, basename_fastq_new) 
+            basename_fastq_new = "%s_%s" % (run_names_orig[index], basename_fastq) 
+            symlink_path = os.path.join(path_fq_new, basename_fastq_new)
+            if os.path.islink(symlink_path):
+                os.unlink(symlink_path)  # Unlink the existing symbolic link
+            cmd = "ln -s %s %s" % (fastq_file, symlink_path) 
             process = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
             process.wait()
     if cnt_fq_file == 0: 
@@ -140,25 +144,68 @@ def filterFastq4pipseeker(wildcards):
 
 def filterFastq4nopipe(wildcards):
     """
-    Prepare the folders for nopipe
+    Prepare the folders for pipseeker or nopipe.
+    Automatically detects whether "Sample_" prefix is used in folder structure.
     """
-    path_fq_new = "fastq/%s/" % wildcards.sample
-    process = Popen("mkdir -p %s" % (path_fq_new), shell=True, stdout=PIPE, stderr=PIPE)
-    process.wait()
+    # Check for both possible sample folder structures
+    sample_folder_with_prefix = f"Sample_{wildcards.sample}"
+    sample_folder_without_prefix = wildcards.sample
+
+    detected_sample_folder = None
+    for fq_path in fastqpath:
+        if os.path.exists(os.path.join(fq_path, sample_folder_with_prefix)):
+            detected_sample_folder = sample_folder_with_prefix
+            break
+        elif os.path.exists(os.path.join(fq_path, sample_folder_without_prefix)):
+            detected_sample_folder = sample_folder_without_prefix
+            break
+
+    if detected_sample_folder is None:
+        sys.stderr.write(f"\nError: No FASTQ folder found for sample {detected_sample_folder}. Check the directory structure.\n\n")
+        sys.exit(1)
+
+    # Define new FASTQ output directory
+    path_fq_new = f"fastq/{detected_sample_folder}/"
+
+    # Create directory if it doesn't exist
+
+    os.makedirs(path_fq_new, exist_ok=True)
+    # Remove existing files in the directory before creating symlinks
+    # This is to ensure that the directory is clean before adding new symlinks
+    if os.path.exists(path_fq_new):
+        for file in os.listdir(path_fq_new):
+            file_path = os.path.join(path_fq_new, file)
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)  # Remove file or symbolic link
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)  # Remove directory
+
     cnt_fq_file = 0
     for index, fq_path in enumerate(fastqpath):
-        path_sample = os.path.join(fq_path, "%s" % wildcards.sample)
-        for fastq_file in glob.glob(os.path.join(path_sample,  "*fastq.gz")):
-            cnt_fq_file = cnt_fq_file + 1
+        path_sample = os.path.join(fq_path, detected_sample_folder)
+        for fastq_file in glob.glob(os.path.join(path_sample, "*fastq.gz")):
+            # Check if run_names[index] is in the fastq_file
+            #print([index, run_names_orig[index], fastq_file])
+            if run_names_orig[index] not in fastq_file:
+                sys.stderr.write(
+                    f"\nError: The run name '{run_names_orig[index]}' does not match the FASTQ file '{fastq_file}'. "
+                    f"Ensure that the run names in config.py match the order of the FASTQ folders in 'unaligned'.\n\n"
+                )
+                sys.exit(1)
+
+            cnt_fq_file += 1
             basename_fastq = os.path.basename(fastq_file)
-            basename_fastq_new = "%s_%s" % (run_names[index], basename_fastq)
-            cmd = "ln -s %s %s%s" % (fastq_file, path_fq_new, basename_fastq_new)
+            basename_fastq_new = f"{run_names_orig[index]}_{basename_fastq}"
+            symlink_path = os.path.join(path_fq_new, basename_fastq_new)
+            cmd = f"ln -s {fastq_file} {symlink_path}"
             process = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
             process.wait()
+
     if cnt_fq_file == 0:
-        sys.stderr.write("\nNo fastq detected. Please check it out! \n\n")
-        sys.exit()
-    return(path_fq_new)
+        sys.stderr.write("\nNo FASTQ files detected. Please check it out!\n\n")
+        sys.exit(1)
+
+    return path_fq_new
 
 #Setting aggregate flag, this gets turned off for certain pipelines
 aggregate = True

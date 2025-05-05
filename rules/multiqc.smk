@@ -13,6 +13,7 @@ rule multiqc:
     input: 
         expand("QC/Sample_{sample}/{sample}_R2_screen.png", sample=samples), 
         expand("QC/Sample_{sample}/{sample}.kraken.report.txt", sample=samples),
+        expand("QC/Sample_{sample}/fastqc_outdir/fastqc.log", sample=samples),
         picard_rnametrics_output(wildcards)
     output: 
         "QC/" + project_name + "_multiqc.html"

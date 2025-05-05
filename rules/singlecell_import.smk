@@ -168,7 +168,6 @@ def filterFastq4nopipe(wildcards):
     path_fq_new = f"fastq/{detected_sample_folder}/"
 
     # Create directory if it doesn't exist
-
     os.makedirs(path_fq_new, exist_ok=True)
     # Remove existing files in the directory before creating symlinks
     # This is to ensure that the directory is clean before adding new symlinks

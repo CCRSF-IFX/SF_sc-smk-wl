@@ -58,6 +58,7 @@ multiqc -f  -n {output.html} ./fastqc4report/  2>{log.err} 1>{log.log}
 include: "prep_fastq.smk"
 include: "fastqscreen.smk"
 include: "kraken.smk"
+include: "fastqc4QC.smk"
 include: "multiqc.smk"
 
 rule summaryFiles:

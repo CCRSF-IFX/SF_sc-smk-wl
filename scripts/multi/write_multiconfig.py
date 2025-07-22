@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import argparse, csv, re
+import argparse, csv, re, os
 
 def main(raw_args=None):
     parser = argparse.ArgumentParser(description="""Help to set up and run the single cell multi pipeline""")
@@ -51,9 +51,18 @@ def main(raw_args=None):
         help="Text files containing probe sets")
     parser.add_argument("--multiplex", type=str,
         help="Text files containing multiplex information")
+    
 
     args = parser.parse_args(raw_args)
     print(args)
+    import pandas as pd
+    df = pd.read_csv(args.lib, header=0)
+    if 'ocm_barcode_ids' in df.columns:
+        if df['ocm_barcode_ids'].any():
+            print("OCM platform detected, using OCM specific libraries file format")
+            args.ocm = True
+        else:
+            args.ocm = False
 
     with open(args.output, 'w', newline="") as csvfile:
         spamwriter = csv.writer(csvfile, delimiter=',')
@@ -146,6 +155,53 @@ def main(raw_args=None):
                     sample_name = re.sub(".csv$", "", args.output)
                     if ele[0] == sample_name:
                         spamwriter.writerow(ele[1:])
+        if args.ocm:
+            samples = ','.join(df['sample_id'].unique()).split(',')
+            
+            spamwriter.writerow([])
+            spamwriter.writerow(['[samples]'])
+            header = ['sample_id', 'ocm_barcode_ids', 'description']
+            record_cell_number = {}
+            record_ocm_ids = {}
+            ocm_ids = ','.join(df['ocm_barcode_ids'].unique()).split(',')
+            if len(samples) != len(ocm_ids):
+                raise ValueError(f"Number of samples ({len(samples)}) does not match number of ocm_ids ({len(ocm_ids)})")
+            # Map sample_id to ocm_id
+            record_ocm_ids = dict(zip(samples, ocm_ids))
+
+            # Ensure expected_cells and samples have the same number
+            if 'expect_cells' in df.columns:
+                expected_cells = ','.join(df['expect_cells'].unique()).split(',')
+                if len(samples) != len(expected_cells):
+                    raise ValueError(f"Number of samples ({len(samples)}) does not match number of expected_cells ({len(expected_cells)})")
+                # Map sample_id to cell number
+                record_cell_number = dict(zip(samples, expected_cells))
+                header.append('expect_cells')
+                header = ['sample_id', 'ocm_barcode_ids', 'description', 'expect_cells']
+            if "force_cells" in df.columns:
+                force_cells = ','.join(df['force_cells'].unique()).split(',')
+                if len(samples) != len(force_cells):
+                    raise ValueError(f"Number of samples ({len(samples)}) does not match number of force_cells ({len(force_cells)})")
+                # Map sample_id to cell number
+                record_cell_number = dict(zip(samples, force_cells))
+                header.append('force_cells')
+                header = ['sample_id', 'ocm_barcode_ids', 'description', 'force_cells']
+            spamwriter.writerow(header)
+            for sample in samples:
+                #A name to identify a multiplexed sample. Must be alphanumeric with hyphens 
+                #and/or underscores, and less than 64 characters.
+                if len(sample) > 64:
+                    raise ValueError(f"Sample name '{sample}' exceeds 64 characters.")
+                row = [sample]
+                lib_name = os.path.basename(args.lib).replace('_libraries.csv', '')
+                print(lib_name)
+                ocm_ids = df[df['Sample'] == lib_name]['ocm_barcode_ids'].unique()
+                print(df[df['Sample'] == sample])
+                row.append(record_ocm_ids[sample])
+                row.append(sample)  # description is the sample name
+                if 'expect_cells' in df.columns or 'force_cells' in df.columns:
+                    row.append(record_cell_number[sample])
+                spamwriter.writerow(row)
 
 if __name__ == '__main__':
     main()

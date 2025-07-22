@@ -1,4 +1,4 @@
-def picard_rnametrics_output(wildcards):
+def picard_rnametrics_output():
     """
     Function to conditionally include output files based on the pipeline.
     This function checks the pipeline type and returns the appropriate output files.
@@ -13,8 +13,8 @@ rule multiqc:
     input: 
         expand("QC/Sample_{sample}/{sample}_R2_screen.png", sample=samples), 
         expand("QC/Sample_{sample}/{sample}.kraken.report.txt", sample=samples),
-        expand("QC/Sample_{sample}/fastqc_outdir/fastqc.log", sample=samples),
-        picard_rnametrics_output(wildcards)
+        expand(rules.fastqc4QC.output, sample=samples)
+        #picard_rnametrics_output()
     output: 
         "QC/" + project_name + "_multiqc.html"
     container: 

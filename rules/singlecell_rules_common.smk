@@ -19,6 +19,16 @@ software = "Cellranger"
 if config.pipeline == "pipseq":
     software = "PIPseeker"
 
+# rule prep_fastq_folder:
+#     params:
+#         fastq_path = prep_fastq_folder_ln
+#     output:
+#         log="fastq/Sample_{sample}.log"
+#     shell:
+#         """
+#         ls {params.fastq_path}/*.fastq.gz > {output.log}
+#         """
+
 def output_list_web_summary(wildcards):
     """Get the list of web summary from cellranger count or cellranger multi"""
     if config.pipeline == "pipseq":

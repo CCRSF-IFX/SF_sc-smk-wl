@@ -30,7 +30,7 @@ def main(raw_args=None):
 
     ## Check if the input file is in OCM format
     import pandas as pd
-    df = pd.read_csv(args.lib, header=0)
+    df = pd.read_csv(args.file_name, header=0)
     if 'ocm_barcode_ids' in df.columns:
         if df['ocm_barcode_ids'].any():
             print("OCM platform detected, using OCM specific libraries file format")
@@ -86,6 +86,14 @@ def main(raw_args=None):
                     else:
                         matched_fastqs.append("")  # Or handle as needed
                 subdf.insert(0, 'fastqs', matched_fastqs)
+            if "Name" in subdf.columns:
+                subdf = subdf.rename(columns={"Name": "sample"})
+            if "Type" in subdf.columns:
+                subdf = subdf.rename(columns={"Type": "library_type"})
+            # Remove "Flowcell" and "Sample" columns if present
+            for col in ["Flowcell", "Sample"]:
+                if col in subdf.columns:
+                    subdf = subdf.drop(columns=[col])
             # Write all columns for this sample to a new CSV
             out_file = f"{sample}_libraries.csv"
             subdf.to_csv(out_file, index=False)

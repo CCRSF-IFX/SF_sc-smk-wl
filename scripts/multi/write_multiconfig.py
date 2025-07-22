@@ -194,9 +194,8 @@ def main(raw_args=None):
                     raise ValueError(f"Sample name '{sample}' exceeds 64 characters.")
                 row = [sample]
                 lib_name = os.path.basename(args.lib).replace('_libraries.csv', '')
-                print(lib_name)
-                ocm_ids = df[df['Sample'] == lib_name]['ocm_barcode_ids'].unique()
-                print(df[df['Sample'] == sample])
+                ocm_ids = df[df['sample'] == lib_name]['ocm_barcode_ids'].unique()
+                print(df[df['sample'] == sample])
                 row.append(record_ocm_ids[sample])
                 row.append(sample)  # description is the sample name
                 if 'expect_cells' in df.columns or 'force_cells' in df.columns:

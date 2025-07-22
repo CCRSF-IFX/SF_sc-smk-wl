@@ -7,6 +7,7 @@ import pandas as pd
 import xml.etree.ElementTree as ET
 import os
 import sys
+from collections import defaultdict
 
 include: "runParametersImport" 
 
@@ -205,6 +206,82 @@ def filterFastq4nopipe(wildcards):
         sys.exit(1)
 
     return path_fq_new
+
+record_fastqpath = {}
+record_fastqfiles = defaultdict(set)
+def prep_fastq_folder_ln(sample):
+    """
+    Prepare the folders for fastq symlinks and record the paths and files used.
+    Updates the global record_fastqpath and record_fastqfiles dictionaries.
+    """
+    print("Preparing FASTQ folder for sample:", sample)
+    global record_fastqpath, record_fastqfiles
+    # Check for both possible sample folder structures
+    sample_folder_with_prefix = f"Sample_{sample}"
+    sample_folder_without_prefix = sample
+
+    detected_sample_folder = None
+    for fq_path in fastqpath:
+        if os.path.exists(os.path.join(fq_path, sample_folder_with_prefix)):
+            detected_sample_folder = sample_folder_with_prefix
+            break
+        elif os.path.exists(os.path.join(fq_path, sample_folder_without_prefix)):
+            detected_sample_folder = sample_folder_without_prefix
+            break
+
+    if detected_sample_folder is None:
+        sys.stderr.write(f"\nError: No FASTQ folder found for sample {detected_sample_folder}. Check the directory structure.\n\n")
+        sys.exit(1)
+
+    # Define new FASTQ output directory
+    path_fq_new = os.path.join(analysis, 
+                        f"fastq/{detected_sample_folder}/")
+
+    # Remove existing files in the directory before creating symlinks
+    if os.path.exists(path_fq_new):
+        for file in os.listdir(path_fq_new):
+            file_path = os.path.join(path_fq_new, file)
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+    else:
+        os.makedirs(path_fq_new, exist_ok=True)
+
+    cnt_fq_file = 0
+    for index, fq_path in enumerate(fastqpath):
+        path_sample = os.path.join(fq_path, detected_sample_folder)
+        for fastq_file in glob.glob(os.path.join(path_sample, "*fastq.gz")):
+            if run_names_orig[index] not in fastq_file:
+                sys.stderr.write(
+                    f"\nError: The run name '{run_names_orig[index]}' does not match the FASTQ file '{fastq_file}'. "
+                    f"Ensure that the run names in config.py match the order of the FASTQ folders in 'unaligned'.\n\n"
+                )
+                sys.exit(1)
+
+            cnt_fq_file += 1
+            basename_fastq = os.path.basename(fastq_file)
+            basename_fastq_new = f"{run_names_orig[index]}_{basename_fastq}"
+            symlink_path = os.path.join(path_fq_new, basename_fastq_new)
+            cmd = f"ln -s {fastq_file} {symlink_path}"
+            print(cmd)
+            process = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
+            process.wait()
+
+            # Record the symlinked file for this sample
+            record_fastqfiles[sample].add(symlink_path)
+
+    if cnt_fq_file == 0:
+        sys.stderr.write("\nNo FASTQ files detected. Please check it out!\n\n")
+        sys.exit(1)
+
+    # Record the output path for this sample
+    record_fastqpath[sample] = path_fq_new
+    #print(record_fastqpath)
+    return path_fq_new
+
+for sample in samples:
+    prep_fastq_folder_ln(sample)  # Prepare the fastq folder for each sample
 
 #Setting aggregate flag, this gets turned off for certain pipelines
 aggregate = True

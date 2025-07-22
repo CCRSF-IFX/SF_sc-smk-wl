@@ -15,7 +15,7 @@ if config.pipeline == 'pipseq':
     aggregate = False
 
 include: "rules/singlecell_rules_common.smk"
-include: "rules/singlecell_pipseq_import.smk"
+#include: "rules/singlecell_pipseq_import.smk"
 
 copy_complete = 'copy.complete'
 if external == True:

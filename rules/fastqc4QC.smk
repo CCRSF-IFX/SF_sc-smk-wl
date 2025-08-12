@@ -1,12 +1,26 @@
 import os
-print(record_fastqpath)
+
+
+rule prep_fastq_folder:
+    """
+    Rule to prepare the fastq folder for each sample.
+    It creates a symlink to the fastq files in the QC directory.
+    """
+    output:
+        touch("fastq/{sample}/.prepared")
+    run:
+        sample = wildcards.sample
+        prep_fastq_folder_ln(sample)  # Call the function to prepare the fastq folder
+
 rule fastqc4QC:
-    # input: 
-    #     log_prep_fq = rules.prep_fastq_folder.output.log
+    input: 
+        rules.prep_fastq_folder.output,
     params: 
         fastqc_outdir = os.path.join(analysis, "QC/Sample_{sample}/fastqc_outdir"),
         fastq_path = lambda wildcards: record_fastqpath[wildcards.sample],
-    output: 
+    output:
+        touch(os.path.join(analysis, "QC/Sample_{sample}/fastqc_outdir/fastqc.complete")), 
+    log:
         os.path.join(analysis, "QC/Sample_{sample}/fastqc_outdir/fastqc.log")
     container:
         program.fastqc
@@ -19,5 +33,6 @@ rule fastqc4QC:
         fastq_files=$(find {params.fastq_path} -name "*.fastq.gz" -or -name "*.fq.gz")
         fastqc --threads {threads} \
                --outdir={params.fastqc_outdir} \
-               $fastq_files >{output} 2>&1
+               $fastq_files \
+               > {log} 2>&1
         """

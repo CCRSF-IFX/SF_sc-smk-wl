@@ -12,5 +12,8 @@ rule report_rmd:
     container: program.Renv4rmd
     shell: 
         """
-Rscript -e 'rmarkdown::render("{analysis}/workflow/scripts/rna/single_cell_report.Rmd", params = list(project = "{params.smp}", dir = "{params.dir}", sample = "{params.smp}"), output_file = "{output}", output_dir = "{params.out}")'
+cd {params.dir}
+cp {analysis}/workflow/scripts/rna/single_cell_report.Rmd ./
+Rscript -e 'rmarkdown::render("single_cell_report.Rmd", params = list(project = "{params.smp}", dir = "{params.dir}", sample = "{params.smp}"), output_file = "{output}", output_dir = "{params.out}")'
+rm single_cell_report.Rmd
 """

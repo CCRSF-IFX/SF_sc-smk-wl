@@ -21,5 +21,5 @@ rule multiqc:
         program.multiqc
     shell: 
         """
-multiqc -f -c {program.multiqc_conf} -n {output} ./QC
+multiqc -f -c {program.multiqc_conf} -e snippy -n {output} ./QC
 """

@@ -57,6 +57,8 @@ def main(raw_args=None):
     print(args)
     import pandas as pd
     df = pd.read_csv(args.lib, header=0)
+    # Initialize args.ocm to False by default
+    args.ocm = False
     if 'ocm_barcode_ids' in df.columns:
         if df['ocm_barcode_ids'].any():
             print("OCM platform detected, using OCM specific libraries file format")

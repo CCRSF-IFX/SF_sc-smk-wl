@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import argparse, csv, re, os
+import sys
 
 def main(raw_args=None):
     parser = argparse.ArgumentParser(description="""Help to set up and run the single cell multi pipeline""")
@@ -19,8 +20,12 @@ def main(raw_args=None):
     parser.add_argument("--cmo", metavar="cmo.csv",
         nargs='?', action = "store", type=str,
         help="Path to cmo file if applicable")
+    # DEPRECATED: keep for backward compatibility
     parser.add_argument("--hashedabc", action="store_true",
-        help="Hashing with Antibody Capture libraries")
+        help="DEPRECATED: use --hashing_with_abc")
+    # New preferred flag
+    parser.add_argument("--hashing_with_abc", action="store_true",
+        help="Hashing with Antibody Capture libraries (replaces --hashedabc)")
     parser.add_argument("--features", metavar="feature.csv",
         nargs='?', action = "store", type=str,
         help="Path to feature barcode reference file if applicable")
@@ -54,6 +59,15 @@ def main(raw_args=None):
     
 
     args = parser.parse_args(raw_args)
+
+    # Backward compatibility: map deprecated flag to new one
+    if getattr(args, "hashedabc", False):
+        print("Warning: --hashedabc is deprecated; use --hashing_with_abc", file=sys.stderr)
+        args.hashing_with_abc = True
+    # Ensure attribute exists even if not provided
+    if not hasattr(args, "hashing_with_abc"):
+        args.hashing_with_abc = False
+
     print(args)
     import pandas as pd
     df = pd.read_csv(args.lib, header=0)
@@ -83,7 +97,7 @@ def main(raw_args=None):
             spamwriter.writerow(['create-bam', "true"])
         if args.disable_lib_check:
             spamwriter.writerow(['check-library-compatibility', "false"])
-        if args.cmo != None and args.hashedabc != True:
+        if args.cmo != None and args.hashing_with_abc != True:
             spamwriter.writerow(['cmo-set', args.cmo])
         if args.exclude_introns:
             spamwriter.writerow(['include-introns', 'false'])
@@ -127,7 +141,7 @@ def main(raw_args=None):
         if args.cmo != None:
             spamwriter.writerow([])
             spamwriter.writerow(['[samples]'])
-            if args.hashedabc != True:
+            if args.hashing_with_abc != True:
                 spamwriter.writerow(['sample_id', 'cmo_ids', 'description'])
                 with open(args.cmo, 'r') as lib:
                     line = next(lib)

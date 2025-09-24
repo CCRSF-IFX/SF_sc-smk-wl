@@ -461,8 +461,16 @@ def process_config_attr(config, attr, sample, flags):
         sys.exit(f"Error: '{attr}' should be either string or a dictionary. Please fix the issue.")
 
     ## https://www.10xgenomics.com/support/software/cell-ranger/latest/analysis/running-pipelines/cr-3p-multi#hashing
+    ## https://tracker.nci.nih.gov/browse/CCRIFXDEV-33
+    ## https://github.com/CCRSF-IFX/SF_sc-smk-wl/blob/fdf45ad657e3267860d75e621f203c8fb40de76b/rules/singlecell_import.smk#L464
     if attr == "cmo": 
         if not hasattr(config, "hashedabc"):
             config.hashedabc = False
         if config.hashedabc == True:
             flags.append("--hashedabc")
+    ## In the future release, `hashedabc` should be removed. 
+    if attr == "cmo": 
+        if not hasattr(config, "hashing_with_abc"):
+            config.hashing_with_abc = False
+        if config.hashing_with_abc == True:
+            flags.append("--hashing_with_abc")

@@ -143,6 +143,7 @@ rule aggregate:
 include: "prep_fastq.smk"
 include: "fastqscreen.smk"
 include: "kraken.smk"
+include: "fastqc4QC.smk"
 include: "multiqc.smk"
 
 #rule copyScripts:

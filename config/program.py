@@ -13,8 +13,8 @@ cellranger_atac = "docker://ccrsfifx/cellranger-atac:2.1.0"
 # 2.0.2
 cellranger_arc  = "docker://ccrsfifx/cellranger-arc:2.0.2"
 # Available versions of spaceranger:
-# 3.1.3;3.0.0 
-spaceranger     = "docker://ccrsfifx/spaceranger:3.0.0"
+# 4.0.1;3.1.3;3.0.0
+spaceranger     = "docker://ccrsfifx/spaceranger:4.0.1"
 Renv            = "docker://ccrsfifx/sc-smk-wl:r1.0.0"
 Renv4rmd        = "docker://ccrsfifx/sc-rmd-report:1.0.0"
 pipseeker       = "docker://public.ecr.aws/w3e1n2j6/fluent-pipseeker:3.3.0"

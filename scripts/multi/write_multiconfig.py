@@ -35,23 +35,17 @@ def main(raw_args=None):
     parser.add_argument("--innerprimer", metavar="enrichment_primers.txt",
         nargs='?', action = "store", type=str,
         help="Text file containing one primer per line if non-10x inner enrichment primers were used")
-    #parser.add_argument("-f", "--force", action="store_true",
-    #    help="Use force-cells flag instead of expect-cells")
     group_cell_number = parser.add_mutually_exclusive_group()
     group_cell_number.add_argument("--force", action="store_true",
         help="Use force-cells flag instead of expect-cells ")
     group_cell_number.add_argument("--expect", action="store_true",
         help="Run Cell Ranger with --expect-cells")
-    #parser.add_argument("-i", "--introns", action="store_true",
-    #    help="Use include-introns flag")
-    ## Since cellranger v7.0.0+, include-introns is true by default
     parser.add_argument("-i", "--exclude_introns", action="store_true",
         help="Use include-introns,false option")
     parser.add_argument("--create_bam", action="store_true",
         help="Use create_bam,true option")
     parser.add_argument("--disable_lib_check", action="store_true",
         help="Use check-library-compatibility,false option (default option)")
-    ## Fix RNA profiling parameters
     parser.add_argument("--probe_set", type=str,
         help="Text files containing probe sets")
     parser.add_argument("--multiplex", type=str,

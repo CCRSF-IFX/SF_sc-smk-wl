@@ -28,3 +28,5 @@ kraken2db = "/mnt/ccrsf-ifx/RefGenomes/Kraken2/Kraken2_Complete_0820"
 global_container = "docker://ccrsfifx/sc-smk-wl:py1.0.0"
 fastqc = "docker://quay.io/biocontainers/fastqc:0.12.1--hdfd78af_0"
 picard = "docker://quay.io/biocontainers/picard:3.4.0--hdfd78af_0"
+
+tenx-cloud-token-path = "/mnt/ccrsf-ifx/RefGenomes/SingleCell_REF/10X/CLI/txg"

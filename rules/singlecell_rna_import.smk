@@ -1,6 +1,16 @@
 numcell = getattr(config, "numcells", False)
 include_introns = getattr(config, "include_introns", True)
 
+def cell_annotation(sample):
+    cell_annotation = getattr(config, "cell_annotation", True)
+    if cell_annotation == True:
+        if config.ref.startswith("hg38") or config.ref.startswith("hg19") or config.ref.startswith("mm10") or config.ref.startswith("mm39"):
+            return f"--cell-annotation-model auto --tenx-cloud-token-path {program.tenx_cloud_token_path}"
+        else: 
+            print(f"WARNING: The reference '{config.ref}' doesn't start with hg38, hg19, mm10, or mm39. But cell type annotation is enabled.\nThe cell type annotation model will not be applied.")
+            return ""
+    return ""
+
 def count_expect_force():
     params_cell_number = dict()
     cells_flag = ""
@@ -31,9 +41,17 @@ rule count:
         cells_flag=lambda wildcards: params_cell_number[wildcards.sample], 
         include_introns = str(include_introns).lower(),
         reference = get_reference_transcriptome, 
-        option_flag = get_optional_flag_from_lib_csv 
+        option_flag = get_optional_flag_from_lib_csv,
+        cell_annotation = cell_annotation
     container: program.cellranger
-    shell: "rm -r {params.prefix}; cellranger count {flag4cellranger_create_bam} --include-introns {params.include_introns} --id={params.prefix} --sample={params.prefix} --fastqs={params.prefix2} {params.cells_flag} --transcriptome={params.reference} {params.option_flag} 2>{log.err} 1>{log.log}"
+    shell: 
+        """
+rm -r {params.prefix}; 
+cellranger count {flag4cellranger_create_bam} --include-introns {params.include_introns} \
+    --id={params.prefix} --sample={params.prefix} --fastqs={params.prefix2} {params.cells_flag} \
+    --transcriptome={params.reference} {params.option_flag} {params.cell_annotation} \
+    2>{log.err} 1>{log.log}
+        """
 
 rule aggregateCSV:
     input: expand("{sample}/outs/web_summary.html", sample=samples)

@@ -1,20 +1,8 @@
 import os
 
-
-rule prep_fastq_folder:
-    """
-    Rule to prepare the fastq folder for each sample.
-    It creates a symlink to the fastq files in the QC directory.
-    """
-    output:
-        touch("fastq/{sample}/.prepared")
-    run:
-        sample = wildcards.sample
-        prep_fastq_folder_ln(sample)  # Call the function to prepare the fastq folder
-
 rule fastqc4QC:
     input: 
-        rules.prep_fastq_folder.output,
+        rules.prep_fastq_folder_ln.output,
     params: 
         fastqc_outdir = os.path.join(analysis, "QC/Sample_{sample}/fastqc_outdir"),
         fastq_path = lambda wildcards: record_fastqpath[wildcards.sample],

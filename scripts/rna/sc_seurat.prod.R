@@ -61,9 +61,9 @@ seur <- CreateSeuratObject(counts = count_mtx,
 rm(count_mtx)
 
 #find mitochondrial genes
-if (opt$genome == "mm10") {
+if (startsWith(opt$genome, "mm10")) {
         seur[["percent.mito"]] <- PercentageFeatureSet(seur, pattern="^mt-")
-} else if (opt$genome == "hg19" | opt$genome == "hg38") {
+} else if (startsWith(opt$genome, "hg19") | startsWith(opt$genome, "hg38")) {
         seur[["percent.mito"]] <- PercentageFeatureSet(seur, pattern="^MT-")
 }
 

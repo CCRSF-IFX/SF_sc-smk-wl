@@ -97,7 +97,7 @@ generateMarkerPlots <- function(seur, markers) {
 # The objects returned by functions:  ImmGenData, MouseRNAseqData, 
 # HumanPrimaryCellAtlasData and BlueprintEncodeData are saved under 
 # /home/docker/. So you only need to load the RDS files directly. 
-if (opt$genome == "mm10") {
+if (startsWith(opt$genome, "mm10")) {
   #immgen <- ImmGenData()# - mouse
   #mouserna <- MouseRNAseqData()# - mouse
   immgen <- readRDS("/home/docker/ImmGenData.rds")
@@ -122,7 +122,7 @@ if (opt$genome == "mm10") {
   write.csv(sort(temp, decreasing=TRUE), 'annotations_MouseRNA_general.csv', row.names=FALSE)
 
   write.csv(seur@meta.data[,c('immgen_mourserna', 'immgen', 'mourserna')], 'annotations_compiled_barcode.csv', quote=FALSE)
-} else if (opt$genome == "hg38") {
+} else if (startsWith(opt$genome, "hg38") | startsWith(opt$genome, "hg19")) {
   #hpca <- HumanPrimaryCellAtlasData()
   #blueprint <- BlueprintEncodeData()
   hpca <- readRDS("/home/docker/HumanPrimaryCellAtlasData.rds")

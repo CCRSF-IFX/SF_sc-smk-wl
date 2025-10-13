@@ -22,7 +22,9 @@ default-resources:
 set-threads:
   count: 36
   arc_count: 36
-  atac_count: 36 
+  atac_count: 36
+  split_pipe_all: 36
+  split_pipe_comb: 36
 # set-resources: map rule names to resources in general
 set-resources:
   count:
@@ -34,4 +36,10 @@ set-resources:
   atac_count:
     mem_mb:
       773497
-
+  split_pipe_all:
+    mem_mb:
+      773497
+  split_pipe_comb:
+    mem_mb:
+      773497
+  

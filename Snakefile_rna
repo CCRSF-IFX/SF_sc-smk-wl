@@ -25,7 +25,7 @@ include: "rules/singlecell_rna_import.smk"
 fullanalysis = getattr(config, "fullanalysis", True)
 rule_all_fullanalysis_append = []
 if fullanalysis == True:
-    if config.ref.startswith("hg38") or config.ref.startswith("hg19") or config.ref.startswith("mm10") or config.ref.startswith("mm39"):
+    if config.ref.startswith("hg38") or config.ref.startswith("mm10"):
         include: "rules/singlecell_rna_seurat_proc.smk"
         include: "rules/singlecell_rna_singleR.smk"
         include: "rules/singlecell_rna_report.smk"
@@ -33,7 +33,7 @@ if fullanalysis == True:
                                         expand(os.path.join(analysis, "{sample}/seurat/seur_10x_cluster_object.rds"), sample=samples), 
                                         expand(os.path.join(analysis, "{sample}_sc_report.html"), sample = samples)]
     else: 
-        print("Warning: Full analysis is only supported for human and mouse samples. Skipping full analysis...")
+        print("Warning: Full analysis is only supported for human (hg38) and mouse (mm10) samples. Skipping full analysis...")
 
 copy_complete = 'copy.complete'
 if external == True:

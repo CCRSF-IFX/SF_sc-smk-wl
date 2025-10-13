@@ -1,11 +1,11 @@
 import os
 def load_gene_list(config_ref):
-    if config_ref == "mm10":
+    if config_ref.startswith("mm10"):
         return os.path.join(analysis, "workflow/data/marker_genelist/mouse_gene_list.csv")
-    elif config_ref == "hg38":
+    elif config_ref.startswith("hg38"):
         return os.path.join(analysis, "workflow/data/marker_genelist/human_gene_list.csv")
     else:
-        print("Error: Invalid config.ref value. Allowed values are 'mm10' or 'hg38'.")
+        print("Error: Invalid config.ref value. Allowed values have to start with 'mm10' or 'hg38'.")
         exit(1)
 
 gene_list_file = load_gene_list(config.ref)

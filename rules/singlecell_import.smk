@@ -8,8 +8,48 @@ import xml.etree.ElementTree as ET
 import os
 import sys
 from collections import defaultdict
+import uuid
 
 include: "runParametersImport" 
+
+def create_pipeline_id_file():
+    """
+    Creates a hidden file with a unique pipeline ID (e.g.: 550e8400-e29b-41d4-a716-446655440000)
+    The ID is generated using UUID for uniqueness.
+    Returns the generated pipeline ID.
+    """
+    # Generate unique pipeline ID using UUID
+    pipeline_id = str(uuid.uuid4())
+    
+    # Create hidden file with the pipeline ID
+    hidden_file_path = os.path.join(analysis, ".pipeline_id")
+    
+    try:
+        with open(hidden_file_path, 'w') as f:
+            f.write(pipeline_id)
+        print(f"Pipeline ID created: {pipeline_id}")
+        return pipeline_id
+    except Exception as e:
+        sys.stderr.write(f"Error creating pipeline ID file: {e}\n")
+        return None
+
+def get_pipeline_id():
+    """
+    Retrieves the pipeline ID from the hidden file if it exists,
+    otherwise creates a new one.
+    """
+    hidden_file_path = os.path.join(analysis, ".pipeline_id")
+    
+    if os.path.exists(hidden_file_path):
+        try:
+            with open(hidden_file_path, 'r') as f:
+                pipeline_id = f.read().strip()
+            return pipeline_id
+        except Exception as e:
+            sys.stderr.write(f"Error reading pipeline ID file: {e}\n")
+            return create_pipeline_id_file()
+    else:
+        return create_pipeline_id_file()
 
 # by default, config is an empty dictionary.
 # if --configfile is provided, meaning that external users
@@ -67,6 +107,9 @@ run_name = run_names[-1]
 fastqpath = config.unaligned
 analysis = config.analysis
 one_up = '/'.join(config.analysis.rstrip('/').split('/')[:-1])
+
+# Initialize pipeline unique ID
+pipeline_id = get_pipeline_id()
 
 #with open(config.analysis + '/cluster.json') as file:
 #    clusterConfig = json.load(file)

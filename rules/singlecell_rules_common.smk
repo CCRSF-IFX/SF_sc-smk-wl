@@ -96,9 +96,15 @@ cd {one_up}; perl {active_script_folder}/run_GenerateAllReports.pl -flowcell {fl
         params: 
             runs = ','.join(run_names), 
             pipeline = config.pipeline, 
-            workflow_flag = get_flag4report
-        shell: "cd {one_up}; python {analysis}/scripts/SF_scWordReport/run_wordreport_sc.py -e {analysis}/{input.excel} -m {input.metadata} -c {current_cellranger} -p {params.pipeline} -r {params.runs} {params.workflow_flag} {args4wreport_test} {args4wreport_yields}"
-
+            workflow_flag = get_flag4report,
+        shell: 
+            """
+        cd {one_up}; \
+        python {analysis}/scripts/SF_scWordReport/run_wordreport_sc.py \
+               --pipeline-id {pipeline_id} -e {analysis}/{input.excel} -m {input.metadata} \
+               -c {current_cellranger} -p {params.pipeline} -r {params.runs} \
+               {params.workflow_flag} {args4wreport_test} {args4wreport_yields}
+"""
     if testing: 
         onsuccess:
             success = "Yes"

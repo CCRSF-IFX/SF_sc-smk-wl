@@ -38,7 +38,7 @@ def output_list_web_summary(wildcards):
     else:
         return expand("{sample}/outs/web_summary.html", sample=samples)
 
-if config.pipeline == "pipseq" or config.pipeline == "nopipe":
+if config.pipeline == "pipseq" or config.pipeline == "nopipe" or config.pipeline == "parsebio":
     aggregate = False
 
 active_script_folder = ""

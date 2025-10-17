@@ -71,7 +71,6 @@ rule split_pipe_comb:
     --genome_dir {reference.transcriptome_parsebio} \
     --sublibraries {params.sublibs} \
     --output_dir {params.outdir} \
-    --samp_list {parsebio_sample_list} \
     2>{log.err} 1>{log.log}
 """
 

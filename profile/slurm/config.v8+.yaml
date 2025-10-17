@@ -1,6 +1,6 @@
 jobs: 100
 restart-times: 0
-cluster-generic-submit-cmd: "sbatch --nodes=1 --ntasks={threads} --mem={resources.mem_mb} --time={resources.runtime} --partition={resources.slurm_partition}"
+cluster-generic-submit-cmd: "sbatch --nodes=1 --ntasks=1 --cpus-per-task={threads} --mem={resources.mem_mb} --time={resources.runtime_min} --partition={resources.slurm_partition}"
 max-jobs-per-second: 1
 max-status-checks-per-second: 10
 local-cores: 1
@@ -14,31 +14,26 @@ rerun-trigger: mtime # the traditional way of just considering file modification
 
 # Equavalent of cluster.json in previous version of snakemake
 default-resources:
-  runtime: 7200
+  runtime_min: 7200
   mem_mb: 100000
   disk_mb: 1000000
   slurm_partition: "norm"
 # set-threads: map rule names to threads
 set-threads:
-  count: 36
-  arc_count: 36
-  atac_count: 36
-  split_pipe_all: 36
-  split_pipe_comb: 36
+  count: 32
+  arc_count: 32
+  atac_count: 32
+  split_pipe_all: 32
+  split_pipe_comb: 32
 # set-resources: map rule names to resources in general
 set-resources:
   count:
-    mem_mb: 
-      773497
+    mem_mb: 773497
   arc_count:
-    mem_mb:
-      773497
+    mem_mb: 773497
   atac_count:
-    mem_mb:
-      773497
+    mem_mb: 773497
   split_pipe_all:
-    mem_mb:
-      773497
+    mem_mb: 773497
   split_pipe_comb:
-    mem_mb:
-      773497
+    mem_mb: 773497

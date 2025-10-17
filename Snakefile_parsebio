@@ -28,7 +28,7 @@ aggregate = getattr(config, "aggregate", True)
 aggr_output4ruleall = ["aggregate.complete"] if aggregate else []
 
 ## variable `samples` is created in Snakefile_singlecell_import
-if  config.pipeline == 'pipseq': ## only one sample 
+if  config.pipeline == 'parsebio': ## only one sample 
     aggregate = False
     aggr_output4ruleall = []
 

@@ -30,3 +30,5 @@ fastqc = "docker://quay.io/biocontainers/fastqc:0.12.1--hdfd78af_0"
 picard = "docker://quay.io/biocontainers/picard:3.4.0--hdfd78af_0"
 
 tenx_cloud_token_path = "/mnt/ccrsf-ifx/RefGenomes/SingleCell_REF/10X/CLI/txg"
+
+parsebio_split_pipe = "module purge; module load miniconda; conda activate /mnt/ccrsf-ifx/Software/tools/Parse_Pipeline/condaenv_spipe_v1.6.1/; split-pipe "

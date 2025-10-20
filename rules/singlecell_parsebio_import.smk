@@ -1,6 +1,15 @@
 import re
 
-current_cellranger = program.pipseeker
+current_cellranger = program.parsebio_split_pipe
+if "split-pipe" in current_cellranger or 'spipe' in current_cellranger:
+    split_version = re.search(r"spipe_v(\d+\.\d+\.\d+)", current_cellranger)
+    if split_version:
+        version_info = split_version.group(1)
+        print(f"Split-pipe version: {version_info}")
+    else:
+        version_info = "unknown"
+        print(f"Could not extract version from: {current_cellranger}")
+    current_cellranger = f"split-pipe:{version_info}"
 
 include: "prep_fastq.smk"
 include: "fastqscreen.smk"

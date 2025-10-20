@@ -28,20 +28,18 @@ def createMetricsSummary(arg1):
     files.sort()
 
     workbook = xlsxwriter.Workbook(metricsPath + arg1+'.xlsx')
-    worksheet = workbook.add_worksheet("metrics_summary")
-    worksheet.set_column(0, 12, 10.1)
-    worksheet.set_column(13, 16, 12.2)
-    worksheet.set_column(17,20, 10)
-
+    worksheet_comb = workbook.add_worksheet("split_pipe_comb")
+    worksheet = workbook.add_worksheet("sublibrary")
     formatFloat = workbook.add_format({'num_format': '#,##0.00'})
     formatNum = workbook.add_format({'num_format': '#,##'})
     formatPer = workbook.add_format({'num_format': '0.00%'})
     formatHead = workbook.add_format({'bold': True, 'italic': True, 'text_wrap': True, 'align': 'center'})
 
-    # Write headers first
+    # Write headers for both worksheets
     row = 0
     col = 0
     worksheet.write(row, col, "Sublibrary", formatHead)
+    worksheet_comb.write(row, col, "Sample", formatHead)
     col = 1
     
     # Get statistics from the first file to write column headers
@@ -51,9 +49,11 @@ def createMetricsSummary(arg1):
         
         for statistic in statistics[1:]:  # Skip first item (which was "statistic")
             worksheet.write(row, col, statistic, formatHead)
+            worksheet_comb.write(row, col, statistic, formatHead)
             col += 1
     
     row = 1
+    row_comb = 1
     sublibraries = list()
     for filename in files:
         print("Processing file: ", filename)
@@ -75,8 +75,19 @@ def createMetricsSummary(arg1):
             else:
                 processed_sample_name = sample_name
             print(processed_sample_name)
+            
+            # Determine which worksheet to use
+            if processed_sample_name.startswith("split_pipe_comb__"):
+                current_worksheet = worksheet_comb
+                current_row = row_comb
+                row_comb += 1
+            else:
+                current_worksheet = worksheet
+                current_row = row
+                row += 1
+            
             # Write sample name in first column
-            worksheet.write(row, 0, processed_sample_name)
+            current_worksheet.write(current_row, 0, processed_sample_name)
             
             # Write each statistic value
             col = 1
@@ -84,16 +95,30 @@ def createMetricsSummary(arg1):
                 value = str(value).strip('"')
                 try:
                     if '.' in value:
-                        worksheet.write(row, col, float(value.replace(',','')), formatFloat)
+                        current_worksheet.write(current_row, col, float(value.replace(',','')), formatFloat)
                     elif '%' in value:
-                        worksheet.write(row, col, float(value.strip('%'))/100, formatPer)
+                        current_worksheet.write(current_row, col, float(value.strip('%'))/100, formatPer)
                     else:
-                        worksheet.write(row, col, int(value.replace(',','')), formatNum)
+                        current_worksheet.write(current_row, col, int(value.replace(',','')), formatNum)
                 except ValueError:
                     # If conversion fails, write as string
-                    worksheet.write(row, col, value)
+                    current_worksheet.write(current_row, col, value)
                 col += 1
-            row += 1
+
+    # Auto-adjust column widths for both worksheets
+    # Get the number of columns from the first file
+    if files:
+        transposed_data = transpose_csv_with_zip(files[0])
+        num_columns = len(transposed_data[0])
+        
+        # Set wider columns for better readability
+        for col_num in range(num_columns):
+            if col_num == 0:  # First column (sample names) - make it wider
+                worksheet.set_column(col_num, col_num, 25)
+                worksheet_comb.set_column(col_num, col_num, 25)
+            else:  # Data columns
+                worksheet.set_column(col_num, col_num, 15)
+                worksheet_comb.set_column(col_num, col_num, 15)
 
     #for i in sublibraries:
     #    worksheet = workbook.add_worksheet(i)

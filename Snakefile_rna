@@ -19,20 +19,31 @@ aggr_output4ruleall = ["aggregate.complete"] if aggregate else []
 if len(samples) == 1:  ## only one sample 
     aggregate = False
     aggr_output4ruleall = []
-
 include: "rules/singlecell_rules_common.smk"
 include: "rules/singlecell_rna_import.smk"
-
-#rule_all_append defined in Snakefile_singlecell_import
+## Full analysis part
+fullanalysis = getattr(config, "fullanalysis", True)
+rule_all_fullanalysis_append = []
+if fullanalysis == True:
+    if config.ref.startswith("hg38") or config.ref.startswith("mm10"):
+        include: "rules/singlecell_rna_seurat_proc.smk"
+        include: "rules/singlecell_rna_singleR.smk"
+        include: "rules/singlecell_rna_report.smk"
+        rule_all_fullanalysis_append = [expand(os.path.join(analysis, "{sample}/singleR/seur_10x_cluster_singler.rds"), sample=samples),
+                                        expand(os.path.join(analysis, "{sample}/seurat/seur_10x_cluster_object.rds"), sample=samples), 
+                                        expand(os.path.join(analysis, "{sample}_sc_report.html"), sample = samples)]
+    else: 
+        print("Warning: Full analysis is only supported for human (hg38) and mouse (mm10) samples. Skipping full analysis...")
 
 copy_complete = 'copy.complete'
 if external == True:
     wreport_result = []
-    xreport_result = [] 
+    xreport_result = []
     copy_complete = []
 
 rule all:
-    input: 
+    input:
+        rule_all_fullanalysis_append,
         expand("run_{sample}_10x_cellranger_count.err", sample=samples), 
         "finalreport/metric_summary.xlsx", 
         expand("finalreport/summaries/{sample}_web_summary.html", sample=samples), 

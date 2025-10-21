@@ -3,6 +3,7 @@ import config
 genomename = ""
 if config.ref == "mm10":
     transcriptome = "/mnt/ccrsf-ifx/RefGenomes/10X_REF/refdata-cellranger-4.0.0/refdata-gex-mm10-2020-A"
+    transcriptome_parsebio = "/mnt/ccrsf-ifx/RefGenomes/SingleCell_REF/ParseBio/mm10"
     gtf = "/mnt/ccrsf-ifx/RefGenomes/10X_REF/refdata-cellranger-4.0.0/refdata-gex-mm10-2020-A/genes/genes.gtf"
     vgtf10x = "/mnt/ccrsf-ifx/RefGenomes/10X_REF/mm10_rmsk.gtf"
     markers = "/mnt/ccrsf-ifx/Software/scripts/bin/currentsnake/single_cell/gene_lists/mouse_gene_list.csv"
@@ -27,6 +28,7 @@ if config.ref == "hg19":
     genomename = "hg19"
 if config.ref == "hg38":
     transcriptome = "/mnt/ccrsf-ifx/RefGenomes/10X_REF/refdata-cellranger-4.0.0/refdata-gex-GRCh38-2020-A"
+    transcriptome_parsebio = "/mnt/ccrsf-ifx/RefGenomes/SingleCell_REF/ParseBio/hg38/GRCh38-2024-A/"
     gtf = "/mnt/ccrsf-ifx/RefGenomes/10X_REF/refdata-cellranger-4.0.0/refdata-gex-GRCh38-2020-A/genes/genes.gtf"
     vgtf10x = "/mnt/ccrsf-ifx/RefGenomes/10X_REF/hg38_rmsk.gtf"
     markers = "/mnt/ccrsf-ifx/Software/scripts/bin/currentsnake/single_cell/gene_lists/human_gene_list.csv"

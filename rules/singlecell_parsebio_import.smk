@@ -87,8 +87,7 @@ rule summaryFiles:
     input: 
         rules.split_pipe_comb.output,
     params:
-        summary_script = ""
+        summary_script = "workflow/scripts/parsebio/generateSummaryFiles.py"
     output: 
-        "finalreport/metric_summary.xlsx",
-        expand("finalreport/summaries/{sample}_report.html", sample=samples)
+        touch("finalreport/metric_summary.xlsx"),
     shell: "python {params.summary_script}"

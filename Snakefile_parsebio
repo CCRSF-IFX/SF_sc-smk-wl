@@ -44,8 +44,6 @@ if external == True:
 
 rule all:
     input:
-        #expand("{sample}/barcodes/barcode_whitelist.txt", sample=samples),  
-        #expand("run_{sample}_fluent_pipseq_count.log", sample=samples),
         "finalreport/metric_summary.xlsx", 
         aggr_output4ruleall, 
         wreport_result, 

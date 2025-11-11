@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
-## Some of the code were borrowed from cellsnake here: https://github.com/sinanugur/scrna-workflow
+# Adapted from cellsnake here: https://github.com/sinanugur/scrna-workflow
 
 option_list <- list(
   optparse::make_option(c("--min.cells"),
@@ -35,6 +35,8 @@ opt <- optparse::parse_args(opt_parser)
 system(paste0("mkdir -p ", opt$outdir))
 
 
+
+
 library(Seurat)
 library(Matrix)
 library(MASS)
@@ -50,7 +52,30 @@ opt
 system(paste0("mkdir -p ", opt$outdir))
 setwd(opt$outdir) 
 
-count_mtx = Read10X(data.dir = opt$data.dir)
+# Initialize variable (optional but explicit)
+count_mtx <- NULL  
+
+# Define file paths
+parsebio_files <- c("count_matrix.mtx", "all_genes.csv", "cell_metadata.csv")
+tenx_files <- c("matrix.mtx", "matrix.mtx.gz", 
+                "features.tsv", "features.tsv.gz",
+                "genes.tsv", "genes.tsv.gz",
+                "barcodes.tsv", "barcodes.tsv.gz")
+
+# Check file existence
+has_parsebio <- all(file.exists(file.path(opt$data.dir, parsebio_files)))
+has_10x <- any(file.exists(file.path(opt$data.dir, tenx_files)))
+
+# Select reader
+if (has_parsebio) {
+  message("Detected ParseBio format.")
+  count_mtx <- ReadParseBio(data.dir = opt$data.dir)
+} else if (has_10x) {
+  message("Detected 10x Genomics format.")
+  count_mtx <- Read10X(data.dir = opt$data.dir)
+} else {
+  stop("No recognized data format found in: ", opt$data.dir)
+}
 
 
 seur <- CreateSeuratObject(counts = count_mtx,
@@ -68,6 +93,7 @@ if (startsWith(opt$genome, "mm10") | startsWith(opt$genome, "mm39")) {
 }
 
 head(seur@meta.data)
+summary(seur@meta.data$percent.mito)
 
 png("VlnPlot_PreFilter.png", height=7, width=7, units='in', res=200)
 VlnPlot(seur, features = c("nFeature_RNA", "nCount_RNA", "percent.mito"), ncol = 3)

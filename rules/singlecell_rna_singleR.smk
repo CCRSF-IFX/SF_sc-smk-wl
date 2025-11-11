@@ -10,20 +10,41 @@ def load_gene_list(config_ref):
 
 gene_list_file = load_gene_list(config.ref)
 
-rule singleR_annotation:
-    """
-    SingleR annotation
-    """
-    input:
-        seur = rules.seurat_proc.output.seur 
-    params:
-        outdir = os.path.join(analysis, "{sample}/singleR/"),
-    log:
-        os.path.join(analysis, "{sample}/singleR/singleR.log")
-    output:
-        seur = os.path.join(analysis, "{sample}/singleR/seur_10x_cluster_singler.rds")
-    container: program.Renv
-    shell:
+if config.pipeline == "parsebio":
+    rule singleR_annotation:
         """
-Rscript {analysis}/workflow/scripts/rna/sc_singleR.prod.R --genome={config.ref} --markerList={gene_list_file} --rds={input.seur} --outdir={params.outdir} > {log} 2>&1
-"""
+        SingleR annotation
+        """
+        input:
+            seur = rules.seurat_proc.output.seur 
+        params:
+            outdir = os.path.join(analysis, "split_pipe_comb/{parsebio_sample}/singleR/"),
+        log:
+            os.path.join(analysis, "split_pipe_comb/{parsebio_sample}/singleR/singleR.log")
+        output:
+            seur = os.path.join(analysis, "split_pipe_comb/{parsebio_sample}/singleR/seur_10x_cluster_singler.rds")
+        container: program.Renv
+        shell:
+            """
+    Rscript {analysis}/workflow/scripts/rna/sc_singleR.prod.R \
+            --genome={config.ref} --markerList={gene_list_file} \
+            --rds={input.seur} --outdir={params.outdir} > {log} 2>&1
+    """
+else:
+    rule singleR_annotation:
+        """
+        SingleR annotation
+        """
+        input:
+            seur = rules.seurat_proc.output.seur 
+        params:
+            outdir = os.path.join(analysis, "{sample}/singleR/"),
+        log:
+            os.path.join(analysis, "{sample}/singleR/singleR.log")
+        output:
+            seur = os.path.join(analysis, "{sample}/singleR/seur_10x_cluster_singler.rds")
+        container: program.Renv
+        shell:
+            """
+    Rscript {analysis}/workflow/scripts/rna/sc_singleR.prod.R --genome={config.ref} --markerList={gene_list_file} --rds={input.seur} --outdir={params.outdir} > {log} 2>&1
+    """

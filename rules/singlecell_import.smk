@@ -517,3 +517,40 @@ def process_config_attr(config, attr, sample, flags):
             config.hashing_with_abc = False
         if config.hashing_with_abc == True:
             flags.append("--hashing_with_abc")
+
+def get_parsebio_sample_names(sample_list_path):
+    """
+    Parse a list of ParseBio sample names and construct their corresponding input/output directories.
+
+    This function reads a tab-delimited text file containing sample identifiers (one per line)
+    and returns a dictionary mapping each sample name to its associated directories used
+    in downstream processing (e.g., DGE-filtered matrices and Seurat outputs).
+
+    Lines that are blank or begin with '//' are ignored.
+
+    Parameters
+    ----------
+    sample_list_path : str
+        Path to a text file listing sample names. Each line should contain at least
+        one tab-separated value representing the sample name.
+
+    Returns
+    -------
+    dict
+        A dictionary where:
+            - Keys are sample names (str)
+            - Values are lists of two directory paths (str):
+                [0]: Path to the DGE-filtered matrix directory
+                [1]: Path to the Seurat output directory
+    """
+    parsebio_samples = {}
+    with open(sample_list_path, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith('//'):
+                continue
+            parts = line.split('\t')
+            if len(parts) >= 1:
+                parsebio_samples[parts[0]] = [os.path.join(analysis, "split_pipe_comb", parts[0], "DGE_filtered/"),
+                                               os.path.join(analysis, "split_pipe_comb", parts[0], "seurat/")]
+    return parsebio_samples

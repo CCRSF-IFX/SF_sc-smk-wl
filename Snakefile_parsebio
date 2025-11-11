@@ -35,6 +35,23 @@ if  config.pipeline == 'parsebio': ## only one sample
 chemistry = config.chemistry
 include: "rules/singlecell_parsebio_import.smk"
 
+## Full analysis part
+parsebio_samples = get_parsebio_sample_names(config.parsebio_sample_list)
+print(parsebio_samples)
+fullanalysis = getattr(config, "fullanalysis", True)
+rule_all_fullanalysis_append = []
+if fullanalysis == True:
+    if config.ref.startswith("hg38") or config.ref.startswith("mm10"):
+        include: "rules/singlecell_rna_seurat_proc.smk"
+        include: "rules/singlecell_rna_singleR.smk"
+        include: "rules/singlecell_rna_report.smk"
+        rule_all_fullanalysis_append = [
+            expand(os.path.join(analysis, "split_pipe_comb/{parsebio_sample}/singleR/seur_10x_cluster_singler.rds"), parsebio_sample=parsebio_samples.keys()),
+            expand(os.path.join(analysis, "split_pipe_comb/{parsebio_sample}/seurat/seur_10x_cluster_object.rds"), parsebio_sample=parsebio_samples.keys()), 
+            expand(os.path.join(analysis, "split_pipe_comb/{parsebio_sample}_sc_report.html"), parsebio_sample=parsebio_samples.keys())]
+    else: 
+        print("Warning: Full analysis is only supported for human (hg38) and mouse (mm10) samples. Skipping full analysis...")
+
 copy_complete = 'copy.complete'
 
 if external == True:
@@ -44,6 +61,7 @@ if external == True:
 
 rule all:
     input:
+        rule_all_fullanalysis_append,
         "finalreport/metric_summary.xlsx", 
         aggr_output4ruleall, 
         wreport_result, 

@@ -1,0 +1,178 @@
+$rds
+[1] "/mnt/ccrsf-static/singlecell_projects/CarolinaBarillasMury_CS039906_16Parselib_081125/Analysis/split_pipe_comb/1V232R/seurat/seur_10x_cluster_object.rds"
+
+$sampleid
+[1] "scRNA"
+
+$genome
+[1] "hg38"
+
+$markerList
+[1] "/mnt/ccrsf-static/singlecell_projects/CarolinaBarillasMury_CS039906_16Parselib_081125/Analysis/workflow/data/marker_genelist/human_gene_list.csv"
+
+$outdir
+[1] "/mnt/ccrsf-static/singlecell_projects/CarolinaBarillasMury_CS039906_16Parselib_081125/Analysis/split_pipe_comb/1V232R/singleR/"
+
+$help
+[1] FALSE
+
+Loading required package: SeuratObject
+Loading required package: sp
+
+Attaching package: ‘SeuratObject’
+
+The following object is masked from ‘package:base’:
+
+    intersect
+
+Loading required package: SummarizedExperiment
+Loading required package: MatrixGenerics
+Loading required package: matrixStats
+
+Attaching package: ‘MatrixGenerics’
+
+The following objects are masked from ‘package:matrixStats’:
+
+    colAlls, colAnyNAs, colAnys, colAvgsPerRowSet, colCollapse,
+    colCounts, colCummaxs, colCummins, colCumprods, colCumsums,
+    colDiffs, colIQRDiffs, colIQRs, colLogSumExps, colMadDiffs,
+    colMads, colMaxs, colMeans2, colMedians, colMins, colOrderStats,
+    colProds, colQuantiles, colRanges, colRanks, colSdDiffs, colSds,
+    colSums2, colTabulates, colVarDiffs, colVars, colWeightedMads,
+    colWeightedMeans, colWeightedMedians, colWeightedSds,
+    colWeightedVars, rowAlls, rowAnyNAs, rowAnys, rowAvgsPerColSet,
+    rowCollapse, rowCounts, rowCummaxs, rowCummins, rowCumprods,
+    rowCumsums, rowDiffs, rowIQRDiffs, rowIQRs, rowLogSumExps,
+    rowMadDiffs, rowMads, rowMaxs, rowMeans2, rowMedians, rowMins,
+    rowOrderStats, rowProds, rowQuantiles, rowRanges, rowRanks,
+    rowSdDiffs, rowSds, rowSums2, rowTabulates, rowVarDiffs, rowVars,
+    rowWeightedMads, rowWeightedMeans, rowWeightedMedians,
+    rowWeightedSds, rowWeightedVars
+
+Loading required package: GenomicRanges
+Loading required package: stats4
+Loading required package: BiocGenerics
+
+Attaching package: ‘BiocGenerics’
+
+The following object is masked from ‘package:SeuratObject’:
+
+    intersect
+
+The following objects are masked from ‘package:stats’:
+
+    IQR, mad, sd, var, xtabs
+
+The following objects are masked from ‘package:base’:
+
+    anyDuplicated, aperm, append, as.data.frame, basename, cbind,
+    colnames, dirname, do.call, duplicated, eval, evalq, Filter, Find,
+    get, grep, grepl, intersect, is.unsorted, lapply, Map, mapply,
+    match, mget, order, paste, pmax, pmax.int, pmin, pmin.int,
+    Position, rank, rbind, Reduce, rownames, sapply, setdiff, sort,
+    table, tapply, union, unique, unsplit, which.max, which.min
+
+Loading required package: S4Vectors
+
+Attaching package: ‘S4Vectors’
+
+The following object is masked from ‘package:utils’:
+
+    findMatches
+
+The following objects are masked from ‘package:base’:
+
+    expand.grid, I, unname
+
+Loading required package: IRanges
+
+Attaching package: ‘IRanges’
+
+The following object is masked from ‘package:sp’:
+
+    %over%
+
+Loading required package: GenomeInfoDb
+Loading required package: Biobase
+Welcome to Bioconductor
+
+    Vignettes contain introductory material; view with
+    'browseVignettes()'. To cite Bioconductor, see
+    'citation("Biobase")', and for packages 'citation("pkgname")'.
+
+
+Attaching package: ‘Biobase’
+
+The following object is masked from ‘package:MatrixGenerics’:
+
+    rowMedians
+
+The following objects are masked from ‘package:matrixStats’:
+
+    anyMissing, rowMedians
+
+
+Attaching package: ‘SummarizedExperiment’
+
+The following object is masked from ‘package:Seurat’:
+
+    Assays
+
+The following object is masked from ‘package:SeuratObject’:
+
+    Assays
+
+
+Attaching package: ‘celldex’
+
+The following objects are masked from ‘package:SingleR’:
+
+    BlueprintEncodeData, DatabaseImmuneCellExpressionData,
+    HumanPrimaryCellAtlasData, ImmGenData, MonacoImmuneData,
+    MouseRNAseqData, NovershternHematopoieticData
+
+Warning messages:
+1: Layer ‘data’ is empty 
+2: Layer ‘scale.data’ is empty 
+Error in `combine_vars()`:
+! Faceting variables must have at least one value.
+Backtrace:
+     ▆
+  1. └─global generatePlots("blueprintencode_hpca", pred.multi, seur, geneList)
+  2.   ├─base::print(plotDeltaDistribution(pred, show = "delta.med", ncol = 3))
+  3.   └─SingleR::plotDeltaDistribution(pred, show = "delta.med", ncol = 3)
+  4.     ├─base::do.call(gridExtra::grid.arrange, c(plots, grid.vars))
+  5.     └─gridExtra (local) `<fn>`(`<gg>`, `<gg>`)
+  6.       └─gridExtra::arrangeGrob(...)
+  7.         └─base::lapply(grobs[toconv], ggplot2::ggplotGrob)
+  8.           └─ggplot2 (local) FUN(X[[i]], ...)
+  9.             ├─ggplot2::ggplot_gtable(ggplot_build(x))
+ 10.             │ └─ggplot2:::attach_plot_env(data$plot$plot_env)
+ 11.             │   └─base::options(ggplot2_plot_env = env)
+ 12.             ├─ggplot2::ggplot_build(x)
+ 13.             └─ggplot2:::ggplot_build.ggplot(x)
+ 14.               └─layout$setup(data, plot$data, plot$plot_env)
+ 15.                 └─ggplot2 (local) setup(..., self = self)
+ 16.                   └─self$facet$compute_layout(data, self$facet_params)
+ 17.                     └─ggplot2 (local) compute_layout(..., self = self)
+ 18.                       └─ggplot2::combine_vars(data, params$plot_env, vars, drop = params$drop)
+ 19.                         └─cli::cli_abort("Faceting variables must have at least one value.")
+ 20.                           └─rlang::abort(...)
+Warning messages:
+1: In .plot_delta_distribution(values = values, labels = labels, pruned = pruned,  :
+  ignoring 'labels.use' as it has no values in HPCA delta.med
+2: Groups with fewer than two datapoints have been dropped.
+ℹ Set `drop = FALSE` to consider such groups for position adjustment purposes. 
+3: In max(data$density, na.rm = TRUE) :
+  no non-missing arguments to max; returning -Inf
+4: Computation failed in `stat_ydensity()`.
+Caused by error in `$<-.data.frame`:
+! replacement has 1 row, data has 0 
+5: Groups with fewer than two datapoints have been dropped.
+ℹ Set `drop = FALSE` to consider such groups for position adjustment purposes. 
+6: In max(data$density, na.rm = TRUE) :
+  no non-missing arguments to max; returning -Inf
+7: Computation failed in `stat_ydensity()`.
+Caused by error in `$<-.data.frame`:
+! replacement has 1 row, data has 0 
+Execution halted

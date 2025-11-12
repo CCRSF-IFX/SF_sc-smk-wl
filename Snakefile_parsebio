@@ -38,7 +38,7 @@ include: "rules/singlecell_parsebio_import.smk"
 ## Full analysis part
 parsebio_samples = get_parsebio_sample_names(config.parsebio_sample_list)
 print(parsebio_samples)
-fullanalysis = getattr(config, "fullanalysis", True)
+fullanalysis = getattr(config, "fullanalysis", False)
 rule_all_fullanalysis_append = []
 if fullanalysis == True:
     if config.ref.startswith("hg38") or config.ref.startswith("mm10"):

@@ -22,7 +22,7 @@ if len(samples) == 1:  ## only one sample
 include: "rules/singlecell_rules_common.smk"
 include: "rules/singlecell_rna_import.smk"
 ## Full analysis part
-fullanalysis = getattr(config, "fullanalysis", True)
+fullanalysis = getattr(config, "fullanalysis", False)
 rule_all_fullanalysis_append = []
 if fullanalysis == True:
     if config.ref.startswith("hg38") or config.ref.startswith("mm10"):

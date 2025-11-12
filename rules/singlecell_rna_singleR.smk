@@ -22,7 +22,7 @@ if config.pipeline == "parsebio":
         log:
             os.path.join(analysis, "split_pipe_comb/{parsebio_sample}/singleR/singleR.log")
         output:
-            seur = os.path.join(analysis, "split_pipe_comb/{parsebio_sample}/singleR/seur_10x_cluster_singler.rds")
+            seur = os.path.join(analysis, "split_pipe_comb/{parsebio_sample}/singleR/seur_10x_cluster_singler.rds"),
         container: program.Renv
         shell:
             """

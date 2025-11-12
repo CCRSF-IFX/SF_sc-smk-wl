@@ -7,15 +7,17 @@ if config.pipeline == "parsebio":
         params: 
             dir = os.path.join(analysis, 'split_pipe_comb/{parsebio_sample}/'), 
             out = analysis, 
-            smp = "{parsebio_sample}"
+            smp = "{parsebio_sample}",
+            html = os.path.join(analysis, "{parsebio_sample}_sc_report.html")
         output: 
-            os.path.join(analysis, "split_pipe_comb/{parsebio_sample}_sc_report.html")
+            html = os.path.join(analysis, "split_pipe_comb/{parsebio_sample}_sc_report.html")
         container: program.Renv4rmd
         shell: 
             """
     cd {params.dir}
     cp {analysis}/workflow/scripts/rna/single_cell_report.Rmd ./
     Rscript -e 'rmarkdown::render("single_cell_report.Rmd", params = list(project = "{params.smp}", dir = "{params.dir}", sample = "{params.smp}"), output_file = "{output}", output_dir = "{params.out}")'
+    mv {params.html} {output.html}
     rm single_cell_report.Rmd
     """
 else:

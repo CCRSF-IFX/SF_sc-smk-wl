@@ -4,11 +4,11 @@
 
 option_list <- list(
   optparse::make_option(c("--min.cells"),
-    type = "integer", default = 0,
+    type = "integer", default = 1,
     help = "Min cells [default= %default]", metavar = "integer"
   ),
   optparse::make_option(c("--min.features"),
-    type = "integer", default = 0,
+    type = "integer", default = 1,
     help = "Min features, nFeature_RNA [default= %default]", metavar = "character"
   ),
   optparse::make_option(c("--data.dir"),
@@ -93,7 +93,7 @@ if (startsWith(opt$genome, "mm10") | startsWith(opt$genome, "mm39")) {
 }
 
 head(seur@meta.data)
-summary(seur@meta.data$percent.mito)
+
 
 png("VlnPlot_PreFilter.png", height=7, width=7, units='in', res=200)
 VlnPlot(seur, features = c("nFeature_RNA", "nCount_RNA", "percent.mito"), ncol = 3)
@@ -129,16 +129,34 @@ temp_crapLibs <- (cS$libSize < umi.lower.limit) | (cS$geneDetect < gene.lower.li
 
 print(mito.upper.limit)
 
-filter_summary <- t(data.frame(c("Doublets"=sum(temp_doublets), "Poor-Quality"=sum(temp_crapLibs), "Mitochondrial"=sum(seur$percent.mito > mito.upper.limit), "Total Filtered"=sum(temp_doublets | temp_crapLibs | seur$percent.mito > mito.upper.limit))))
+#filter_summary <- t(data.frame(c("Doublets"=sum(temp_doublets), "Poor-Quality"=sum(temp_crapLibs), "Mitochondrial"=sum(seur$percent.mito > mito.upper.limit), "Total Filtered"=sum(temp_doublets | temp_crapLibs | seur$percent.mito > mito.upper.limit))))
+
+filter_summary <- t(data.frame(c(
+  "Doublets"=sum(temp_doublets),
+  "Poor-Quality"=sum(temp_crapLibs),
+  "Mitochondrial"=sum(seur$percent.mito >= mito.upper.limit),
+  "Total Filtered"=sum(temp_doublets | temp_crapLibs | seur$percent.mito >= mito.upper.limit)
+)))
+
+dim(seur)
 
 rownames(filter_summary) = opt$sampleid
 filter_summary
 
 write.table(filter_summary, 'FilterNumbers.csv', sep=',', quote=FALSE, row.names=FALSE)
 
-seur <- subset(seur, subset = nFeature_RNA > gene.lower.limit & nFeature_RNA < gene.upper.limit)
-seur <- subset(seur, subset = nCount_RNA > umi.lower.limit & nCount_RNA < umi.upper.limit)
-seur <- subset(seur, subset = percent.mito < mito.upper.limit)
+seur <- subset(seur, subset = nFeature_RNA >= gene.lower.limit & nFeature_RNA <= gene.upper.limit)
+seur <- subset(seur, subset = nCount_RNA   >= umi.lower.limit  & nCount_RNA   <= umi.upper.limit)
+# Only apply mitochondrial filtering if the threshold is positive
+if (mito.upper.limit > 0) {
+  seur <- subset(seur, subset = percent.mito <= mito.upper.limit)
+}
+
+# seur@misc$qc_cutoffs <- list(
+#   gene = c(lower = gene.lower.limit, upper = gene.upper.limit),
+#   umi  = c(lower = umi.lower.limit,  upper = umi.upper.limit),
+#   mito = mito.upper.limit
+# )
 
 write.table(data.frame(umi.upper.limit, umi.lower.limit, gene.upper.limit, gene.lower.limit, mito.upper.limit), 
             'FilterThresholds.csv', sep=',', quote=FALSE, row.names = FALSE)

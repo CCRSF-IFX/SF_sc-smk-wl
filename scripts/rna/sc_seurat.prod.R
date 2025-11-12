@@ -4,11 +4,11 @@
 
 option_list <- list(
   optparse::make_option(c("--min.cells"),
-    type = "integer", default = 1,
+    type = "integer", default = 0,
     help = "Min cells [default= %default]", metavar = "integer"
   ),
   optparse::make_option(c("--min.features"),
-    type = "integer", default = 1,
+    type = "integer", default = 0,
     help = "Min features, nFeature_RNA [default= %default]", metavar = "character"
   ),
   optparse::make_option(c("--data.dir"),

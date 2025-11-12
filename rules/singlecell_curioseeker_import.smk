@@ -77,6 +77,7 @@ nextflow run /mnt/ccrsf-ifx/Software/tools/curioseeker/curioseeker-v3.0.0/main.n
 include: "prep_fastq.smk"
 include: "fastqscreen.smk"
 include: "kraken.smk"
+include: "prep_fastq_folder_ln.smk"
 include: "fastqc4QC.smk"
 include: "multiqc.smk"
 

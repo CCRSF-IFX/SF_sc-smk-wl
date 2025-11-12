@@ -57,7 +57,10 @@ generatePlots <- function(name, pred, seur, markers){
   pdf(paste0('ScoreDistribution_', name, '.pdf'), height=15)
   # plotScoreDistribution deprecated
   #print(plotScoreDistribution(pred, show = "delta.med", ncol = 3, show.nmads = 3))
-  print(plotDeltaDistribution(pred, show = "delta.med", ncol = 3))
+  tryCatch({
+    p <- plotDeltaDistribution(pred, show="delta.med", ncol=3)
+    print(p)
+  }, error=function(e) message("Skipping delta distribution plot: ", conditionMessage(e)))
   dev.off()
   seur@meta.data[name] <- ''
   seur@meta.data[rownames(pred),name] <- pred$pruned.labels

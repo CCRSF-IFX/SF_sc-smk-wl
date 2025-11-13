@@ -127,15 +127,22 @@ mito.upper.limit <- cur.med + diff.val
 temp_doublets <- (cS$libSize > umi.upper.limit) | (cS$geneDetect > gene.upper.limit) #doublets IDed based on high library size or genes detected
 temp_crapLibs <- (cS$libSize < umi.lower.limit) | (cS$geneDetect < gene.lower.limit) #poor libraries IDed based on low library size or genes detected
 
+range(seur$percent.mito)
 print(mito.upper.limit)
 
 #filter_summary <- t(data.frame(c("Doublets"=sum(temp_doublets), "Poor-Quality"=sum(temp_crapLibs), "Mitochondrial"=sum(seur$percent.mito > mito.upper.limit), "Total Filtered"=sum(temp_doublets | temp_crapLibs | seur$percent.mito > mito.upper.limit))))
 
+if (mito.upper.limit > 0) {
+  mito_filter <- seur$percent.mito > mito.upper.limit
+} else {
+  mito_filter <- rep(FALSE, length(seur$percent.mito))
+}
+
 filter_summary <- t(data.frame(c(
-  "Doublets"=sum(temp_doublets),
-  "Poor-Quality"=sum(temp_crapLibs),
-  "Mitochondrial"=sum(seur$percent.mito >= mito.upper.limit),
-  "Total Filtered"=sum(temp_doublets | temp_crapLibs | seur$percent.mito >= mito.upper.limit)
+  "Doublets"       = sum(temp_doublets),
+  "Poor-Quality"   = sum(temp_crapLibs),
+  "Mitochondrial"  = sum(mito_filter),
+  "Total Filtered" = sum(temp_doublets | temp_crapLibs | mito_filter)
 )))
 
 dim(seur)

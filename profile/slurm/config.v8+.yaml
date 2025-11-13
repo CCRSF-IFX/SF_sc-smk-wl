@@ -27,6 +27,10 @@ set-threads:
   split_pipe_comb: 32
 # set-resources: map rule names to resources in general
 set-resources:
+  seurat_proc:
+    mem_mb: 773497
+  singleR_annotation:
+    mem_mb: 773497
   count:
     mem_mb: 773497
   arc_count:

@@ -43,9 +43,8 @@ seur <- readRDS(opt$rds)
 
 DefaultAssay(seur) = "RNA"
 sce <- as.SingleCellExperiment(seur)
-
-sce <- as.SingleCellExperiment(seur)
 range(colSums(counts(sce)))
+DefaultAssay(seur) = "SCT"
 
 sce <- sce[, colSums(counts(sce)) > 0]
 

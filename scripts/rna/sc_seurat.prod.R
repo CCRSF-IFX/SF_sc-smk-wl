@@ -300,7 +300,6 @@ cat("Auto subsetting if cell number >", threshold_n, "\n")
 # Subset automatically if you exceed that limit
 if (ncol(seur) > threshold_n) {
   set.seed(1)
-  # target roughly 10% of threshold or as you wish
   cells.keep <- sample(colnames(seur), threshold_n)
   seur <- subset(seur, cells = cells.keep)
   cat("Subsetting applied:", length(cells.keep), "cells kept.\n")

@@ -284,6 +284,21 @@ for (res in umapPlots){
 }
 dev.off()
 
+# Compute theoretical maximum size allowed by dist()
+INT_MAX <- .Machine$integer.max                 # ~2,147,483,647
+n_max   <- floor((1 + sqrt(1 + 8*INT_MAX))/2)   # ~65536
+threshold_n <- 100 * as.integer(n_max / 100)    # 65500, rounded for safety
+
+cat("Auto subsetting if cell number >", threshold_n, "\n")
+# Subset automatically if you exceed that limit
+if (ncol(seur) > threshold_n) {
+  set.seed(1)
+  # target roughly 10% of threshold or as you wish
+  cells.keep <- sample(colnames(seur), threshold_n)
+  seur <- subset(seur, cells = cells.keep)
+  cat("Subsetting applied:", length(cells.keep), "cells kept.\n")
+} 
+
 ##Create Silhoutte Plots
 for (res in runRes){
   coord <- Embeddings(seur, reduction.type='pca')[,1:numPCs]

@@ -41,7 +41,15 @@ library(celldex)
 
 seur <- readRDS(opt$rds)
 
+DefaultAssay(seur) = "RNA"
 sce <- as.SingleCellExperiment(seur)
+
+sce <- as.SingleCellExperiment(seur)
+range(colSums(counts(sce)))
+
+sce <- sce[, colSums(counts(sce)) > 0]
+
+range(colSums(counts(sce)))
 
 sce <- scater::logNormCounts(sce)
 

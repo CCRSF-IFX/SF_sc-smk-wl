@@ -19,6 +19,10 @@ def get_summary_script4pipseq_data():
 numcell = getattr(config, "numcells", False)
 include_introns = getattr(config, "include_introns", True)
 
+flag_exons_only = " "
+if include_introns == True:
+    flag_exons_only = " --exons-only "
+
 def count_expect_force():
     params_cell_number = dict()
     cells_flag = ""
@@ -51,7 +55,7 @@ rule count:
         program.pipseeker
     shell:
         """
-rm -r {params.prefix}; pipseeker full --skip-version-check --chemistry {chemistry}  --fastq {params.prefix2}. --output-path {params.prefix} --star-index-path {reference.pipseq_reference}  {params.cells_flag} 2>{log.err} 1>{log.log}
+rm -r {params.prefix}; pipseeker full --skip-version-check {flag_exons_only} --chemistry {chemistry}  --fastq {params.prefix2}. --output-path {params.prefix} --star-index-path {reference.pipseq_reference}  {params.cells_flag} 2>{log.err} 1>{log.log}
 """
 
 rule aggregateCSV:

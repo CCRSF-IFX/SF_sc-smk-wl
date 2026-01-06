@@ -56,6 +56,10 @@ include: "fastqc4QC.smk"
 include: "multiqc.smk"
 include: "prep_fastq_folder_concat.smk"
 
+flag_chem_score_skip = ""
+if getattr(config, "chem_score_skip", False):
+    flag_chem_score_skip = "--chem_score_skip"
+
 if getattr(config, "chemistry", False) is False:
     raise ValueError("chemistry is a required config parameter for parsebio")
 if getattr(config, "kit", False) is False:
@@ -99,6 +103,7 @@ if tcr_enabled:
             chemistry = config.chemistry,
             immune_genome = immune_genome,
             parent_dir = lambda wildcards: get_tcr_parent_dir_from_dict(dict_tcr_parent, wildcards),
+            chem_score_skip = flag_chem_score_skip,
         shell:
             """
 rm -r {params.prefix}; 
@@ -106,6 +111,7 @@ rm -r {params.prefix};
     --mode all \
     --chemistry {params.chemistry} \
     --tcr_analysis \
+    {params.chem_score_skip} \
     --immune_genome {params.immune_genome} \
     --parent_dir {params.parent_dir} \
     --output_dir {params.prefix} \

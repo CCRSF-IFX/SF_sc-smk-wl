@@ -31,6 +31,12 @@ def get_tcr_parent_dir():
 
     return mapping
 
+def get_tcr_parent_dir_from_dict(tem_dict, wildcards):
+    tcr_key = wildcards if isinstance(wildcards, str) else wildcards.sample
+    if tcr_key not in tem_dict:
+        raise ValueError(f"TCR key '{tcr_key}' not found in the provided dictionary.")
+    return tem_dict[tcr_key]
+
 current_cellranger = program.parsebio_split_pipe
 if "split-pipe" in current_cellranger or 'spipe' in current_cellranger:
     split_version = re.search(r"spipe_v(\d+\.\d+\.\d+)", current_cellranger)
@@ -92,7 +98,7 @@ if tcr_enabled:
             prefix = "{sample}",
             chemistry = config.chemistry,
             immune_genome = immune_genome,
-            parent_dir = lambda wildcards: dict_tcr_parent[wildcards.sample],
+            parent_dir = lambda wildcards: get_tcr_parent_dir_from_dict(dict_tcr_parent, wildcards),
         shell:
             """
 rm -r {params.prefix}; 
@@ -113,7 +119,7 @@ rm -r {params.prefix};
         params:
             outdir = "split_pipe_comb",
             immune_genome = immune_genome,
-            parent_dir = lambda wildcards: dict_tcr_parent[wildcards.sample],
+            parent_dir = get_tcr_parent_dir_from_dict(dict_tcr_parent, "split_pipe_comb"),
             sublibs = expand(os.path.join(analysis, "{sample}"), sample=samples)
         output: 
             summary_html = "split_pipe_comb/all-sample_analysis_summary.html"

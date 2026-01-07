@@ -95,7 +95,7 @@ cd {one_up}; perl {active_script_folder}/run_GenerateAllReports.pl -flowcell {fl
             wreport_result
         params: 
             runs = ','.join(run_names), 
-            pipeline = config.pipeline, 
+            pipeline = config.pipeline + "_TCR" if getattr(config, "tcr", False) else config.pipeline,
             workflow_flag = get_flag4report,
         shell: 
             """

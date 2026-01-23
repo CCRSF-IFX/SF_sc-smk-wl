@@ -2,6 +2,23 @@
 
 import argparse, csv, re, os
 import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path().absolute())) 
+# Check if config.py and program.py exist in current working directory
+config_path = os.path.join(os.getcwd(), 'config.py')
+program_path = os.path.join(os.getcwd(), 'program.py')
+
+if not os.path.exists(config_path):
+    print("Error: config.py not found in current directory", file=sys.stderr)
+    sys.exit(1)
+
+if not os.path.exists(program_path):
+    print("Error: program.py not found in current directory", file=sys.stderr)
+    sys.exit(1)
+
+import config
+import program
 
 def main(raw_args=None):
     parser = argparse.ArgumentParser(description="""Help to set up and run the single cell multi pipeline""")
@@ -78,7 +95,10 @@ def main(raw_args=None):
         spamwriter = csv.writer(csvfile, delimiter=',')
         spamwriter.writerow(['[gene-expression]'])
         spamwriter.writerow(['reference', args.ref])
-        ## Parameter for fixed RNA profiling 
+        if "hg38" in config.ref or "mm10" in args.ref or "mm39" in args.ref:
+            spamwriter.writerow(['cell-annotation-model', 'auto'])
+            spamwriter.writerow(['tenx-cloud-token-path', program.tenx_cloud_token_path])
+        ## Parameter for fixed RNA profiling
         if args.probe_set != None:
             spamwriter.writerow(['probe-set', args.probe_set])
         if args.force:

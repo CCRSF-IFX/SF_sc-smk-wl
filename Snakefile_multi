@@ -11,19 +11,23 @@ import pandas as pd
 
 ## aggregate is set to "True" in the step below
 include: "rules/singlecell_import.smk"
+fastq_samples = list(samples)
 include: "rules/singlecell_featurebarcode_import.smk"
+multi_samples = list(samples)
+samples = multi_samples
 
 ## if there is only one sample, there is no need to run cellrange aggr 
 aggregate = getattr(config, "aggregate", True)
 aggr_output4ruleall = ["aggregate.complete"] if aggregate else []
 
 ## only one sample or Multiplexing Capture 
-if len(samples) == 1 or hasattr(config, "cmo") or config.pipeline == "fixedrna":
+if len(multi_samples) == 1 or hasattr(config, "cmo") or config.pipeline == "fixedrna":
     aggregate = False
     aggr_output4ruleall = []
 #rule_all_append defined in Snakefile_singlecell_import
 
 include: "rules/singlecell_rules_common.smk"
+include: "rules/singlecell_multi_import.smk"
 #include: program.Snakefile_singlecell_rules
 
 #localrules: librariesCSV, multiConfig, aggregateCSV
@@ -119,6 +123,7 @@ rule all:
         xreport_result, 
         copy_complete,  
         rule_all_append, 
+        "QC/" + project_name + "_multiqc.html", 
         aggr_output4ruleall
 
 rule librariesCSV:

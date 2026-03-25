@@ -1,10 +1,12 @@
 import os
+pipeline_name = getattr(config, "pipeline", "rna").lower()
+
 def get_flag4report(wildcards):
     flag = ""
-    if config.pipeline == "pipseq": 
+    if pipeline_name == "pipseq": 
         img_abs_path = os.path.join(os.getcwd(), "workflow/images/SingleCell_RNA_PIPseq.png")
         flag = flag + f" -w {img_abs_path}"
-    if config.pipeline == "fixedrna":
+    if pipeline_name == "fixedrna":
         multiplex = getattr(config, "multiplex", False) 
         if multiplex:
             flag = flag + f" --multiplex {config.multiplex}"
@@ -16,8 +18,10 @@ yields = getattr(config, "yields", False)
 args4wreport_yields = f"--yields {yields}" if yields else ""
 
 software = "Cellranger"
-if config.pipeline == "pipseq":
+if pipeline_name == "pipseq":
     software = "PIPseeker"
+elif pipeline_name in ("bdrhapsody", "bd_rhapsody"):
+    software = "BDRhapsody"
 
 # rule prep_fastq_folder:
 #     params:
@@ -31,14 +35,14 @@ if config.pipeline == "pipseq":
 
 def output_list_web_summary(wildcards):
     """Get the list of web summary from cellranger count or cellranger multi"""
-    if config.pipeline == "pipseq":
+    if pipeline_name == "pipseq":
         return expand("{sample}/barcodes/barcode_whitelist.txt", sample=samples)
-    elif config.pipeline == "multi":
+    elif pipeline_name == "multi":
         return expand("{sample}/outs/per_sample_outs/{sample}/web_summary.html", sample=samples)
     else:
         return expand("{sample}/outs/web_summary.html", sample=samples)
 
-if config.pipeline == "pipseq" or config.pipeline == "nopipe" or config.pipeline == "parsebio":
+if pipeline_name in ("pipseq", "nopipe", "parsebio", "bdrhapsody", "bd_rhapsody"):
     aggregate = False
 
 active_script_folder = ""

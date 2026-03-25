@@ -1,0 +1,38 @@
+#Snakefile for single cell pipeline
+#CCR-SF IFX
+#2026/03/25: add support for BD Rhapsody data
+
+from snakemake.utils import R
+import glob
+import os.path
+import os
+import itertools
+import sys
+
+include: "rules/singlecell_import.smk"
+
+aggregate = False
+aggr_output4ruleall = []
+
+include: "rules/singlecell_rules_common.smk"
+include: "rules/singlecell_bdrhapsody_import.smk"
+
+rule_all_fullanalysis_append = []
+copy_complete = 'copy.complete'
+
+if external == True:
+    wreport_result = []
+    xreport_result = []
+    copy_complete = []
+
+rule all:
+    input:
+        rule_all_fullanalysis_append,
+        "finalreport/metric_summary.xlsx",
+        expand("finalreport/summaries/{sample}_web_summary.html", sample=samples),
+        aggr_output4ruleall,
+        wreport_result,
+        xreport_result,
+        "QC/" + project_name + "_multiqc.html",
+        copy_complete,
+        rule_all_append

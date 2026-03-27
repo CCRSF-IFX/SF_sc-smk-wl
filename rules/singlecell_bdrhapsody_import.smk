@@ -33,18 +33,9 @@ def get_sample_path_list(attr, sample):
 
 
 def get_required_reference_archive(wildcards):
-    archive = get_sample_config_value(
-        "reference_archive",
-        wildcards.sample,
-        getattr(reference, "reference_archive_bdrhapsody", ""),
-    )
-    if archive in (None, ""):
-        raise ValueError(
-            "reference_archive is required for the BD Rhapsody pipeline. "
-            "Set config.reference_archive or define reference.reference_archive_bdrhapsody."
-        )
-    return archive
-
+    if getattr(reference, "reference_archive_bdrhapsody", False) is False:
+        raise ValueError("reference_archive_bdrhapsody is a required config parameter for the BD Rhapsody pipeline.")
+    return getattr(reference, "reference_archive_bdrhapsody", False)
 
 def shell_join_args(arg_pairs):
     args = []
@@ -63,25 +54,6 @@ def build_write_inputs_args(wildcards):
     sample = wildcards.sample
     scalar_pairs = [
         ("--file-field", f"Reference_Archive={get_required_reference_archive(wildcards)}"),
-        ("--scalar", f"Run_Name={get_sample_config_value('run_name', sample, sample)}"),
-        ("--scalar", f"Sample_Tags_Version={get_sample_config_value('sample_tags_version', sample)}"),
-        ("--scalar", f"VDJ_Version={get_sample_config_value('vdj_version', sample)}"),
-        ("--scalar", f"Cell_Calling_Data={get_sample_config_value('cell_calling_data', sample)}"),
-        (
-            "--scalar",
-            "Cell_Calling_Bioproduct_Algorithm="
-            f"{get_sample_config_value('cell_calling_bioproduct_algorithm', sample)}",
-        ),
-        (
-            "--scalar",
-            "Cell_Calling_ATAC_Algorithm="
-            f"{get_sample_config_value('cell_calling_atac_algorithm', sample)}",
-        ),
-        ("--scalar", f"Exact_Cell_Count={get_sample_config_value('exact_cell_count', sample)}"),
-        ("--scalar", f"Expected_Cell_Count={get_sample_config_value('expected_cell_count', sample)}"),
-        ("--scalar", f"Maximum_Threads={get_sample_config_value('maximum_threads', sample)}"),
-        ("--scalar", f"Custom_STAR_Params={get_sample_config_value('custom_star_params', sample)}"),
-        ("--scalar", f"Custom_bwa_mem2_Params={get_sample_config_value('custom_bwa_mem2_params', sample)}"),
     ]
     args = shell_join_args(scalar_pairs)
 
@@ -129,13 +101,17 @@ rule write_bdrhapsody_inputs:
         r1=rules.make_fastq_concat.output.r1,
         r2=rules.make_fastq_concat.output.r2,
     output:
-        "{sample}/pipeline_inputs.yml"
+        "{sample}_pipeline_inputs.yml"
     params:
         extra_args=build_write_inputs_args,
         script=os.path.join(analysis, "workflow/scripts/bdrhapsody/write_inputs.py"),
     shell:
         """
-python {params.script}     --output {output}     --read {input.r1}     --read {input.r2}     {params.extra_args}
+python {params.script} \
+    --output {output}  \
+    --read {input.r1}  \
+    --read {input.r2}  \
+    {params.extra_args}
 """
 
 
@@ -145,34 +121,35 @@ rule count:
         r1=rules.make_fastq_concat.output.r1,
         r2=rules.make_fastq_concat.output.r2,
     output:
-        web_summary="{sample}/outs/web_summary.html",
-        metrics="{sample}/outs/metrics_summary.csv",
-        matrix="{sample}/outs/filtered_feature_bc_matrix/matrix.mtx.gz",
-        features="{sample}/outs/filtered_feature_bc_matrix/features.tsv.gz",
-        barcodes="{sample}/outs/filtered_feature_bc_matrix/barcodes.tsv.gz",
+        web_summary="{sample}/{sample}_Pipeline_Report.html",
+        metrics="{sample}/{sample}_Metrics_Summary.csv",
     log:
         err="run_{sample}_bdrhapsody.err",
         log="run_{sample}_bdrhapsody.log",
     params:
-        rawdir=lambda wildcards: os.path.join(analysis, wildcards.sample, "bdrhapsody_raw"),
+        outdir=os.path.join(analysis, "{sample}"),
         script=os.path.join(analysis, "workflow/scripts/bdrhapsody/collect_outputs.py"),
         vendor=program.bdrhapsody,
     shell:
         r"""
 set -euo pipefail
-rm -rf {params.rawdir} {wildcards.sample}/outs
-mkdir -p {params.rawdir}
-
-{params.vendor} pipeline --no-parallel --outdir {params.rawdir} {input.yaml} > {log.log} 2> {log.err} || true
-
-python {params.script}     --sample {wildcards.sample}     --rawdir {params.rawdir}     --outs {wildcards.sample}/outs     --vendor-log {log.log}     --vendor-err {log.err}
+rm -rf {params.outdir}
+echo "Before module load R/4.5.2:" > {log.log}
+which R >> {log.log}
+module load R/4.5.2
+echo "After module load R/4.5.2:" >> {log.log}
+which R >> {log.log}
+{params.vendor} pipeline --no-parallel \
+        --outdir {params.outdir}\
+         {input.yaml} \
+         >> {log.log} 2> {log.err} || true
 """
 
 
 rule summaryFiles:
     input:
-        expand("{sample}/outs/metrics_summary.csv", sample=samples),
-        expand("{sample}/outs/web_summary.html", sample=samples),
+        expand(rules.count.output.metrics, sample=samples),
+        expand(rules.count.output.web_summary, sample=samples),
     output:
         "finalreport/metric_summary.xlsx",
         expand("finalreport/summaries/{sample}_web_summary.html", sample=samples),

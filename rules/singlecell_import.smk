@@ -205,11 +205,11 @@ def filterFastq4nopipe(wildcards):
             break
 
     if detected_sample_folder is None:
-        sys.stderr.write(f"\nError: No FASTQ folder found for sample {detected_sample_folder}. Check the directory structure.\n\n")
+        sys.stderr.write(f"\nError: No FASTQ folder found for sample {wildcards.sample}. Check the directory structure.\n\n")
         sys.exit(1)
 
-    # Define new FASTQ output directory
-    path_fq_new = f"fastq/{detected_sample_folder}/"
+    # Stage symlinks under the workflow sample id and keep source-folder detection separate.
+    path_fq_new = f"fastq/{wildcards.sample}/"
 
     # Create directory if it doesn't exist
     os.makedirs(path_fq_new, exist_ok=True)
@@ -271,10 +271,11 @@ def prep_fastq_folder_ln(sample, get_dict_only=False):
             break
 
     if detected_sample_folder is None:
-        sys.stderr.write(f"\nError: No FASTQ folder found for sample {detected_sample_folder}. Check the directory structure.\n\n")
+        sys.stderr.write(f"\nError: No FASTQ folder found for sample {sample}. Check the directory structure.\n\n")
         sys.exit(1)
 
-    path_fq_new = os.path.join(analysis, f"fastq/{detected_sample_folder}/")
+    # Stage symlinks under the workflow sample id and keep source-folder detection separate.
+    path_fq_new = os.path.join(analysis, f"fastq/{sample}/")
     if not get_dict_only:
         if os.path.exists(path_fq_new):
             for file in os.listdir(path_fq_new):

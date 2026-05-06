@@ -5,9 +5,12 @@ import shutil
 from pathlib import Path
 import pandas as pd
 import xml.etree.ElementTree as ET
+import glob
+import itertools
 import os
+import re
 import sys
-from collections import defaultdict
+from collections import Counter, defaultdict
 import uuid
 
 include: "runParametersImport" 
@@ -87,26 +90,54 @@ if config.pipeline == "curioseeker":
 csas = re.search("CS[0-9]{6}", config.analysis).group(0) if re.search("CS[0-9]{6}", config.analysis) else os.path.basename(config.analysis.strip('/'))
 unaligned = config.unaligned[0]
 
+def infer_run_name_from_unaligned_path(unaligned_path):
+    parts = Path(unaligned_path.rstrip("/")).parts
+    if "Unaligned" in parts:
+        unaligned_index = len(parts) - 1 - parts[::-1].index("Unaligned")
+        if unaligned_index > 0:
+            return parts[unaligned_index - 1]
+    if "outs" in parts:
+        outs_index = len(parts) - 1 - parts[::-1].index("outs")
+        if outs_index > 0:
+            return parts[outs_index - 1]
+    if len(parts) >= 3:
+        return parts[-3]
+    return os.path.basename(unaligned_path.rstrip("/"))
+
+def make_unique_run_labels(run_names_for_paths):
+    totals = Counter(run_names_for_paths)
+    seen = defaultdict(int)
+    labels = []
+    for index, run_name_for_path in enumerate(run_names_for_paths):
+        base_label = run_name_for_path or f"fastq_root_{index + 1}"
+        seen[base_label] += 1
+        if totals[base_label] > 1:
+            labels.append(f"{base_label}_root{seen[base_label]}")
+        else:
+            labels.append(base_label)
+    return labels
+
 #Get the run names
 if hasattr(config, "runs"):
-    run_names = config.runs.split(',')
+    configured_run_names = [run.strip() for run in config.runs.split(',') if run.strip()]
 else:
-    run_names = list()
-    for unaligned in config.unaligned:
-      if unaligned.split('outs')[0].split('/')[-3] == 'Unaligned':
-        run_names.append(unaligned.split('outs')[0].split('/')[-4])
-      else:
-        run_names.append(unaligned.split('outs')[0].split('/')[-3])
+    configured_run_names = [infer_run_name_from_unaligned_path(unaligned) for unaligned in config.unaligned]
+
+run_names_orig = [
+    configured_run_names[index] if index < len(configured_run_names) else infer_run_name_from_unaligned_path(unaligned)
+    for index, unaligned in enumerate(config.unaligned)
+]
+run_labels_by_fastqpath = make_unique_run_labels(run_names_orig)
 
 #Try to get the most recent run, used in copy rule
-run_names = list(dict.fromkeys(run_names))  # Removes duplicates while preserving order
-run_names_orig = run_names.copy()
+run_names = list(dict.fromkeys(run_names_orig))  # Removes duplicates while preserving order
 run_names.sort()
 run_name = run_names[-1]
 
 fastqpath = config.unaligned
 analysis = config.analysis
 one_up = '/'.join(config.analysis.rstrip('/').split('/')[:-1])
+FASTQ_MANIFEST_PATH = os.path.join("fastq", "fastq_manifest.tsv")
 
 # Initialize pipeline unique ID
 pipeline_id = get_pipeline_id()
@@ -122,6 +153,112 @@ if hasattr(config, "projectname"):
 else:
     project_name = os.path.basename(config.analysis.strip('/'))
 
+def sample_name_from_fastq_entry(entry):
+    basename = os.path.basename(entry).split('.')[0]
+    match = re.match(r"(.+)_S\d+(?:_L\d{3})?_[RI]\d?_001$", basename)
+    return match.group(1) if match else basename
+
+def parse_fastq_filename(fastq_file, fallback_sample=None):
+    basename = os.path.basename(fastq_file)
+    match = re.match(r"(.+)_S(\d+)(?:_L(\d{3}))?_([RI]\d?)_001\.fastq\.gz$", basename)
+    if match:
+        sample, sample_number, lane, read = match.groups()
+    else:
+        sample = fallback_sample if fallback_sample else basename.replace(".fastq.gz", "")
+        sample_number = ""
+        lane = ""
+        read = ""
+    if sample.startswith("Sample_"):
+        sample = sample.replace("Sample_", "", 1)
+    return {
+        "sample": sample,
+        "sample_number": sample_number or "",
+        "lane": lane or "",
+        "read": read or "",
+    }
+
+def detect_sample_folder(fq_path, sample):
+    for sample_folder in [f"Sample_{sample}", sample]:
+        if os.path.exists(os.path.join(fq_path, sample_folder)):
+            return sample_folder
+    return None
+
+def direct_fastq_files_for_sample(fq_path, sample):
+    fastq_files = set()
+    for sample_prefix in [sample, f"Sample_{sample}"]:
+        fastq_files.update(glob.glob(os.path.join(fq_path, f"{sample_prefix}_S[0-9]*_L[0-9][0-9][0-9]_*fastq.gz")))
+        fastq_files.update(glob.glob(os.path.join(fq_path, f"{sample_prefix}_S[0-9]*_*fastq.gz")))
+    return sorted(fastq_files)
+
+def fastq_files_for_sample(fq_path, sample, sample_folder=None):
+    if sample_folder:
+        return sorted(glob.glob(os.path.join(fq_path, sample_folder, "*fastq.gz")))
+    return direct_fastq_files_for_sample(fq_path, sample)
+
+def run_name_for_fastq_path(index, fq_path):
+    if index < len(run_names_orig) and run_names_orig[index]:
+        return run_names_orig[index]
+    return infer_run_name_from_unaligned_path(fq_path)
+
+def run_label_for_fastq_path(index, fq_path):
+    if index < len(run_labels_by_fastqpath) and run_labels_by_fastqpath[index]:
+        return run_labels_by_fastqpath[index]
+    run_name = run_name_for_fastq_path(index, fq_path)
+    return run_name or f"fastq_root_{index + 1}"
+
+def build_fastq_manifest_rows():
+    rows = []
+    seen = set()
+    for sample in samples:
+        for index, fq_path in enumerate(fastqpath):
+            run_name = run_name_for_fastq_path(index, fq_path)
+            run_label = run_label_for_fastq_path(index, fq_path)
+            detected_sample_folder = detect_sample_folder(fq_path, sample)
+            source_layout = "sample_folder" if detected_sample_folder else "loose"
+            for fastq_file in fastq_files_for_sample(fq_path, sample, detected_sample_folder):
+                source_path = os.path.abspath(fastq_file)
+                if source_path in seen:
+                    continue
+                seen.add(source_path)
+                parsed = parse_fastq_filename(fastq_file, fallback_sample=sample)
+                staged_name = f"{run_label}_{os.path.basename(fastq_file)}" if run_label else os.path.basename(fastq_file)
+                rows.append({
+                    "sample": sample,
+                    "read": parsed["read"],
+                    "lane": parsed["lane"],
+                    "sample_number": parsed["sample_number"],
+                    "run_name": run_name,
+                    "run_label": run_label,
+                    "fastq_root_index": index + 1,
+                    "fastq_root": os.path.abspath(fq_path),
+                    "source_layout": source_layout,
+                    "source_sample_folder": detected_sample_folder or "",
+                    "source_path": source_path,
+                    "staged_path": os.path.abspath(os.path.join(analysis, "fastq", sample, staged_name)),
+                })
+    return sorted(rows, key=lambda row: (row["sample"], row["run_name"], row["source_path"]))
+
+def write_fastq_manifest(manifest_path):
+    columns = [
+        "sample",
+        "read",
+        "lane",
+        "sample_number",
+        "run_name",
+        "run_label",
+        "fastq_root_index",
+        "fastq_root",
+        "source_layout",
+        "source_sample_folder",
+        "source_path",
+        "staged_path",
+    ]
+    os.makedirs(os.path.dirname(manifest_path), exist_ok=True)
+    with open(manifest_path, "w") as manifest:
+        manifest.write("\t".join(columns) + "\n")
+        for row in build_fastq_manifest_rows():
+            manifest.write("\t".join(str(row[column]) for column in columns) + "\n")
+
 #Get sample names
 if hasattr(config, "samples"):
     samples = config.samples
@@ -129,22 +266,13 @@ else:
     sample = list(set([os.path.basename(file).split('.')[0] for file in list(itertools.chain.from_iterable([glob.glob(i + '/*') for i in fastqpath]))]))
     samps = []
     for item in sample:
-        if len(re.findall(r"(\S*)_S\d+_L0\d{2}_[RI]", item)) > 0:
-          samps.append(re.findall(r"(\S*)_S\d+_L0\d{2}_[RI]", item)[0])
-        else:
-          samps.append(item)
+        samps.append(sample_name_from_fastq_entry(item))
     ## Add if else in the list comprehension for the sample name with 'Sample_' in the middle.
     ## For example, Tube_1___Sample_3__GEX_library in CS033737 
     samples = list(set(s.replace('Sample_', '') if s.startswith('Sample_') else s for s in set(samps)))
     samples = sorted(samples)
 
-# Move fastq files to subfolders with the names of the sample.
 from subprocess import Popen, PIPE
-reformat_paths = [i for i in fastqpath if len(glob.glob(os.path.join(i, "*", ""))) == 0]
-for i in reformat_paths:
-    for sample in [j for j in samples if len(glob.glob(os.path.join(i, j + "*_S[0-9]*_L0[0-9]*_*fastq.gz"))) > 0]:
-        process = Popen("mkdir %s/%s; mv %s/%s_S[0-9]*_L0[0-9]*_*fastq.gz %s/%s" % (i, sample, i, sample, i, sample), shell=True, stdout=PIPE, stderr=PIPE)
-        process.wait()
 
 #For deliverFastq
 def flowcellPath(wildcards):
@@ -157,9 +285,17 @@ def filterFastq(wildcards):
     return(','.join([j for j in paths if os.path.exists(j)] + [os.path.dirname(j) for j in paths if not os.path.exists(j) if len(glob.glob(j + "*")) > 0]))
 
 def getFirstFastqFile(wildcards):
-    path = filterFastq(wildcards).split(',')[0]
     suffix = '_001.fastq.gz'
-    return({i: glob.glob(f'{path}/*_{i}{suffix}')[0] for i in ['R1', 'R2', 'R3'] if len(glob.glob(f'{path}/*_{i}{suffix}')) > 0})
+    fastq_files = []
+    for fq_path in fastqpath:
+        detected_sample_folder = detect_sample_folder(fq_path, wildcards.sample)
+        fastq_files.extend(fastq_files_for_sample(fq_path, wildcards.sample, detected_sample_folder))
+    first_fastq_files = {}
+    for read in ['R1', 'R2', 'R3']:
+        read_fastq_files = sorted([fastq_file for fastq_file in fastq_files if fastq_file.endswith(f'_{read}{suffix}')])
+        if read_fastq_files:
+            first_fastq_files[read] = read_fastq_files[0]
+    return first_fastq_files
 
 def filterFastq4pipseeker(wildcards):
     """
@@ -171,10 +307,11 @@ def filterFastq4pipseeker(wildcards):
     cnt_fq_file = 0
     for index, fq_path in enumerate(fastqpath):
         path_sample = os.path.join(fq_path, "Sample_%s" % wildcards.sample) 
+        run_label = run_label_for_fastq_path(index, fq_path)
         for fastq_file in glob.glob(os.path.join(path_sample,  "*fastq.gz")):
             cnt_fq_file = cnt_fq_file + 1 
             basename_fastq = os.path.basename(fastq_file)
-            basename_fastq_new = "%s_%s" % (run_names_orig[index], basename_fastq) 
+            basename_fastq_new = "%s_%s" % (run_label, basename_fastq) 
             symlink_path = os.path.join(path_fq_new, basename_fastq_new)
             if os.path.islink(symlink_path):
                 os.unlink(symlink_path)  # Unlink the existing symbolic link
@@ -191,20 +328,11 @@ def filterFastq4nopipe(wildcards):
     Prepare the folders for pipseeker or nopipe.
     Automatically detects whether "Sample_" prefix is used in folder structure.
     """
-    # Check for both possible sample folder structures
-    sample_folder_with_prefix = f"Sample_{wildcards.sample}"
-    sample_folder_without_prefix = wildcards.sample
-
-    detected_sample_folder = None
-    for fq_path in fastqpath:
-        if os.path.exists(os.path.join(fq_path, sample_folder_with_prefix)):
-            detected_sample_folder = sample_folder_with_prefix
-            break
-        elif os.path.exists(os.path.join(fq_path, sample_folder_without_prefix)):
-            detected_sample_folder = sample_folder_without_prefix
-            break
-
-    if detected_sample_folder is None:
+    has_fastqs = any(
+        detect_sample_folder(fq_path, wildcards.sample) or direct_fastq_files_for_sample(fq_path, wildcards.sample)
+        for fq_path in fastqpath
+    )
+    if not has_fastqs:
         sys.stderr.write(f"\nError: No FASTQ folder found for sample {wildcards.sample}. Check the directory structure.\n\n")
         sys.exit(1)
 
@@ -225,24 +353,14 @@ def filterFastq4nopipe(wildcards):
 
     cnt_fq_file = 0
     for index, fq_path in enumerate(fastqpath):
-        path_sample = os.path.join(fq_path, detected_sample_folder)
-        for fastq_file in glob.glob(os.path.join(path_sample, "*fastq.gz")):
-            # Check if run_names[index] is in the fastq_file
-            #print([index, run_names_orig[index], fastq_file])
-            if run_names_orig[index] not in fastq_file:
-                sys.stderr.write(
-                    f"\nError: The run name '{run_names_orig[index]}' does not match the FASTQ file '{fastq_file}'. "
-                    f"Ensure that the run names in config.py match the order of the FASTQ folders in 'unaligned'.\n\n"
-                )
-                sys.exit(1)
-
+        detected_sample_folder = detect_sample_folder(fq_path, wildcards.sample)
+        run_label = run_label_for_fastq_path(index, fq_path)
+        for fastq_file in fastq_files_for_sample(fq_path, wildcards.sample, detected_sample_folder):
             cnt_fq_file += 1
             basename_fastq = os.path.basename(fastq_file)
-            basename_fastq_new = f"{run_names_orig[index]}_{basename_fastq}"
+            basename_fastq_new = f"{run_label}_{basename_fastq}"
             symlink_path = os.path.join(path_fq_new, basename_fastq_new)
-            cmd = f"ln -s {fastq_file} {symlink_path}"
-            process = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
-            process.wait()
+            os.symlink(fastq_file, symlink_path)
 
     if cnt_fq_file == 0:
         sys.stderr.write("\nNo FASTQ files detected. Please check it out!\n\n")
@@ -258,19 +376,11 @@ def prep_fastq_folder_ln(sample, get_dict_only=False):
     Updates the global record_fastqpath and record_fastqfiles dictionaries only if get_dict_only is False.
     """
     global record_fastqpath, record_fastqfiles
-    sample_folder_with_prefix = f"Sample_{sample}"
-    sample_folder_without_prefix = sample
-
-    detected_sample_folder = None
-    for fq_path in fastqpath:
-        if os.path.exists(os.path.join(fq_path, sample_folder_with_prefix)):
-            detected_sample_folder = sample_folder_with_prefix
-            break
-        elif os.path.exists(os.path.join(fq_path, sample_folder_without_prefix)):
-            detected_sample_folder = sample_folder_without_prefix
-            break
-
-    if detected_sample_folder is None:
+    has_fastqs = any(
+        detect_sample_folder(fq_path, sample) or direct_fastq_files_for_sample(fq_path, sample)
+        for fq_path in fastqpath
+    )
+    if not has_fastqs:
         sys.stderr.write(f"\nError: No FASTQ folder found for sample {sample}. Check the directory structure.\n\n")
         sys.exit(1)
 
@@ -290,23 +400,15 @@ def prep_fastq_folder_ln(sample, get_dict_only=False):
     cnt_fq_file = 0
     temp_fastqfiles = set()
     for index, fq_path in enumerate(fastqpath):
-        path_sample = os.path.join(fq_path, detected_sample_folder)
-        for fastq_file in glob.glob(os.path.join(path_sample, "*fastq.gz")):
-            if run_names_orig[index] not in fastq_file:
-                sys.stderr.write(
-                    f"\nError: The run name '{run_names_orig[index]}' does not match the FASTQ file '{fastq_file}'. "
-                    f"Ensure that the run names in config.py match the order of the FASTQ folders in 'unaligned'.\n\n"
-                )
-                sys.exit(1)
-
+        detected_sample_folder = detect_sample_folder(fq_path, sample)
+        run_label = run_label_for_fastq_path(index, fq_path)
+        for fastq_file in fastq_files_for_sample(fq_path, sample, detected_sample_folder):
             cnt_fq_file += 1
             basename_fastq = os.path.basename(fastq_file)
-            basename_fastq_new = f"{run_names_orig[index]}_{basename_fastq}"
+            basename_fastq_new = f"{run_label}_{basename_fastq}"
             symlink_path = os.path.join(path_fq_new, basename_fastq_new)
-            cmd = f"ln -s {fastq_file} {symlink_path}"
             if not get_dict_only:
-                process = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
-                process.wait()
+                os.symlink(fastq_file, symlink_path)
             temp_fastqfiles.add(symlink_path)
 
     if cnt_fq_file == 0:
@@ -321,6 +423,12 @@ def prep_fastq_folder_ln(sample, get_dict_only=False):
 
 for sample in samples:
     prep_fastq_folder_ln(sample, get_dict_only=True)  # Prepare the fastq folder for each sample
+
+rule fastq_manifest:
+    output:
+        FASTQ_MANIFEST_PATH
+    run:
+        write_fastq_manifest(output[0])
 
 #Setting aggregate flag, this gets turned off for certain pipelines
 aggregate = True
@@ -407,7 +515,7 @@ copy_result = one_up + "/" + project_name + "_" + flowcell + "_copy.txt"
 
 #print(flowcells)
 
-rule_all_append = []
+rule_all_append = [FASTQ_MANIFEST_PATH]
 if hasattr(config, 'archive'):
     if config.archive:
         archive = True

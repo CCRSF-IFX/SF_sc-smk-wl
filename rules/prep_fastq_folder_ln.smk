@@ -7,6 +7,8 @@ rule prep_fastq_folder_ln:
     some of the rules that needs to merge the fastq 
     files from different runs
     """
+    input:
+        manifest=rules.fastq_manifest.output
     output:
         touch("fastq/{sample}/.prepared")
     run:

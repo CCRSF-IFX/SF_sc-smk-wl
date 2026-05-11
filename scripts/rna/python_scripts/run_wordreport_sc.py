@@ -25,6 +25,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 import numpy as np
+from report_notes import get_wordreport_notes
 
 def replace_string(doc, before, after):
     for p in doc.paragraphs:
@@ -149,6 +150,9 @@ totgenemax ="{:,}".format(int(max(list(de[u'Total Genes Detected']))))
 #     readmax =str(int(max(list(de[u'Mean Read Pairs per Cell']))))
 
 rc = doc.paragraphs[13]
+notes_text = get_wordreport_notes(metadata['Application'][0])
+if notes_text:
+    rc.text = notes_text
 
 replace_string(doc, "ST", str(len(de)))
 replace_string(doc, "MT", mt.replace('_', ' '))

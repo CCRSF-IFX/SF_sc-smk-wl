@@ -2,6 +2,7 @@ import os
 import pandas as pd
 img_path = os.path.dirname(os.path.abspath(config.images))
 metadata_df = pd.read_csv(config.images)
+metadata_df.columns = metadata_df.columns.str.strip().str.lower()
     
 def check_spatial_files_exist(df, img_path):
     """

@@ -3,7 +3,7 @@ active_scripts = "/mnt/ccrsf-ifx/Software/scripts/bin/"
 
 # Last checking: Mar 5, 2024
 # Avaliable versions of cellranger:
-# 9.0.1;9.0.0;8.0.1;8.0.0;7.2.0;7.1.0; 
+# 9.0.1;9.0.0;8.0.1;8.0.0;7.2.0;7.1.0;
 # https://hub.docker.com/r/ccrsfifx/cellranger/tags
 cellranger      = "docker://ccrsfifx/cellranger:9.0.1"
 # Available versions of cellranger-atac:
@@ -18,6 +18,9 @@ spaceranger     = "docker://ccrsfifx/spaceranger:4.0.1"
 Renv            = "docker://ccrsfifx/sc-smk-wl:r1.0.0"
 Renv4rmd        = "docker://ccrsfifx/sc-rmd-report:1.0.0"
 pipseeker       = "docker://public.ecr.aws/w3e1n2j6/fluent-pipseeker:3.3.0"
+nf_pixelator_path = "nf-core/pixelator"
+nf_pixelator_version = "v4.1.2"
+pixelator_container = "quay.io/pixelgen-technologies/pixelator:0.27.2"
 
 multiqc         = "docker://multiqc/multiqc:v1.12"
 multiqc_conf    = "/mnt/ccrsf-ifx/Software/tools/MultiQC/config_multiQC.yaml"

@@ -1,0 +1,301 @@
+# Snakefile for Pixelgen Proxiome data processed by nf-core/pixelator
+
+import csv
+import os
+import re
+import sys
+import uuid
+from pathlib import Path
+
+sys.path.insert(0, str(Path().absolute()))
+import config
+import program
+
+
+FASTQ_MANIFEST_PATH = os.path.join("fastq", "fastq_manifest.tsv")
+
+analysis = config.analysis
+fastqpath = config.unaligned
+unaligned = fastqpath[0]
+one_up = "/".join(config.analysis.rstrip("/").split("/")[:-1])
+project_name = getattr(config, "projectname", os.path.basename(config.analysis.strip("/")))
+csas = re.search("CS[0-9]{6}", config.analysis).group(0) if re.search("CS[0-9]{6}", config.analysis) else os.path.basename(config.analysis.strip("/"))
+
+
+def get_bool4internal():
+    program_filep = os.path.join(config.analysis, "program.py")
+    try:
+        with open(program_filep) as progf:
+            for line in progf:
+                if "copydir = " in line or "active_scripts =" in line:
+                    return False
+        return True
+    except FileNotFoundError:
+        return False
+
+
+def get_pipeline_id():
+    hidden_file_path = os.path.join(analysis, ".pipeline_id")
+    if os.path.exists(hidden_file_path):
+        with open(hidden_file_path) as handle:
+            return handle.read().strip()
+    pipeline_id = str(uuid.uuid4())
+    with open(hidden_file_path, "w") as handle:
+        handle.write(pipeline_id)
+    return pipeline_id
+
+
+def infer_run_name_from_unaligned_path(unaligned_path):
+    parts = Path(unaligned_path.rstrip("/")).parts
+    if "Unaligned" in parts:
+        index = len(parts) - 1 - parts[::-1].index("Unaligned")
+        if index > 0:
+            return parts[index - 1]
+    if len(parts) >= 3:
+        return parts[-3]
+    return os.path.basename(unaligned_path.rstrip("/"))
+
+
+def read_pixelator_samplesheet_rows(samplesheet=None):
+    samplesheet = samplesheet or "samplesheet.pixiome.csv"
+    if not samplesheet:
+        sys.stderr.write("\npixelator_samplesheet is required for pixiome.\n\n")
+        sys.exit(1)
+    with open(samplesheet, newline="") as handle:
+        reader = csv.DictReader(handle)
+        required = ["sample", "sample_alias", "condition", "design", "fastq_1", "fastq_2"]
+        fieldnames = reader.fieldnames or []
+        missing = [column for column in required if column not in fieldnames]
+        if "panel" not in fieldnames and "panel_file" not in fieldnames:
+            missing.append("panel or panel_file")
+        if missing:
+            sys.stderr.write("\nMissing Pixelator samplesheet columns: " + ", ".join(missing) + "\n\n")
+            sys.exit(1)
+        return list(reader)
+
+
+def read_pixelator_library_samples():
+    libraries = getattr(config, "libraries", "libraries.csv")
+    if not libraries:
+        return []
+    with open(libraries, newline="") as handle:
+        reader = csv.DictReader(handle)
+        if "sample" in (reader.fieldnames or []):
+            return sorted({row["sample"].strip() for row in reader if row.get("sample", "").strip()})
+        if "Name" in (reader.fieldnames or []):
+            return sorted({row["Name"].strip() for row in reader if row.get("Name", "").strip()})
+    return []
+
+
+def matched_fastq_root(source_path):
+    source_path = os.path.abspath(source_path)
+    for index, fq_path in enumerate(fastqpath):
+        root = os.path.abspath(fq_path)
+        try:
+            if os.path.commonpath([source_path, root]) == root:
+                return index, root
+        except ValueError:
+            continue
+    return 0, os.path.dirname(source_path)
+
+
+def run_name_for_fastq_path(index, fq_path):
+    if index < len(run_names_orig) and run_names_orig[index]:
+        return run_names_orig[index]
+    return infer_run_name_from_unaligned_path(fq_path)
+
+
+def write_fastq_manifest(manifest_path, samplesheet):
+    columns = [
+        "sample",
+        "read",
+        "lane",
+        "sample_number",
+        "run_name",
+        "run_label",
+        "fastq_root_index",
+        "fastq_root",
+        "source_layout",
+        "source_sample_folder",
+        "source_path",
+        "staged_path",
+    ]
+    rows = []
+    seen = set()
+    for row in read_pixelator_samplesheet_rows(samplesheet):
+        sample = row["sample"].strip()
+        for read, column in [("R1", "fastq_1"), ("R2", "fastq_2")]:
+            source_path = os.path.abspath(row[column].strip())
+            if source_path in seen:
+                continue
+            seen.add(source_path)
+            index, root = matched_fastq_root(source_path)
+            run_name = run_name_for_fastq_path(index, root)
+            rows.append({
+                "sample": sample,
+                "read": read,
+                "lane": "",
+                "sample_number": "",
+                "run_name": run_name,
+                "run_label": run_name,
+                "fastq_root_index": index + 1,
+                "fastq_root": root,
+                "source_layout": "pixelator_samplesheet",
+                "source_sample_folder": "",
+                "source_path": source_path,
+                "staged_path": source_path,
+            })
+    os.makedirs(os.path.dirname(manifest_path), exist_ok=True)
+    with open(manifest_path, "w") as manifest:
+        manifest.write("\t".join(columns) + "\n")
+        for row in sorted(rows, key=lambda item: (item["sample"], item["source_path"])):
+            manifest.write("\t".join(str(row[column]) for column in columns) + "\n")
+
+
+if hasattr(config, "samples"):
+    samples = config.samples
+elif getattr(config, "libraries", ""):
+    samples = read_pixelator_library_samples()
+else:
+    samples = sorted({row["sample"].strip() for row in read_pixelator_samplesheet_rows()})
+configured_run_names = [run.strip() for run in getattr(config, "runs", "").split(",") if run.strip()]
+if configured_run_names:
+    run_names_orig = [
+        configured_run_names[index] if index < len(configured_run_names) else infer_run_name_from_unaligned_path(fq_path)
+        for index, fq_path in enumerate(fastqpath)
+    ]
+else:
+    run_names_orig = [infer_run_name_from_unaligned_path(fq_path) for fq_path in fastqpath]
+run_names = sorted(dict.fromkeys(run_names_orig))
+run_name = run_names[-1]
+flowcell = run_name.split("_")[-1]
+pipeline_id = get_pipeline_id()
+external = get_bool4internal()
+active_script_folder = getattr(program, "active_scripts", "")
+
+report_result = one_up + "/" + project_name + "_" + flowcell + "_Metadata.txt"
+wreport_result = one_up + "/" + project_name + "_" + flowcell + ".docx"
+xreport_result = one_up + "/" + project_name + "_" + flowcell + ".xlsx"
+copy_result = one_up + "/" + project_name + "_" + flowcell + "_copy.txt"
+copy_complete = "copy.complete"
+archive_result = ["archive_setup.complete"] if getattr(config, "archive", False) else []
+
+if external:
+    wreport_result = []
+    xreport_result = []
+    copy_complete = []
+    archive_result = []
+
+
+rule all:
+    input:
+        "pixelator/experiment-summary.html",
+        expand("pixelator/{sample}.layout.pxl", sample=samples),
+        expand("pixelator/analysis/{sample}.report.json", sample=samples),
+        FASTQ_MANIFEST_PATH,
+        "finalreport/metric_summary.xlsx",
+        "finalreport/summaries/experiment-summary.html",
+        wreport_result,
+        xreport_result,
+        copy_complete,
+        archive_result
+
+
+rule fastq_manifest:
+    input:
+        "samplesheet.pixiome.csv"
+    output:
+        FASTQ_MANIFEST_PATH
+    run:
+        write_fastq_manifest(output[0], input[0])
+
+
+include: "rules/singlecell_pixiome_import.smk"
+
+
+if external == False:
+    if getattr(config, "test_email", False):
+        rule copy:
+            input:
+                xreport_result,
+                wreport_result
+            output:
+                touch("copy.complete")
+            log:
+                copy_result
+            shell:
+                "mkdir -p {program.copydir}/pipeline_testing/{run_name}/{project_name}; cp -r finalreport {program.copydir}/pipeline_testing/{run_name}/{project_name} >> {log}; cd {one_up}; cp -v *.docx {program.copydir}/pipeline_testing/{run_name}/{project_name} >> {log}; cp -v *.xlsx {program.copydir}/pipeline_testing/{run_name}/{project_name} >> {log}"
+    else:
+        rule copy:
+            input:
+                xreport_result,
+                wreport_result
+            output:
+                touch("copy.complete")
+            log:
+                copy_result
+            shell:
+                "mkdir -p {program.copydir}/{run_name}/{project_name}; cp -r finalreport {program.copydir}/{run_name}/{project_name} >> {log}; cd {one_up}; cp -v *.docx {program.copydir}/{run_name}/{project_name} >> {log}; cp -v *.xlsx {program.copydir}/{run_name}/{project_name} >> {log}"
+
+    rule archive:
+        input:
+            metadata=report_result,
+            summaryFiles="finalreport/metric_summary.xlsx",
+            fastq_manifest=FASTQ_MANIFEST_PATH,
+            pixelator_summary="pixelator/experiment-summary.html",
+        output:
+            touch("archive_setup.complete")
+        params:
+            fastqs=",".join(os.path.abspath(path) for path in fastqpath),
+            runs=",".join(run_names),
+            meta2json=os.path.join(analysis, "scripts/SF_scDMEarchive/cli/meta2json_single_cell.py"),
+        log:
+            "archive.log"
+        shell:
+            "cd {one_up}; python {params.meta2json} --pipeline {config.pipeline} -m {input.metadata} -r {params.runs} -f {params.fastqs} --fastq-manifest {config.analysis}/{input.fastq_manifest} -c {config.analysis} > {log}"
+
+    rule report:
+        output:
+            report_result
+        shell:
+            """
+cd {one_up}; perl {active_script_folder}/run_GenerateAllReports.pl -flowcell {flowcell} -p {csas} -s 2 -u {unaligned} -f {run_name} -t 0 -m 1 -e 2 -r 1 -x verajc:test1test2 -software Pixelator ; rm -f {xreport_result}
+"""
+
+    rule xreport:
+        input:
+            report_result,
+            metric="finalreport/metric_summary.xlsx"
+        output:
+            xreport_result
+        shell:
+            "cp {input.metric} {xreport_result}"
+
+    rule wreport:
+        input:
+            metadata=report_result,
+            excel="finalreport/metric_summary.xlsx"
+        output:
+            wreport_result
+        params:
+            runs=",".join(run_names)
+        shell:
+            """
+cd {one_up}; \
+python {analysis}/scripts/SF_scWordReport/run_wordreport_sc.py \
+       --pipeline-id {pipeline_id} -e {analysis}/{input.excel} -m {input.metadata} \
+       -c {current_cellranger} -p {config.pipeline} -r {params.runs}
+"""
+
+    if getattr(config, "test_email", False):
+        onsuccess:
+            shell(r'''if [ -f {analysis}/workflow/scripts/sendmail4test.py ]; then python {analysis}/workflow/scripts/sendmail4test.py Yes {analysis} {config.test_email} > snakemake.stats; fi''')
+
+        onerror:
+            shell(r'''if [ -f {analysis}/workflow/scripts/sendmail4test.py ]; then python {analysis}/workflow/scripts/sendmail4test.py No {analysis} {config.test_email}; fi''')
+    else:
+        onsuccess:
+            shell(r'''if [ -f {analysis}/workflow/scripts/sendmail.py ]; then python {analysis}/workflow/scripts/sendmail.py Yes {analysis} > snakemake.stats; fi''')
+
+        onerror:
+            shell(r'''if [ -f {analysis}/workflow/scripts/sendmail.py ]; then python {analysis}/workflow/scripts/sendmail.py No {analysis}; fi''')

@@ -21,11 +21,21 @@ def all_fastqs(fastq_paths):
     return {os.path.abspath(path) for path in paths}
 
 
-def find_fastq_pairs(fastq_set, fastq_sample):
+def fastq_matches_sample(path, sample, sample_alias):
+    name = os.path.basename(path)
+    parts = set(os.path.normpath(path).split(os.sep))
+    return (
+        name.startswith(f"{sample}_")
+        or f"_{sample}_" in name
+        or f"Sample_{sample}" in parts
+        or (sample_alias and (name.startswith(f"{sample_alias}_") or f"_{sample_alias}_" in name))
+    )
+
+
+def find_fastq_pairs(fastq_set, sample, sample_alias):
     pairs = []
     for r1 in sorted(fastq_set):
-        name = os.path.basename(r1)
-        if "_R1_" not in name or not (name.startswith(fastq_sample) or f"_{fastq_sample}_" in name):
+        if "_R1_" not in os.path.basename(r1) or not fastq_matches_sample(r1, sample, sample_alias):
             continue
         r2 = r1.replace("_R1_", "_R2_")
         if r2 in fastq_set:
@@ -56,14 +66,12 @@ def write_pixelator_samplesheet_from_libraries(libraries_csv, fastq_paths, outpu
             design = csv_value(row, "design")
             panel = csv_value(row, "panel", "Panel")
             panel_file = csv_value(row, "panel_file")
-            fastq_sample = csv_value(row, "fastq_sample", "fastq_prefix", "demux_sample", "Sample", default=sample)
             missing = []
             for column, value in {
                 "sample": sample,
                 "sample_alias": sample_alias,
                 "condition": condition,
                 "design": design,
-                "fastq_sample": fastq_sample,
             }.items():
                 if not value:
                     missing.append(column)
@@ -74,9 +82,9 @@ def write_pixelator_samplesheet_from_libraries(libraries_csv, fastq_paths, outpu
             if csv_value(row, "fastq_1") and csv_value(row, "fastq_2"):
                 pairs = [(os.path.abspath(row["fastq_1"].strip()), os.path.abspath(row["fastq_2"].strip()))]
             else:
-                pairs = find_fastq_pairs(fastq_set, fastq_sample)
+                pairs = find_fastq_pairs(fastq_set, sample, sample_alias)
             if not pairs:
-                sys.exit(f"\nNo paired FASTQs found for pixiome library '{sample}' using fastq_sample '{fastq_sample}'.\n")
+                sys.exit(f"\nNo paired FASTQs found for pixiome library '{sample}'.\n")
             for fastq_1, fastq_2 in pairs:
                 used_fastqs.update([fastq_1, fastq_2])
                 rows.append({

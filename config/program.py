@@ -18,9 +18,6 @@ spaceranger     = "docker://ccrsfifx/spaceranger:4.0.1"
 Renv            = "docker://ccrsfifx/sc-smk-wl:r1.0.0"
 Renv4rmd        = "docker://ccrsfifx/sc-rmd-report:1.0.0"
 pipseeker       = "docker://public.ecr.aws/w3e1n2j6/fluent-pipseeker:3.3.0"
-nf_pixelator_path = "nf-core/pixelator"
-nf_pixelator_version = "v4.1.2"
-pixelator_container = "quay.io/pixelgen-technologies/pixelator:0.27.2"
 
 multiqc         = "docker://multiqc/multiqc:v1.12"
 multiqc_conf    = "/mnt/ccrsf-ifx/Software/tools/MultiQC/config_multiQC.yaml"
@@ -33,6 +30,10 @@ fastqc = "docker://quay.io/biocontainers/fastqc:0.12.1--hdfd78af_0"
 picard = "docker://quay.io/biocontainers/picard:3.4.0--hdfd78af_0"
 
 tenx_cloud_token_path = "/mnt/ccrsf-ifx/RefGenomes/SingleCell_REF/10X/CLI/txg"
+
+# v4.1.2
+nf_pixelator_path = "/mnt/ccrsf-ifx/Software/tools/nf-pixelator/v4.1.2/"
+pixelator_container = "quay.io/pixelgen-technologies/pixelator:0.27.2"
 
 parsebio_split_pipe = "module purge; module load miniconda; conda activate /mnt/ccrsf-ifx/Software/tools/Parse_Pipeline/condaenv_spipe_v1.6.1/; split-pipe "
 bdrhapsody = "/mnt/ccrsf-ifx/Software/tools/BD_Rhapsody/rhapsodyPipeline-3.0/rhapsody"

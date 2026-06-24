@@ -1,24 +1,24 @@
 import os
+import re
 from pathlib import Path
 from shutil import copyfile
 
-DEFAULT_NF_PIXELATOR_PATH = "nf-core/pixelator"
-DEFAULT_NF_PIXELATOR_VERSION = "v4.1.2"
-DEFAULT_PIXELATOR_CONTAINER = "quay.io/pixelgen-technologies/pixelator:0.27.2"
-
-current_cellranger = getattr(
-    config,
-    "pixelator_container",
-    getattr(program, "pixelator_container", DEFAULT_PIXELATOR_CONTAINER),
-)
-
-
 def get_pixelator_pipeline_dir(wildcards=None):
-    return getattr(config, "nf_pixelator_path", getattr(program, "nf_pixelator_path", DEFAULT_NF_PIXELATOR_PATH))
+    pipeline_dir = getattr(config, "nf_pixelator_path", getattr(program, "nf_pixelator_path", None))
+    if pipeline_dir:
+        return os.path.abspath(str(pipeline_dir))
+    return None
+
+current_cellranger = get_pixelator_pipeline_dir()
 
 
 def get_pixelator_pipeline_version(wildcards=None):
-    return getattr(config, "nf_pixelator_version", getattr(program, "nf_pixelator_version", DEFAULT_NF_PIXELATOR_VERSION))
+    pipeline_dir = get_pixelator_pipeline_dir(wildcards)
+    if pipeline_dir:
+        match = re.search(r"v\d+\.\d+\.\d+", Path(pipeline_dir).name)
+        if match:
+            return match.group(0)
+    return getattr(program, "nf_pixelator_version", None)
 
 
 def get_pixelator_nextflow(wildcards=None):
@@ -51,7 +51,7 @@ rule pixelator_params:
     output:
         "params.pixiome.yaml"
     run:
-        container = getattr(config, "pixelator_container", getattr(program, "pixelator_container", DEFAULT_PIXELATOR_CONTAINER))
+        container = getattr(config, "pixelator_container", getattr(program, "pixelator_container", None))
         with open(output[0], "w") as handle:
             handle.write(f'input: "{os.path.abspath(input[0])}"\n')
             handle.write(f'outdir: "{analysis}"\n')
@@ -99,7 +99,6 @@ rule count:
         log="run_pixelator.log",
     params:
         pipeline_dir=get_pixelator_pipeline_dir,
-        pipeline_version=get_pixelator_pipeline_version,
         nextflow=get_pixelator_nextflow,
         technology=lambda wildcards: getattr(config, "pixelator_technology", "proxiome-v1"),
         workdir=os.path.join(analysis, "work", "pixiome"),
@@ -116,7 +115,6 @@ if type module >/dev/null 2>&1; then
 fi
 mkdir -p "{params.workdir}"
 {params.nextflow} -c {input.nf_config} run "{params.pipeline_dir}" \
-    -r "{params.pipeline_version}" \
     -profile singularity \
     --technology "{params.technology}" \
     -params-file {input.params_yaml} \

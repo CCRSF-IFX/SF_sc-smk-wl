@@ -64,25 +64,8 @@ rule pixelator_nextflow_config:
     output:
         "nextflow.pixiome.config"
     run:
-        source_config = getattr(config, "pixelator_config", "")
-        if source_config:
-            copyfile(source_config, output[0])
-        else:
-            Path(output[0]).write_text(
-                "process {\n"
-                "    executor = 'slurm'\n"
-                "    queue = 'largemem'\n"
-                "    clusterOptions = '--nodes=1 --exclusive --mem=0'\n"
-                "}\n"
-                "executor {\n"
-                "    queueSize = 50\n"
-                "    pollInterval = '30 sec'\n"
-                "}\n"
-                "report { overwrite = true }\n"
-                "timeline { overwrite = true }\n"
-                "trace { overwrite = true }\n"
-                "dag { overwrite = true }\n"
-            )
+        source_config = getattr(config, "nf_pixelator_config", "workflow/config/nf_pixelator.config")
+        copyfile(source_config, output[0])
 
 
 rule count:

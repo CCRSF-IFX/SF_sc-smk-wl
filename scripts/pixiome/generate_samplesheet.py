@@ -86,6 +86,9 @@ def write_pixelator_samplesheet_from_libraries(libraries_csv, fastq_paths, outpu
             if not pairs:
                 sys.exit(f"\nNo paired FASTQs found for pixiome library '{sample}'.\n")
             for fastq_1, fastq_2 in pairs:
+                duplicates = sorted({path for path in (fastq_1, fastq_2) if path in used_fastqs})
+                if duplicates:
+                    sys.exit(f"\nFASTQ assigned to multiple pixiome rows for library '{sample}': {', '.join(duplicates)}\n")
                 used_fastqs.update([fastq_1, fastq_2])
                 rows.append({
                     "sample": sample,

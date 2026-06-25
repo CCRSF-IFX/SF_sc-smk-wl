@@ -79,10 +79,7 @@ def write_pixelator_samplesheet_from_libraries(libraries_csv, fastq_paths, outpu
                 missing.append("panel or panel_file")
             if missing:
                 sys.exit("\nlibraries.csv is missing required pixiome values: " + ", ".join(missing) + ".\n")
-            if csv_value(row, "fastq_1") and csv_value(row, "fastq_2"):
-                pairs = [(os.path.abspath(row["fastq_1"].strip()), os.path.abspath(row["fastq_2"].strip()))]
-            else:
-                pairs = find_fastq_pairs(fastq_set, sample, sample_alias)
+            pairs = find_fastq_pairs(fastq_set, sample, sample_alias)
             if not pairs:
                 sys.exit(f"\nNo paired FASTQs found for pixiome library '{sample}'.\n")
             for fastq_1, fastq_2 in pairs:

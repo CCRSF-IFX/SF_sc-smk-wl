@@ -168,7 +168,7 @@ else:
     run_names_orig = [infer_run_name_from_unaligned_path(fq_path) for fq_path in fastqpath]
 run_names = sorted(dict.fromkeys(run_names_orig))
 run_name = run_names[-1]
-flowcell = run_name.split("_")[-1]
+flowcell = run_name.split("_")[-1][-9:]
 pipeline_id = get_pipeline_id()
 external = get_bool4internal()
 active_script_folder = getattr(program, "active_scripts", "")

@@ -1,7 +1,116 @@
+import csv
 import os
 import re
 from pathlib import Path
 from shutil import copyfile
+
+
+def read_pixelator_samplesheet_rows(samplesheet=None):
+    samplesheet = samplesheet or "samplesheet.pixiome.csv"
+    if not samplesheet:
+        sys.stderr.write("\npixelator_samplesheet is required for pixiome.\n\n")
+        sys.exit(1)
+    with open(samplesheet, newline="") as handle:
+        reader = csv.DictReader(handle)
+        required = ["sample", "sample_alias", "condition", "design", "fastq_1", "fastq_2"]
+        fieldnames = reader.fieldnames or []
+        missing = [column for column in required if column not in fieldnames]
+        if "panel" not in fieldnames and "panel_file" not in fieldnames:
+            missing.append("panel or panel_file")
+        if missing:
+            sys.stderr.write("\nMissing Pixelator samplesheet columns: " + ", ".join(missing) + "\n\n")
+            sys.exit(1)
+        return list(reader)
+
+
+def read_pixelator_library_samples():
+    libraries = getattr(config, "libraries", "libraries.csv")
+    if not libraries:
+        return []
+    with open(libraries, newline="") as handle:
+        reader = csv.DictReader(handle)
+        if "sample" in (reader.fieldnames or []):
+            return sorted({row["sample"].strip() for row in reader if row.get("sample", "").strip()})
+        if "Name" in (reader.fieldnames or []):
+            return sorted({row["Name"].strip() for row in reader if row.get("Name", "").strip()})
+    return []
+
+
+def matched_fastq_root(source_path):
+    source_path = os.path.abspath(source_path)
+    for index, fq_path in enumerate(fastqpath):
+        root = os.path.abspath(fq_path)
+        try:
+            if os.path.commonpath([source_path, root]) == root:
+                return index, root
+        except ValueError:
+            continue
+    return 0, os.path.dirname(source_path)
+
+
+def write_fastq_manifest(manifest_path, samplesheet):
+    columns = [
+        "sample",
+        "read",
+        "lane",
+        "sample_number",
+        "run_name",
+        "run_label",
+        "fastq_root_index",
+        "fastq_root",
+        "source_layout",
+        "source_sample_folder",
+        "source_path",
+        "staged_path",
+    ]
+    rows = []
+    seen = set()
+    for row in read_pixelator_samplesheet_rows(samplesheet):
+        sample = row["sample"].strip()
+        for read, column in [("R1", "fastq_1"), ("R2", "fastq_2")]:
+            source_path = os.path.abspath(row[column].strip())
+            if source_path in seen:
+                continue
+            seen.add(source_path)
+            index, root = matched_fastq_root(source_path)
+            run_name = run_name_for_fastq_path(index, root)
+            rows.append({
+                "sample": sample,
+                "read": read,
+                "lane": "",
+                "sample_number": "",
+                "run_name": run_name,
+                "run_label": run_name,
+                "fastq_root_index": index + 1,
+                "fastq_root": root,
+                "source_layout": "pixelator_samplesheet",
+                "source_sample_folder": "",
+                "source_path": source_path,
+                "staged_path": source_path,
+            })
+    os.makedirs(os.path.dirname(manifest_path), exist_ok=True)
+    with open(manifest_path, "w") as manifest:
+        manifest.write("\t".join(columns) + "\n")
+        for row in sorted(rows, key=lambda item: (item["sample"], item["source_path"])):
+            manifest.write("\t".join(str(row[column]) for column in columns) + "\n")
+
+
+if hasattr(config, "samples"):
+    samples = config.samples
+elif getattr(config, "libraries", ""):
+    samples = read_pixelator_library_samples()
+else:
+    samples = sorted({row["sample"].strip() for row in read_pixelator_samplesheet_rows()})
+
+
+# rule fastq_manifest:
+#     input:
+#         "samplesheet.pixiome.csv"
+#     output:
+#         FASTQ_MANIFEST_PATH
+#     run:
+#         write_fastq_manifest(output[0], input[0])
+
 
 def get_pixelator_pipeline_dir(wildcards=None):
     pipeline_dir = getattr(config, "nf_pixelator_path", getattr(program, "nf_pixelator_path", None))
@@ -51,7 +160,7 @@ rule pixelator_params:
     output:
         "params.pixiome.yaml"
     run:
-        container = getattr(config, "pixelator_container", getattr(program, "pixelator_container", None))
+        container = getattr(reference, "pixelator_container", None)
         with open(output[0], "w") as handle:
             handle.write(f'input: "{os.path.abspath(input[0])}"\n')
             handle.write(f'outdir: "{analysis}"\n')
@@ -117,3 +226,22 @@ rule summaryFiles:
         "finalreport/summaries/experiment-summary.html",
     shell:
         "python workflow/scripts/pixiome/generateSummaryFiles.py"
+
+
+# if external == False:
+#     rule archive:
+#         input:
+#             metadata=report_result,
+#             summaryFiles="finalreport/metric_summary.xlsx",
+#             fastq_manifest=FASTQ_MANIFEST_PATH,
+#             pixelator_summary="pixelator/experiment-summary.html",
+#         output:
+#             touch("archive_setup.complete")
+#         params:
+#             fastqs=",".join(os.path.abspath(path) for path in fastqpath),
+#             runs=",".join(run_names),
+#             meta2json=os.path.join(analysis, "scripts/SF_scDMEarchive/cli/meta2json_single_cell.py"),
+#         log:
+#             "archive.log"
+#         shell:
+#             "cd {one_up}; python {params.meta2json} --pipeline {config.pipeline} -m {input.metadata} -r {params.runs} -f {params.fastqs} --fastq-manifest {config.analysis}/{input.fastq_manifest} -c {config.analysis} > {log}"

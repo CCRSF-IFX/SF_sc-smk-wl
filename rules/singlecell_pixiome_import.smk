@@ -134,6 +134,17 @@ def get_pixelator_nextflow(wildcards=None):
     return getattr(config, "pixelator_nextflow", getattr(program, "nextflow", "nextflow"))
 
 
+# the pipeline is a two-step process:
+# * A user who already has a correctly formatted pixelator samplesheet can provide it directly
+#   as samplesheet.pixiome.csv (bypassing rule pixelator_generated_samplesheet entirely)
+# * The validation step (prepare_samplesheet.py) always runs regardless, acting as a safety 
+#   check before the samplesheet is used by nextflow/pixelator
+# libraries.csv  +  fastqpath
+#         ↓  (generate: discover FASTQs, build rows)
+# pixelator_samplesheet.csv
+#         ↓  (validate + copy)
+# samplesheet.pixiome.csv  ← used by everything downstream
+
 rule pixelator_generated_samplesheet:
     input:
         lambda wildcards: config.libraries

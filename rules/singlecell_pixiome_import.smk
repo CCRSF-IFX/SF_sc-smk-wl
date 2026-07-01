@@ -36,71 +36,71 @@ def read_pixelator_library_samples():
     return []
 
 
-def matched_fastq_root(source_path):
-    source_path = os.path.abspath(source_path)
-    for index, fq_path in enumerate(fastqpath):
-        root = os.path.abspath(fq_path)
-        try:
-            if os.path.commonpath([source_path, root]) == root:
-                return index, root
-        except ValueError:
-            continue
-    return 0, os.path.dirname(source_path)
+# matched_fastq_root and write_fastq_manifest are handled by singlecell_import.smk
+# def matched_fastq_root(source_path):
+#     source_path = os.path.abspath(source_path)
+#     for index, fq_path in enumerate(fastqpath):
+#         root = os.path.abspath(fq_path)
+#         try:
+#             if os.path.commonpath([source_path, root]) == root:
+#                 return index, root
+#         except ValueError:
+#             continue
+#     return 0, os.path.dirname(source_path)
 
 
-def write_fastq_manifest(manifest_path, samplesheet):
-    columns = [
-        "sample",
-        "read",
-        "lane",
-        "sample_number",
-        "run_name",
-        "run_label",
-        "fastq_root_index",
-        "fastq_root",
-        "source_layout",
-        "source_sample_folder",
-        "source_path",
-        "staged_path",
-    ]
-    rows = []
-    seen = set()
-    for row in read_pixelator_samplesheet_rows(samplesheet):
-        sample = row["sample"].strip()
-        for read, column in [("R1", "fastq_1"), ("R2", "fastq_2")]:
-            source_path = os.path.abspath(row[column].strip())
-            if source_path in seen:
-                continue
-            seen.add(source_path)
-            index, root = matched_fastq_root(source_path)
-            run_name = run_name_for_fastq_path(index, root)
-            rows.append({
-                "sample": sample,
-                "read": read,
-                "lane": "",
-                "sample_number": "",
-                "run_name": run_name,
-                "run_label": run_name,
-                "fastq_root_index": index + 1,
-                "fastq_root": root,
-                "source_layout": "pixelator_samplesheet",
-                "source_sample_folder": "",
-                "source_path": source_path,
-                "staged_path": source_path,
-            })
-    os.makedirs(os.path.dirname(manifest_path), exist_ok=True)
-    with open(manifest_path, "w") as manifest:
-        manifest.write("\t".join(columns) + "\n")
-        for row in sorted(rows, key=lambda item: (item["sample"], item["source_path"])):
-            manifest.write("\t".join(str(row[column]) for column in columns) + "\n")
+# def write_fastq_manifest(manifest_path, samplesheet):
+#     columns = [
+#         "sample",
+#         "read",
+#         "lane",
+#         "sample_number",
+#         "run_name",
+#         "run_label",
+#         "fastq_root_index",
+#         "fastq_root",
+#         "source_layout",
+#         "source_sample_folder",
+#         "source_path",
+#         "staged_path",
+#     ]
+#     rows = []
+#     seen = set()
+#     for row in read_pixelator_samplesheet_rows(samplesheet):
+#         sample = row["sample"].strip()
+#         for read, column in [("R1", "fastq_1"), ("R2", "fastq_2")]:
+#             source_path = os.path.abspath(row[column].strip())
+#             if source_path in seen:
+#                 continue
+#             seen.add(source_path)
+#             index, root = matched_fastq_root(source_path)
+#             run_name = run_name_for_fastq_path(index, root)
+#             rows.append({
+#                 "sample": sample,
+#                 "read": read,
+#                 "lane": "",
+#                 "sample_number": "",
+#                 "run_name": run_name,
+#                 "run_label": run_name,
+#                 "fastq_root_index": index + 1,
+#                 "fastq_root": root,
+#                 "source_layout": "pixelator_samplesheet",
+#                 "source_sample_folder": "",
+#                 "source_path": source_path,
+#                 "staged_path": source_path,
+#             })
+#     os.makedirs(os.path.dirname(manifest_path), exist_ok=True)
+#     with open(manifest_path, "w") as manifest:
+#         manifest.write("\t".join(columns) + "\n")
+#         for row in sorted(rows, key=lambda item: (item["sample"], item["source_path"])):
+#             manifest.write("\t".join(str(row[column]) for column in columns) + "\n")
 
 
-if hasattr(config, "samples"):
-    samples = config.samples
-elif getattr(config, "libraries", ""):
-    samples = read_pixelator_library_samples()
-else:
-    samples = sorted({row["sample"].strip() for row in read_pixelator_samplesheet_rows()})
+if not hasattr(config, "samples"):
+    if getattr(config, "libraries", ""):
+        samples = read_pixelator_library_samples()
+    else:
+        samples = sorted({row["sample"].strip() for row in read_pixelator_samplesheet_rows()})
 
 
 # rule fastq_manifest:

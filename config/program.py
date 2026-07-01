@@ -3,7 +3,7 @@ active_scripts = "/mnt/ccrsf-ifx/Software/scripts/bin/"
 
 # Last checking: Mar 5, 2024
 # Avaliable versions of cellranger:
-# 9.0.1;9.0.0;8.0.1;8.0.0;7.2.0;7.1.0;
+# 10.0.0;<Default: 9.0.1>;9.0.0;8.0.1;8.0.0;7.2.0;7.1.0;
 # https://hub.docker.com/r/ccrsfifx/cellranger/tags
 cellranger      = "docker://ccrsfifx/cellranger:9.0.1"
 # Available versions of cellranger-atac:
@@ -33,7 +33,6 @@ tenx_cloud_token_path = "/mnt/ccrsf-ifx/RefGenomes/SingleCell_REF/10X/CLI/txg"
 
 # v4.1.2
 nf_pixelator_path = "/mnt/ccrsf-ifx/Software/tools/nf-pixelator/v4.1.2/"
-pixelator_container = "quay.io/pixelgen-technologies/pixelator:0.27.2"
 
 parsebio_split_pipe = "module purge; module load miniconda; conda activate /mnt/ccrsf-ifx/Software/tools/Parse_Pipeline/condaenv_spipe_v1.6.1/; split-pipe "
 bdrhapsody = "/mnt/ccrsf-ifx/Software/tools/BD_Rhapsody/rhapsodyPipeline-3.0/rhapsody"

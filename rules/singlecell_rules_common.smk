@@ -22,6 +22,8 @@ if pipeline_name == "pipseq":
     software = "PIPseeker"
 elif pipeline_name in ("bdrhapsody", "bd_rhapsody"):
     software = "BDRhapsody"
+elif pipeline_name == "pixiome":
+    software = "Pixelator"
 
 # rule prep_fastq_folder:
 #     params:
@@ -42,7 +44,7 @@ def output_list_web_summary(wildcards):
     else:
         return expand("{sample}/outs/web_summary.html", sample=samples)
 
-if pipeline_name in ("pipseq", "nopipe", "parsebio", "bdrhapsody", "bd_rhapsody"):
+if pipeline_name in ("pipseq", "nopipe", "parsebio", "bdrhapsody", "bd_rhapsody", "pixiome"):
     aggregate = False
 
 active_script_folder = ""

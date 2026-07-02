@@ -68,3 +68,5 @@ if config.ref == "spol":
 if config.ref == "GRCg7b":  ## Chicken genome
     pipseq_reference = "/mnt/ccrsf-ifx/RefGenomes/SingleCell_REF/PipSeq/GRCg7b/GRCg7b_release113/refdata-pipgex-GRCg7b-2024/"
     gtf =  "/mnt/ccrsf-ifx/RefGenomes/SingleCell_REF/PipSeq/GRCg7b/GRCg7b_release113/Gallus_gallus.bGalGal1.mat.broiler.GRCg7b.113.gtf"
+
+# pixelator_container = "quay.io/pixelgen-technologies/pixelator:0.29.0"

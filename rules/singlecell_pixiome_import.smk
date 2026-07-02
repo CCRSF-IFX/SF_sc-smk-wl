@@ -1,6 +1,7 @@
 import csv
 import os
 import re
+import sys
 from pathlib import Path
 from shutil import copyfile
 
@@ -34,6 +35,38 @@ def read_pixelator_library_samples():
         if "Name" in (reader.fieldnames or []):
             return sorted({row["Name"].strip() for row in reader if row.get("Name", "").strip()})
     return []
+
+
+def read_pixelator_library_technologies():
+    libraries = getattr(config, "libraries", "libraries.csv")
+    if not libraries or not os.path.isfile(libraries):
+        return []
+    with open(libraries, newline="") as handle:
+        reader = csv.DictReader(handle)
+        fieldnames = reader.fieldnames or []
+        if "design" in fieldnames:
+            design_column = "design"
+        elif "Design" in fieldnames:
+            design_column = "Design"
+        else:
+            return []
+        return sorted({row.get(design_column, "").strip() for row in reader if row.get(design_column, "").strip()})
+
+
+def get_pixelator_technology(wildcards=None):
+    technology = str(getattr(config, "pixelator_technology", "")).strip()
+    if not technology:
+        sys.stderr.write("\nconfig.py must define pixelator_technology for pixiome.\n\n")
+        sys.exit(1)
+
+    technologies = read_pixelator_library_technologies()
+    if len(technologies) > 1:
+        sys.stderr.write("\nlibraries.csv contains multiple design values, but Pixelator requires one technology per run: " + ", ".join(technologies) + "\n\n")
+        sys.exit(1)
+    if technologies and technologies[0] != technology:
+        sys.stderr.write(f"\nlibraries.csv design value '{technologies[0]}' does not match config.py pixelator_technology '{technology}'.\n\n")
+        sys.exit(1)
+    return technology
 
 
 # matched_fastq_root and write_fastq_manifest are handled by singlecell_import.smk
@@ -172,10 +205,11 @@ rule pixelator_params:
         "params.pixiome.yaml"
     run:
         container = getattr(reference, "pixelator_container", None)
+        technology = get_pixelator_technology()
         with open(output[0], "w") as handle:
             handle.write(f'input: "{os.path.abspath(input[0])}"\n')
             handle.write(f'outdir: "{analysis}"\n')
-            handle.write(f'technology: "{getattr(config, "pixelator_technology", "proxiome-v1")}"\n')
+            handle.write(f'technology: "{technology}"\n')
             if container:
                 handle.write(f'pixelator_container: "{container}"\n')
 
@@ -203,7 +237,7 @@ rule count:
     params:
         pipeline_dir=get_pixelator_pipeline_dir,
         nextflow=get_pixelator_nextflow,
-        technology=lambda wildcards: getattr(config, "pixelator_technology", "proxiome-v1"),
+        technology=get_pixelator_technology,
         workdir=os.path.join(analysis, "work", "pixiome"),
     shell:
         r"""

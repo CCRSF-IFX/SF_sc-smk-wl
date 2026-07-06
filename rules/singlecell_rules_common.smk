@@ -67,18 +67,18 @@ if external == False:
     meta2json_script_path = os.path.join(analysis, "scripts/SF_scDMEarchive/cli/meta2json_single_cell.py")
     if aggregate:
         rule archive:
-            input: metadata = report_result, aggr_log = "run_10x_aggregate.log"
+            input: metadata = report_result, aggr_log = "run_10x_aggregate.log", fastq_manifest = FASTQ_MANIFEST_PATH
             output: touch('archive_setup.complete')
             params: fastqs = ",".join([os.path.dirname(name.rstrip('/')) for name in flowcells.values()]), runs = ','.join([j for i in flowcells for j in run_names if i in j])
             log: "archive.log"
-            shell: "cd {one_up}; python {meta2json_script_path} --pipeline {config.pipeline} -m {input.metadata} -r {params.runs} -f {params.fastqs} -c {config.analysis} -a {config.analysis}/AggregatedDatasets > {log}"
+            shell: "cd {one_up}; python {meta2json_script_path} --pipeline {config.pipeline} -m {input.metadata} -r {params.runs} -f {params.fastqs} --fastq-manifest {config.analysis}/{input.fastq_manifest} -c {config.analysis} -a {config.analysis}/AggregatedDatasets > {log}"
     else:   ## aggregate is false
         rule archive:
-            input:  metadata = report_result, summaryFiles = "finalreport/metric_summary.xlsx"
+            input:  metadata = report_result, summaryFiles = "finalreport/metric_summary.xlsx", fastq_manifest = FASTQ_MANIFEST_PATH
             output: touch('archive_setup.complete')
             params: fastqs = ",".join([os.path.dirname(name.rstrip('/')) for name in flowcells.values()]), runs = ','.join([j for i in flowcells for j in run_names if i in j])
             log: "archive.log"
-            shell: "cd {one_up}; python {meta2json_script_path} --pipeline {config.pipeline} -m {input.metadata} -r {params.runs} -f {params.fastqs} -c {config.analysis} > {log}"
+            shell: "cd {one_up}; python {meta2json_script_path} --pipeline {config.pipeline} -m {input.metadata} -r {params.runs} -f {params.fastqs} --fastq-manifest {config.analysis}/{input.fastq_manifest} -c {config.analysis} > {log}"
 
     rule report:
         output: 

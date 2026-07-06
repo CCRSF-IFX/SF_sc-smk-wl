@@ -4,6 +4,7 @@ import re
 import sys
 from pathlib import Path
 from shutil import copyfile
+import yaml
 
 
 def read_pixelator_samplesheet_rows(samplesheet=None):
@@ -167,6 +168,41 @@ def get_pixelator_nextflow(wildcards=None):
     return getattr(config, "pixelator_nextflow", getattr(program, "nextflow", "nextflow"))
 
 
+def get_pixelator_params_extra_file(wildcards=None):
+    extra_file = str(getattr(config, "pixelator_params_extra_file", "")).strip()
+    if not extra_file:
+        return []
+    if not os.path.isabs(extra_file):
+        extra_file = os.path.abspath(extra_file)
+    return [extra_file]
+
+
+def read_pixelator_params_extra(extra_files):
+    extra_files = list(extra_files)
+    if not extra_files:
+        return {}
+    if len(extra_files) > 1:
+        sys.stderr.write("\npixelator_params_extra_file must define a single YAML file.\n\n")
+        sys.exit(1)
+
+    with open(extra_files[0]) as handle:
+        extra_params = yaml.safe_load(handle) or {}
+    if not isinstance(extra_params, dict):
+        sys.stderr.write("\npixelator_params_extra_file must contain a top-level YAML mapping.\n\n")
+        sys.exit(1)
+
+    protected_keys = {"input", "outdir", "technology", "pixelator_container"}
+    conflicts = sorted(protected_keys.intersection(extra_params))
+    if conflicts:
+        sys.stderr.write(
+            "\npixelator_params_extra_file cannot override workflow-managed Pixelator params: "
+            + ", ".join(conflicts)
+            + "\n\n"
+        )
+        sys.exit(1)
+    return extra_params
+
+
 # the pipeline is a two-step process:
 # * A user who already has a correctly formatted pixelator samplesheet can provide it directly
 #   as samplesheet.pixiome.csv (bypassing rule pixelator_generated_samplesheet entirely)
@@ -200,18 +236,23 @@ rule pixelator_samplesheet:
 
 rule pixelator_params:
     input:
-        rules.pixelator_samplesheet.output
+        samplesheet=rules.pixelator_samplesheet.output,
+        extra_params=get_pixelator_params_extra_file
     output:
         "params.pixiome.yaml"
     run:
         container = getattr(reference, "pixelator_container", None)
         technology = get_pixelator_technology()
+        pixelator_params = {
+            "input": os.path.abspath(str(input.samplesheet)),
+            "outdir": analysis,
+            "technology": technology,
+        }
+        if container:
+            pixelator_params["pixelator_container"] = container
+        pixelator_params.update(read_pixelator_params_extra(input.extra_params))
         with open(output[0], "w") as handle:
-            handle.write(f'input: "{os.path.abspath(input[0])}"\n')
-            handle.write(f'outdir: "{analysis}"\n')
-            handle.write(f'technology: "{technology}"\n')
-            if container:
-                handle.write(f'pixelator_container: "{container}"\n')
+            yaml.safe_dump(pixelator_params, handle, sort_keys=False)
 
 
 rule pixelator_nextflow_config:
@@ -237,7 +278,6 @@ rule count:
     params:
         pipeline_dir=get_pixelator_pipeline_dir,
         nextflow=get_pixelator_nextflow,
-        technology=get_pixelator_technology,
         workdir=os.path.join(analysis, "work", "pixiome"),
     shell:
         r"""
@@ -253,7 +293,6 @@ fi
 mkdir -p "{params.workdir}"
 {params.nextflow} -c {input.nf_config} run "{params.pipeline_dir}" \
     -profile singularity \
-    --technology "{params.technology}" \
     -params-file {input.params_yaml} \
     -work-dir "{params.workdir}" \
     -resume \

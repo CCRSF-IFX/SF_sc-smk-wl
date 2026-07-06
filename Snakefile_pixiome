@@ -1,6 +1,4 @@
 # Snakefile for Pixelgen Proxiome data processed by nf-core/pixelator
-import reference
-
 include: "rules/singlecell_import.smk"
 if config.pipeline == 'pixiome':
     aggregate = False

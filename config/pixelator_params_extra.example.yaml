@@ -1,0 +1,93 @@
+# Example extra-parameters file for nf-core/pixelator 4.1.2
+# Reference: https://nf-co.re/pixelator/4.1.2/parameters/
+#
+# Set pixelator_params_extra_file in config.py to the path of this file:
+#   pixelator_params_extra_file="/path/to/pixelator_params_extra.yaml"
+#
+# Parameters managed by the workflow — input, outdir, technology,
+# pixelator_container — must NOT be included here; the workflow will abort
+# if any of them are present.
+#
+# All parameters below are commented out. Uncomment and adjust any value
+# you want to override. Parameters that have no default shown are optional
+# and can be omitted entirely.
+
+# ── Amplicon options ──────────────────────────────────────────────────────────
+#save_pna_amplicon_reads: false          # Save intermediate amplicon FASTQ reads
+#pna_amplicon_mismatches: 0.1           # LBS anchoring mismatch rate [0.0–0.5]
+#pna_amplicon_remove_polyg: true        # Remove polyG sequences (≥10 nt)
+#pna_amplicon_quality_cutoff: 20        # Min average base quality per read; 0 disables
+#pna_amplicon_low_complexity_filter: true         # Filter low-complexity UMI sequences
+#pna_amplicon_low_complexity_threshold: 0.8       # Low-complexity UMI threshold [0.5–1.0]
+#pna_amplicon_lbs_filter: true          # Filter UMIs similar to LBS sequence
+#pna_amplicon_lbs_filter_min_overlap: 8 # Min UMI–LBS alignment overlap [4–28]
+#pna_amplicon_lbs_filter_error_rate: 0.1  # Max UMI–LBS alignment error rate [0.0–1.0]
+
+# ── Demux options ─────────────────────────────────────────────────────────────
+#pna_demux_mismatches: 1                # Mismatches allowed in marker barcodes [0–2]
+#pna_demux_output_chunk_reads: "50M"    # Target reads per partitioned demux output file
+#pna_demux_output_max_chunks: 8        # Max demux output chunks per UMI region [1–32]
+#pna_demux_strategy: "independent"     # Collapsing strategy: "paired" or "independent"
+#save_pna_demux_parquet: false          # Save intermediate demux parquet embeddings
+#save_pna_demux_passed_reads: false     # Save FASTQ reads with valid antibody barcodes
+#save_pna_demux_failed_reads: false     # Save FASTQ reads without valid antibody barcodes
+
+# ── Collapse options ──────────────────────────────────────────────────────────
+#pna_collapse_algorithm: "directional" # Collapse algorithm: "directional" or "cluster"
+#pna_collapse_mismatches: 2            # Mismatches allowed when collapsing [0–5]
+#save_pna_collapsed_reads: false       # Save intermediate collapsed reads parquet
+
+# ── Graph options ─────────────────────────────────────────────────────────────
+#save_pna_graph_pixelfile: false                               # Save PXL file after graph stage
+#pna_graph_multiplet_recovery: true                           # Multiplet recovery using Leiden
+#pna_graph_initial_stage_leiden_resolution: 1.0               # Leiden resolution, initial stage
+#pna_graph_refinement_stage_leiden_resolution: 0.01           # Leiden resolution, refinement stage
+#pna_graph_edge_cycle_verification: true                      # Remove non-cycle edges from well-connected regions
+#pna_graph_min_count: 1.0                                     # Min edge read count (1 = no filter)
+#pna_graph_max_refinement_recursion_depth: 3                  # Max refinement recursion depth [1–100]
+#pna_graph_initial_stage_max_edges_to_remove: 10              # Max edges removed between components (initial stage)
+#pna_graph_refinement_stage_max_edges_to_remove: 10           # Max edges removed between components (refinement stage)
+#pna_graph_initial_stage_max_edges_to_remove_relative: null   # Relative max edges to remove (initial stage)
+#pna_graph_refinement_stage_max_edges_to_remove_relative: null  # Relative max edges to remove (refinement stage)
+#pna_graph_component_size_min_threshold: 8000                 # Min nodes per component; null = automatic
+
+# ── Sample calling options ────────────────────────────────────────────────────
+#save_pna_sample_calling_pixelfile: false       # Save PXL file after sample calling
+#pna_sample_calling_save_undetermined: false    # Save undetermined components to separate PXL file
+#pna_sample_calling_remove_incompatible: true   # Remove antibodies incompatible with called sample
+#pna_sample_calling_confidence_threshold: 0.9  # Min sample-assignment confidence [0.0–1.0]
+
+# ── Denoise options ───────────────────────────────────────────────────────────
+#skip_denoise: false                              # Skip denoising step entirely
+#save_pna_denoise_pixelfile: false               # Save PXL file after denoise stage
+#pna_denoise_run_one_core_graph_denoising: false # Activate one-core graph denoising
+#pna_denoise_pval_threshold: 0.05               # p-value threshold for one-core marker over-expression
+#pna_denoise_inflate_factor: 1.5                # Inflate factor for over-expressed marker node removal
+#pna_denoise_run_ace_denoising: true            # Adaptive core expansion (ACE) denoising
+#pna_denoise_ace_k: 3                           # ACE neighborhood radius in graph steps [1–6]
+#pna_denoise_run_pls_denoising: true            # PLS-on-coreness denoising
+#pna_denoise_pls_score_threshold: -3.0          # Min PLS score; columns below threshold are filtered
+
+# ── Analysis options ──────────────────────────────────────────────────────────
+#skip_analysis: false                                 # Skip analysis step entirely
+#save_pna_analysis_pixelfile: false                   # Save PXL file after analysis stage
+#pna_analysis_compute_proximity: true                 # Compute proximity scores
+#pna_analysis_compute_k_cores: true                   # Compute k-core summary tables per component
+#pna_analysis_proximity_nbr_of_permutations: 100      # Permutations for expected proximity scores [≥50]
+#pna_analysis_compute_svd_var_explained: true         # Compute variance explained by SVD components
+#pna_analysis_svd_nbr_of_pivots: 50                  # SVD pivot count [10–200]
+
+# ── Layout options ────────────────────────────────────────────────────────────
+#skip_layout: false                             # Skip layout step entirely
+#pna_layout_no_node_marker_counts: false        # Skip adding marker counts to layout
+#pna_layout_layout_algorithm: "wpmds_3d"        # Layout algorithm(s): pmds, pmds_3d, wpmds, wpmds_3d
+#pna_layout_pmds_pivots: 50                     # PMDS pivot count; higher = better but slower [≥50]
+#pna_layout_wpmds_k: 5                          # wPMDS probability-weight window size [1–10]
+
+# ── Experiment summary options ────────────────────────────────────────────────
+#skip_experiment_summary: false                 # Skip experiment summary generation
+
+# ── Global options ────────────────────────────────────────────────────────────
+#save_all: false         # Save all intermediate results (equivalent to all --save_* flags)
+#save_json: true         # Save all JSON report and metadata files generated by pixelator
+#experiment_summary_container: ""  # Override container image for the experiment summary step

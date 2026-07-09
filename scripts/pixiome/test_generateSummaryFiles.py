@@ -16,21 +16,45 @@ def load_module():
 def test_generate_summary_files(tmp_path):
     module = load_module()
     os.chdir(tmp_path)
-    Path("pixelator/analysis").mkdir(parents=True)
-    Path("pixelator/experiment-summary.html").write_text("<html>summary</html>")
-    Path("samplesheet.pixiome.csv").write_text(
-        "sample,sample_alias,condition,design,panel,fastq_1,fastq_2\n"
-        "1_UNT,S1_UNT,UNT,proxiome-v1,proxiome-v1-immuno-155-v1.1,a_R1.fastq.gz,a_R2.fastq.gz\n"
+    Path("pixelator").mkdir()
+    quality_payload = {
+        "x": {
+            "data": [
+                ["S1_UNT"],
+                ["42"],
+                ["0.44"],
+                ["0.26"],
+                ["3.35"],
+                ["0.16"],
+                ["92.69"],
+                ["4.35"],
+                ["92.04"],
+                ["85.71"],
+                ["2.68"],
+            ],
+            "container": (
+                "<table><thead><tr>"
+                "<th>Sample ID</th>"
+                "<th>Number of cells in sample <i class=\"bi bi-info-circle-fill\"></i></th>"
+                "<th>Median isotype % counts</th>"
+                "<th>Median proteins per cell [k]</th>"
+                "<th>Median reads per cell [k]</th>"
+                "<th>Total reads [M]</th>"
+                "<th>% Graph reads</th>"
+                "<th>% Denoised UMIs</th>"
+                "<th>Graph node saturation [%]</th>"
+                "<th>Graph edge saturation [%]</th>"
+                "<th>Median mean coreness</th>"
+                "</tr></thead></table>"
+            ),
+        }
+    }
+    Path("pixelator/experiment-summary.html").write_text(
+        '<html><script type="application/json" data-for="quality">'
+        + json.dumps(quality_payload)
+        + "</script></html>"
     )
     Path("params.pixiome.yaml").write_text('pixelator_container: "quay.io/pixelgen-technologies/pixelator:0.27.2"\n')
-    report = {
-        "sample_id": "1_UNT",
-        "product_id": "single-cell-pna",
-        "report_type": "analysis",
-        "k_cores": {"median_average_k_core": 3.42},
-        "svd": {"median_variance_explained_3d": 0.11},
-    }
-    Path("pixelator/analysis/1_UNT.report.json").write_text(json.dumps(report))
 
     module.main()
 
@@ -38,6 +62,14 @@ def test_generate_summary_files(tmp_path):
     assert workbook.exists()
     assert Path("finalreport/summaries/experiment-summary.html").exists()
     with zipfile.ZipFile(workbook) as zipped:
+        workbook_xml = zipped.read("xl/workbook.xml").decode()
         shared_strings = zipped.read("xl/sharedStrings.xml").decode()
-    assert "1_UNT" in shared_strings
+    assert "metrics_summary" in workbook_xml
+    assert "run_metadata" in workbook_xml
+    assert "quality_metrics" not in workbook_xml
+    assert "json_metrics" not in workbook_xml
+    assert "S1_UNT" in shared_strings
+    assert "0.44" in shared_strings
+    assert "92.69" in shared_strings
+    assert "Median isotype % counts" in shared_strings
     assert "Pixelator" in shared_strings

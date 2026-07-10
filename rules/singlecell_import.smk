@@ -1,3 +1,15 @@
+import os
+
+for thread_var in [
+    "OPENBLAS_NUM_THREADS",
+    "OMP_NUM_THREADS",
+    "MKL_NUM_THREADS",
+    "NUMEXPR_NUM_THREADS",
+    "BLIS_NUM_THREADS",
+    "VECLIB_MAXIMUM_THREADS",
+]:
+    os.environ.setdefault(thread_var, "1")
+
 import json
 import packaging.version
 from xml.dom import minidom
@@ -7,7 +19,6 @@ import pandas as pd
 import xml.etree.ElementTree as ET
 import glob
 import itertools
-import os
 import re
 import sys
 from collections import Counter, defaultdict

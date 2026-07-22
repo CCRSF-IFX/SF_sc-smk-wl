@@ -241,7 +241,7 @@ rule pixelator_params:
     output:
         "params.pixiome.yaml"
     run:
-        container = getattr(reference, "pixelator_container", None)
+        container = getattr(program, "pixelator_container", None)
         technology = get_pixelator_technology()
         pixelator_params = {
             "input": os.path.abspath(str(input.samplesheet)),

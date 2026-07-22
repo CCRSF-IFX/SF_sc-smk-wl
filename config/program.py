@@ -35,7 +35,7 @@ tenx_cloud_token_path = "/mnt/ccrsf-ifx/RefGenomes/SingleCell_REF/10X/CLI/txg"
 nf_pixelator_path = "/mnt/ccrsf-ifx/Software/tools/nf-pixelator/v4.1.2/"
 # https://quay.io/repository/pixelgen-technologies/pixelator?tab=tags
 # https://github.com/PixelgenTechnologies/pixelator/releases
-# pixelator_container = "quay.io/pixelgen-technologies/pixelator:0.29.0"
+pixelator_container = "quay.io/pixelgen-technologies/pixelator:0.29.0"
 
 parsebio_split_pipe = "module purge; module load miniconda; conda activate /mnt/ccrsf-ifx/Software/tools/Parse_Pipeline/condaenv_spipe_v1.6.1/; split-pipe "
 bdrhapsody = "/mnt/ccrsf-ifx/Software/tools/BD_Rhapsody/rhapsodyPipeline-3.0/rhapsody"

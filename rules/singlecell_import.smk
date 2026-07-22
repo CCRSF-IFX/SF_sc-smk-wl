@@ -217,10 +217,12 @@ def run_label_for_fastq_path(index, fq_path):
     run_name = run_name_for_fastq_path(index, fq_path)
     return run_name or f"fastq_root_{index + 1}"
 
-def build_fastq_manifest_rows():
+def build_fastq_manifest_rows(manifest_samples=None):
     rows = []
     seen = set()
-    for sample in samples:
+    if manifest_samples is None:
+        manifest_samples = samples
+    for sample in manifest_samples:
         for index, fq_path in enumerate(fastqpath):
             run_name = run_name_for_fastq_path(index, fq_path)
             run_label = run_label_for_fastq_path(index, fq_path)
@@ -249,7 +251,7 @@ def build_fastq_manifest_rows():
                 })
     return sorted(rows, key=lambda row: (row["sample"], row["run_name"], row["source_path"]))
 
-def write_fastq_manifest(manifest_path):
+def write_fastq_manifest(manifest_path, manifest_samples=None):
     columns = [
         "sample",
         "read",
@@ -267,7 +269,7 @@ def write_fastq_manifest(manifest_path):
     os.makedirs(os.path.dirname(manifest_path), exist_ok=True)
     with open(manifest_path, "w") as manifest:
         manifest.write("\t".join(columns) + "\n")
-        for row in build_fastq_manifest_rows():
+        for row in build_fastq_manifest_rows(manifest_samples):
             manifest.write("\t".join(str(row[column]) for column in columns) + "\n")
 
 #Get sample names
@@ -439,7 +441,7 @@ rule fastq_manifest:
     output:
         FASTQ_MANIFEST_PATH
     run:
-        write_fastq_manifest(output[0])
+        write_fastq_manifest(output[0], globals().get("fastq_samples", samples))
 
 #Setting aggregate flag, this gets turned off for certain pipelines
 aggregate = True

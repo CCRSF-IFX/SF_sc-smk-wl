@@ -13,7 +13,7 @@ cellranger_atac = "docker://ccrsfifx/cellranger-atac:2.1.0"
 # 2.0.2
 cellranger_arc  = "docker://ccrsfifx/cellranger-arc:2.0.2"
 # Available versions of spaceranger:
-# 4.0.1;3.1.3;3.0.0
+# 4.1.0;4.0.1;3.1.3;3.0.0
 spaceranger     = "docker://ccrsfifx/spaceranger:4.0.1"
 Renv            = "docker://ccrsfifx/sc-smk-wl:r1.0.0"
 Renv4rmd        = "docker://ccrsfifx/sc-rmd-report:1.0.0"
@@ -37,5 +37,6 @@ nf_pixelator_path = "/mnt/ccrsf-ifx/Software/tools/nf-pixelator/v4.1.2/"
 # https://github.com/PixelgenTechnologies/pixelator/releases
 pixelator_container = "quay.io/pixelgen-technologies/pixelator:0.29.0"
 
+## 1.8.2; 1.6.4
 parsebio_split_pipe = "module purge; module load miniconda; conda activate /mnt/ccrsf-ifx/Software/tools/Parse_Pipeline/condaenv_spipe_v1.6.1/; split-pipe "
 bdrhapsody = "/mnt/ccrsf-ifx/Software/tools/BD_Rhapsody/rhapsodyPipeline-3.0/rhapsody"

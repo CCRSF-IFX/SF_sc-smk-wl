@@ -24,4 +24,9 @@ else
 fi
 
 module list
+SINGULARITY_WORK="/scratch/ccrsf_scratch/scratch/ccrsfifx/SINGULARITY_WORK"
+export SINGULARITY_CACHEDIR="${SINGULARITY_WORK}/cache/${USER}"
+mkdir -p "$SINGULARITY_CACHEDIR"
+chmod 700 "$SINGULARITY_CACHEDIR" 
+chmod g-s "$SINGULARITY_CACHEDIR" 
 snakemake --jobname 's.{jobid}.{rulename}' --profile workflow/profile/slurm/  -e cluster-generic > snakemake.log 2>&1

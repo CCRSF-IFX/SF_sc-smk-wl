@@ -47,6 +47,23 @@ def count_premrna(wildcards):
     else:
         return(' ')
 
+def cell_annotation(wildcards):
+    cell_annotation = getattr(config, "cell_annotation", True)
+    if cell_annotation == True:
+        try:
+            cellranger_arc_version = packaging.version.parse(program.cellranger_arc.split(":")[-1])
+        except packaging.version.InvalidVersion:
+            print(f"WARNING: Unable to determine the Cell Ranger ARC version from '{program.cellranger_arc}'. Cell type annotation requires Cell Ranger ARC 2.2.0 or later and will not be applied.")
+            return ""
+        if cellranger_arc_version < packaging.version.parse("2.2.0"):
+            print(f"WARNING: Cell type annotation requires Cell Ranger ARC 2.2.0 or later, but '{program.cellranger_arc}' is configured. The cell type annotation model will not be applied.")
+            return ""
+        if config.ref.startswith("hg38") or config.ref.startswith("hg19") or config.ref.startswith("mm10") or config.ref.startswith("mm39"):
+            return f"--cell-annotation-model auto --tenx-cloud-token-path {program.tenx_cloud_token_path}"
+        else:
+            print(f"WARNING: The reference '{config.ref}' doesn't start with hg38, hg19, mm10, or mm39. But cell type annotation is enabled.\nThe cell type annotation model will not be applied.")
+    return ""
+
 flag4cellranger_arc_create_bam = ""
 try:
     cellranger_arc_version = packaging.version.parse(program.cellranger_arc.split(":")[-1])
@@ -59,11 +76,16 @@ rule arc_count:
     input: "{sample}_libraries.csv"
     output: "{sample}/outs/web_summary.html"
     log: err = "run_{sample}_10x_cellranger_count.err", log ="run_{sample}_10x_cellranger_count.log"
-    params: prefix = "{sample}", prefix2 = filterFastq,count_intronic = count_premrna, create_bam = flag4cellranger_arc_create_bam
+    params:
+        prefix = "{sample}",
+        prefix2 = filterFastq,
+        count_intronic = count_premrna,
+        create_bam = flag4cellranger_arc_create_bam,
+        cell_annotation = cell_annotation
     container: program.cellranger_arc
     shell:
         """
-rm -r {params.prefix}; cellranger-arc count {params.count_intronic} --id={params.prefix} --reference={reference.arc_reference} --libraries={input}{params.create_bam} 2>{log.err} 1>{log.log}
+rm -r {params.prefix}; cellranger-arc count {params.count_intronic} --id={params.prefix} --reference={reference.arc_reference} --libraries={input}{params.create_bam} {params.cell_annotation} 2>{log.err} 1>{log.log}
 """
 
 rule summaryFiles:

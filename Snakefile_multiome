@@ -47,15 +47,23 @@ def count_premrna(wildcards):
     else:
         return(' ')
 
+flag4cellranger_arc_create_bam = ""
+try:
+    cellranger_arc_version = packaging.version.parse(program.cellranger_arc.split(":")[-1])
+    if cellranger_arc_version > packaging.version.parse("2.0.2"):
+        flag4cellranger_arc_create_bam = " --create-bam true"
+except packaging.version.InvalidVersion:
+    pass
+
 rule arc_count:
     input: "{sample}_libraries.csv"
     output: "{sample}/outs/web_summary.html"
     log: err = "run_{sample}_10x_cellranger_count.err", log ="run_{sample}_10x_cellranger_count.log"
-    params: prefix = "{sample}", prefix2 = filterFastq,count_intronic = count_premrna
+    params: prefix = "{sample}", prefix2 = filterFastq,count_intronic = count_premrna, create_bam = flag4cellranger_arc_create_bam
     container: program.cellranger_arc
     shell:
         """
-rm -r {params.prefix}; cellranger-arc count {params.count_intronic} --id={params.prefix} --reference={reference.arc_reference} --libraries={input} 2>{log.err} 1>{log.log}
+rm -r {params.prefix}; cellranger-arc count {params.count_intronic} --id={params.prefix} --reference={reference.arc_reference} --libraries={input}{params.create_bam} 2>{log.err} 1>{log.log}
 """
 
 rule summaryFiles:

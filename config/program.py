@@ -6,6 +6,10 @@ active_scripts = "/mnt/ccrsf-ifx/Software/scripts/bin/"
 # 9.0.1;9.0.0;8.0.1;8.0.0;7.2.0;7.1.0; 
 # https://hub.docker.com/r/ccrsfifx/cellranger/tags
 cellranger      = "docker://ccrsfifx/cellranger:9.0.1"
+
+# Takara Trekker v1.4.11
+trekker_installation = "/mnt/ccrsf-ifx/Software/tools/trekker/trekker-v1.4.11"
+trekker_conda_env = "/mnt/ccrsf-ifx/Software/tools/trekker/env4trekker_v1.4.11"
 # Available versions of cellranger-atac:
 # 2.1.0
 cellranger_atac = "docker://ccrsfifx/cellranger-atac:2.1.0"

@@ -201,10 +201,39 @@ def direct_fastq_files_for_sample(fq_path, sample):
         fastq_files.update(glob.glob(os.path.join(fq_path, f"{sample_prefix}_S[0-9]*_*fastq.gz")))
     return sorted(fastq_files)
 
+def explicit_fastq_files_for_sample(fq_path, sample):
+    """Return libraries.csv-selected inputs when a pipeline provides that map."""
+    explicit_inputs = globals().get("fastq_inputs_by_sample")
+    if explicit_inputs is None:
+        return None
+    fastq_root = os.path.realpath(os.path.abspath(fq_path))
+    selected = []
+    for fastq_file in explicit_inputs.get(sample, []):
+        source_path = os.path.realpath(os.path.abspath(fastq_file))
+        try:
+            belongs_to_root = os.path.commonpath([fastq_root, source_path]) == fastq_root
+        except ValueError:
+            belongs_to_root = False
+        if belongs_to_root:
+            selected.append(source_path)
+    return sorted(selected)
+
 def fastq_files_for_sample(fq_path, sample, sample_folder=None):
+    explicit_fastqs = explicit_fastq_files_for_sample(fq_path, sample)
+    if explicit_fastqs is not None:
+        return explicit_fastqs
     if sample_folder:
         return sorted(glob.glob(os.path.join(fq_path, sample_folder, "*fastq.gz")))
     return direct_fastq_files_for_sample(fq_path, sample)
+
+def sample_has_fastqs(sample):
+    explicit_inputs = globals().get("fastq_inputs_by_sample")
+    if explicit_inputs is not None:
+        return bool(explicit_inputs.get(sample))
+    return any(
+        detect_sample_folder(fq_path, sample) or direct_fastq_files_for_sample(fq_path, sample)
+        for fq_path in fastqpath
+    )
 
 def run_name_for_fastq_path(index, fq_path):
     if index < len(run_names_orig) and run_names_orig[index]:
@@ -341,10 +370,7 @@ def filterFastq4nopipe(wildcards):
     Prepare the folders for pipseeker or nopipe.
     Automatically detects whether "Sample_" prefix is used in folder structure.
     """
-    has_fastqs = any(
-        detect_sample_folder(fq_path, wildcards.sample) or direct_fastq_files_for_sample(fq_path, wildcards.sample)
-        for fq_path in fastqpath
-    )
+    has_fastqs = sample_has_fastqs(wildcards.sample)
     if not has_fastqs:
         sys.stderr.write(f"\nError: No FASTQ folder found for sample {wildcards.sample}. Check the directory structure.\n\n")
         sys.exit(1)
@@ -389,10 +415,7 @@ def prep_fastq_folder_ln(sample, get_dict_only=False):
     Updates the global record_fastqpath and record_fastqfiles dictionaries only if get_dict_only is False.
     """
     global record_fastqpath, record_fastqfiles
-    has_fastqs = any(
-        detect_sample_folder(fq_path, sample) or direct_fastq_files_for_sample(fq_path, sample)
-        for fq_path in fastqpath
-    )
+    has_fastqs = sample_has_fastqs(sample)
     if not has_fastqs:
         sys.stderr.write(f"\nError: No FASTQ folder found for sample {sample}. Check the directory structure.\n\n")
         sys.exit(1)

@@ -1,6 +1,5 @@
 """Rules and configuration for Takara TrekkerU_CX primary analysis."""
 
-import csv
 import os
 import subprocess
 import sys
@@ -14,6 +13,7 @@ from trekker_utils import (
     cellranger_fastqs,
     expected_report,
     load_libraries,
+    stage_fastqs,
     validate_installation,
     write_vendor_samplesheet,
 )
@@ -109,16 +109,31 @@ final_trekker_summaries = [
     for sample in records
 ]
 
-# The common reporting/archive rules use ``samples`` for final analysis units,
-# while the FASTQ manifest must retain every GEX and Trekker library prefix.
-with libraries.open(newline="", encoding="utf-8-sig") as libraries_handle:
-    fastq_samples = sorted(
-        {row["Sample"].strip() for row in csv.DictReader(libraries_handle)}
-    )
+# Restrict QC and archive discovery to the exact Flowcell/Sample combinations
+# selected in libraries.csv. This prevents a repeated prefix in another FASTQ
+# root from being silently pulled into the wrong library.
+fastq_inputs_by_sample = {}
+for record in records.values():
+    for fastq_sample, fastqs in record["source_fastqs_by_sample"].items():
+        fastq_inputs_by_sample.setdefault(fastq_sample, []).extend(fastqs)
+fastq_inputs_by_sample = {
+    sample: list(dict.fromkeys(fastqs))
+    for sample, fastqs in fastq_inputs_by_sample.items()
+}
+fastq_samples = sorted(fastq_inputs_by_sample)
 
 # Run the standard sequencing-QC suite for every source library prefix. The
 # workflow later restores ``samples`` to the combined Trekker analysis names.
 samples = fastq_samples
+
+# singlecell_import.smk is loaded before libraries.csv is normalized. Refresh
+# these lookup tables now so nested FASTQ layouts and multi-flowcell mappings
+# use the exact validated inputs above.
+record_fastqpath.clear()
+record_fastqfiles.clear()
+for fastq_sample in samples:
+    prep_fastq_folder_ln(fastq_sample, get_dict_only=True)
+
 include: "prep_fastq.smk"
 include: "fastqscreen.smk"
 include: "kraken.smk"
@@ -168,6 +183,7 @@ rule cellranger_count:
         fastqs=cellranger_input_fastqs,
     output:
         web=str(cellranger_output_root / "{sample}" / "outs" / "web_summary.html"),
+        metrics=str(cellranger_output_root / "{sample}" / "outs" / "metrics_summary.csv"),
         barcodes=str(cellranger_output_root / "{sample}" / "outs" / "filtered_feature_bc_matrix" / "barcodes.tsv.gz"),
         features=str(cellranger_output_root / "{sample}" / "outs" / "filtered_feature_bc_matrix" / "features.tsv.gz"),
         matrix=str(cellranger_output_root / "{sample}" / "outs" / "filtered_feature_bc_matrix" / "matrix.mtx.gz"),
@@ -223,24 +239,9 @@ rule trekker_fastq_pair:
     resources:
         mem_mb=4000,
         runtime_min=240,
-    shell:
-        r"""
-        set -euo pipefail
-        mkdir -p {trekker_fastq_root:q}
-
-        concat_or_link() {{
-            destination="$1"
-            shift
-            if [ "$#" -eq 1 ]; then
-                ln -sfn "$1" "$destination"
-            else
-                cat "$@" > "$destination"
-            fi
-        }}
-
-        concat_or_link {output.r1:q} {input.r1:q}
-        concat_or_link {output.r2:q} {input.r2:q}
-        """
+    run:
+        stage_fastqs(input.r1, output.r1)
+        stage_fastqs(input.r2, output.r2)
 
 
 rule vendor_samplesheet:

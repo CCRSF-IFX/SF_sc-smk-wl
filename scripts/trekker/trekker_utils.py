@@ -8,7 +8,9 @@ import csv
 import os
 import re
 import shlex
+import shutil
 import subprocess
+import tempfile
 from collections import OrderedDict
 from datetime import datetime
 from pathlib import Path
@@ -76,9 +78,16 @@ def _discover_fastq_pair(
 ) -> Dict[str, List[str]]:
     """Find and validate one demultiplexed R1/R2 FASTQ set."""
 
-    reads: Dict[str, List[Path]] = {"R1": [], "R2": []}
+    reads: Dict[str, List[Path]] = {
+        "R1": [],
+        "R2": [],
+        "R3": [],
+        "I1": [],
+        "I2": [],
+    }
     pattern = re.compile(
-        rf"^{re.escape(fastq_sample)}(?:_S[0-9]+)?_L[0-9]{{3}}_(R[12])_[0-9]{{3}}\.fastq\.gz$"
+        rf"^{re.escape(fastq_sample)}(?:_S[0-9]+)?_L[0-9]{{3}}_"
+        rf"(R[123]|I[12])_[0-9]{{3}}\.fastq\.gz$"
     )
     for path in fastq_root.rglob("*.fastq.gz"):
         match = pattern.fullmatch(path.name)
@@ -110,8 +119,9 @@ def _discover_fastq_pair(
             + "; ".join(details)
         )
     return {
-        read: [str(path) for path in sorted(reads[read])]
-        for read in ("R1", "R2")
+        read: [str(path) for path in sorted(paths)]
+        for read, paths in reads.items()
+        if paths
     }
 
 
@@ -122,18 +132,28 @@ def _resolve_fastq_root(
 ) -> Path:
     """Resolve a multi-style Flowcell value against configured FASTQ roots."""
 
+    configured_roots = [Path(path).expanduser().resolve() for path in unaligned]
     candidate = Path(flowcell).expanduser()
     if candidate.is_absolute():
         if not candidate.is_dir():
             raise TrekkerConfigError(
                 f"Sample '{final_sample}': Flowcell path does not exist: {candidate}"
             )
-        return candidate.resolve()
+        candidate = candidate.resolve()
+        if candidate not in configured_roots:
+            raise TrekkerConfigError(
+                f"Sample '{final_sample}': absolute Flowcell path is not listed in "
+                f"config.unaligned: {candidate}"
+            )
+        return candidate
 
+    # Match a complete path component or a token in an Illumina-style run name.
+    # Plain substring matching can silently resolve FC1 to an FC10 directory.
+    token = re.compile(rf"(?:^|[_-]){re.escape(flowcell)}(?:$|[_-])")
     matches = [
-        Path(path).expanduser().resolve()
-        for path in unaligned
-        if flowcell in str(Path(path).expanduser())
+        root
+        for root in configured_roots
+        if any(component == flowcell or token.search(component) for component in root.parts)
     ]
     if len(matches) != 1:
         raise TrekkerConfigError(
@@ -179,8 +199,11 @@ def load_libraries(
     configured_roots = [Path(item).expanduser().resolve() for item in unaligned]
     if not configured_roots:
         raise TrekkerConfigError("At least one configured FASTQ root is required")
+    if len(configured_roots) != len(set(configured_roots)):
+        raise TrekkerConfigError("Configured FASTQ roots must be unique")
 
     groups: "OrderedDict[str, Dict[str, List[Dict[str, Any]]]]" = OrderedDict()
+    source_sample_owners: Dict[str, tuple] = {}
     used_roots = set()
     with path.open(newline="", encoding="utf-8-sig") as handle:
         reader = csv.DictReader(handle)
@@ -211,6 +234,16 @@ def load_libraries(
                 raise TrekkerConfigError(
                     f"Row {row_number}: Type must be 'Gene Expression' or 'Trekker'; "
                     f"received {row['Type']!r}"
+                )
+
+            owner = (final_sample, row["Type"])
+            previous_owner = source_sample_owners.setdefault(fastq_sample, owner)
+            if previous_owner != owner:
+                raise TrekkerConfigError(
+                    f"Row {row_number}: FASTQ Sample prefix '{fastq_sample}' is "
+                    f"already assigned to Name '{previous_owner[0]}' as "
+                    f"'{previous_owner[1]}'; source prefixes must identify one "
+                    "final sample and library type across all flowcells"
                 )
 
             fastq_root = _resolve_fastq_root(row["Flowcell"], unaligned, final_sample)
@@ -321,6 +354,16 @@ def load_libraries(
                 "refer to the same FASTQ files: " + ", ".join(sorted(shared_fastqs))
             )
 
+        source_fastqs_by_sample: "OrderedDict[str, List[str]]" = OrderedDict()
+        for row in gex_rows + trekker_rows:
+            source_fastqs = source_fastqs_by_sample.setdefault(row["Sample"], [])
+            for read in sorted(row["fastqs"]):
+                source_fastqs.extend(row["fastqs"][read])
+        source_fastqs_by_sample = OrderedDict(
+            (sample, _unique(fastqs))
+            for sample, fastqs in source_fastqs_by_sample.items()
+        )
+
         record = {
             "sample": final_sample,
             "sc_sample": gex_rows[0]["Sample"],
@@ -349,6 +392,7 @@ def load_libraries(
             "cellranger_fastqs": gex_fastqs,
             "trekker_r1_fastqs": trekker_r1,
             "trekker_r2_fastqs": trekker_r2,
+            "source_fastqs_by_sample": source_fastqs_by_sample,
         }
         for column in TREKKER_COLUMNS:
             value = str(record[column])
@@ -365,6 +409,44 @@ def cellranger_fastqs(record: Mapping[str, Any]) -> List[str]:
     """Return the GEX FASTQs tracked for a normalized libraries.csv record."""
 
     return list(record["cellranger_fastqs"])
+
+
+def stage_fastqs(fastqs: Sequence[os.PathLike], destination: os.PathLike) -> Path:
+    """Atomically symlink one FASTQ or concatenate several gzip streams."""
+
+    sources = [Path(path).expanduser().resolve() for path in fastqs]
+    if not sources:
+        raise TrekkerConfigError("At least one FASTQ is required for staging")
+    missing = [str(path) for path in sources if not path.is_file()]
+    if missing:
+        raise TrekkerConfigError("FASTQ input does not exist: " + ", ".join(missing))
+
+    # Do not resolve the destination: an earlier single-flowcell run may have
+    # left a symlink here, and resolving it would target the source FASTQ.
+    destination = Path(os.path.abspath(Path(destination).expanduser()))
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix=f".{destination.name}.",
+        suffix=".tmp",
+        dir=str(destination.parent),
+    )
+    os.close(descriptor)
+    temporary = Path(temporary_name)
+    try:
+        if len(sources) == 1:
+            temporary.unlink()
+            temporary.symlink_to(sources[0])
+        else:
+            with temporary.open("wb") as output_handle:
+                for source in sources:
+                    with source.open("rb") as input_handle:
+                        shutil.copyfileobj(input_handle, output_handle, length=16 * 1024 * 1024)
+        os.replace(temporary, destination)
+    except Exception:
+        if temporary.exists() or temporary.is_symlink():
+            temporary.unlink()
+        raise
+    return destination
 
 
 def _validate_row(

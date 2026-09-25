@@ -24,6 +24,8 @@ elif pipeline_name in ("bdrhapsody", "bd_rhapsody"):
     software = "BDRhapsody"
 elif pipeline_name == "pixiome":
     software = "Pixelator"
+elif pipeline_name == "trekker":
+    software = "Trekker"
 
 # rule prep_fastq_folder:
 #     params:
